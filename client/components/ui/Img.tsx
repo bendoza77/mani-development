@@ -10,7 +10,8 @@ type Props = {
   sizes: string;
   className?: string;
   imgClassName?: string;
-  priority?: boolean;
+  /** Preload as the page's LCP image. Use for at most one above-the-fold image per page. */
+  preload?: boolean;
   quality?: 70 | 80;
   /** Skip the tone placeholder (e.g. letterboxed lightbox images). */
   noTone?: boolean;
@@ -21,7 +22,7 @@ type Props = {
  * AVIF/WebP variants; uploaded data URLs from the media library render as plain <img>.
  * The dominant tone is painted underneath so nothing pops while loading.
  */
-export function Img({ src, alt, sizes, className, imgClassName, priority, quality = 70, noTone }: Props) {
+export function Img({ src, alt, sizes, className, imgClassName, preload, quality = 70, noTone }: Props) {
   const tone = TONES.get(src) ?? "var(--paper-2)";
   const local = src.startsWith("/");
   return (
@@ -33,7 +34,7 @@ export function Img({ src, alt, sizes, className, imgClassName, priority, qualit
           fill
           sizes={sizes}
           quality={quality}
-          priority={priority}
+          preload={preload}
           className={cx("object-cover", imgClassName)}
         />
       ) : (

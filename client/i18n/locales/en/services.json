@@ -1,0 +1,81 @@
+{
+  "page": {
+    "eyebrow": "Services",
+    "title": "Everything it takes to get your house <em>out of the ground</em>",
+    "lead": "Planning, engineering and construction under one roof, so the people who plan your house are the same people who build it."
+  },
+  "list": {
+    "label": "Services",
+    "index": "Services index",
+    "empty": "Our services are being updated. Please contact us directly."
+  },
+  "steps": {
+    "eyebrow": "Working with us",
+    "title": "How a project runs, from first call to handover",
+    "items": [
+      {
+        "title": "First conversation",
+        "body": "Tell us about your plot, sketch or question. First conversations and site visits are free."
+      },
+      {
+        "title": "Cost plan",
+        "body": "After an initial meeting and a look at the site, we prepare a cost plan for your house."
+      },
+      {
+        "title": "Design & price",
+        "body": "We work with your architect to develop the design until it is reliable enough for a fixed or target price."
+      },
+      {
+        "title": "Construction",
+        "body": "One project lead runs the site, with weekly progress, cost and risk reports."
+      },
+      {
+        "title": "Handover & aftercare",
+        "body": "Twelve months of aftercare and a phone number that is always answered."
+      }
+    ]
+  },
+  "models": {
+    "eyebrow": "Ways to work with us",
+    "title": "Three engagement models, one standard of work",
+    "bestFor": "Best for · {{audience}}",
+    "items": [
+      {
+        "name": "Design & build",
+        "body": "One contract and one team, from concept with your architect to handover. The simplest route to cost certainty.",
+        "best": "Private homes, apartment buildings"
+      },
+      {
+        "name": "Build only",
+        "body": "Your design team completes the drawings; we price, plan and build them, with early buildability input if you want it.",
+        "best": "Developer-led projects with appointed architects"
+      },
+      {
+        "name": "Management",
+        "body": "We manage programme, cost and quality on your behalf, procuring trade packages directly in your name.",
+        "best": "Investors and owner-occupiers"
+      }
+    ]
+  },
+  "faq": {
+    "title": "Common questions",
+    "items": [
+      {
+        "q": "Where do you work?",
+        "a": "Mainly in Tbilisi, Batumi and the Kakheti region, with selected projects elsewhere in Georgia."
+      },
+      {
+        "q": "What size of project do you take on?",
+        "a": "From single private houses of around 300 m² to apartment and commercial buildings above 30,000 m²."
+      },
+      {
+        "q": "Can you work with our own architect?",
+        "a": "Yes. Most of our projects are designed by independent architects; our role is to make their design buildable and deliver it."
+      },
+      {
+        "q": "How do you price a project?",
+        "a": "After an initial meeting we prepare a cost plan, then a fixed or target price once the design is developed enough to be reliable."
+      }
+    ]
+  }
+}

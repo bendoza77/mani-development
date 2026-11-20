@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, type ReactNode } from "react";
 import { X } from "lucide-react";
 import { Button } from "./Button";
+import { useTranslation } from "react-i18next";
 import { cx } from "@/lib/format";
 
 type DialogProps = {
@@ -20,6 +21,7 @@ type DialogProps = {
  * inert background come from the browser. Focus returns to the opener on close.
  */
 export function Dialog({ open, onClose, title, description, children, footer, size = "md" }: DialogProps) {
+  const { t } = useTranslation("common");
   const ref = useRef<HTMLDialogElement>(null);
   const opener = useRef<Element | null>(null);
   const titleId = useId();
@@ -72,7 +74,7 @@ export function Dialog({ open, onClose, title, description, children, footer, si
             type="button"
             onClick={onClose}
             className="-mr-2 grid size-9 shrink-0 place-items-center rounded-[3px] text-muted hover:bg-paper-2 hover:text-ink"
-            aria-label="Close dialog"
+            aria-label={t("a11y.closeDialog")}
           >
             <X className="size-4.5" aria-hidden />
           </button>

@@ -1,9 +1,10 @@
 "use client";
 
+import { useContent } from "@/i18n/client";
 import { useDB } from "@/lib/store";
 import { cx } from "@/lib/format";
 
-/** The Lintel mark: a beam spanning two posts, with a fired-clay bearing line. */
+/** The brand mark: a beam spanning two posts, with a fired-clay bearing line. */
 export function LogoMark({ className, title }: { className?: string; title?: string }) {
   return (
     <svg
@@ -22,12 +23,15 @@ export function LogoMark({ className, title }: { className?: string; title?: str
 
 export function Logo({ className, compact = false }: { className?: string; compact?: boolean }) {
   const name = useDB((d) => d.settings.companyName);
-  const tagline = useDB((d) => d.settings.tagline);
+  const settings = useDB((d) => d.settings);
+  const { tagline } = useContent().settings(settings);
   return (
     <span className={cx("inline-flex items-center gap-2.5", className)}>
       <LogoMark className="size-7" />
       <span className="flex flex-col leading-none">
-        <span className="text-[1.05rem] font-semibold uppercase tracking-[0.2em]">{name}</span>
+        <span lang="en" className="whitespace-nowrap text-[1.05rem] font-semibold uppercase tracking-[0.06em] sm:tracking-[0.2em]">
+          {name}
+        </span>
         {!compact && (
           <span className="mt-1 whitespace-nowrap font-mono text-[0.58rem] uppercase tracking-[0.18em] opacity-60 max-sm:hidden">{tagline}</span>
         )}

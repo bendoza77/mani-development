@@ -3,11 +3,14 @@
 import { useMemo } from "react";
 import { Img } from "@/components/ui/Img";
 import { Reveal } from "@/components/ui/Reveal";
+import { useContent, useTranslation } from "@/i18n/client";
 import { useDB } from "@/lib/store";
 
 export function TeamGrid() {
+  const { t } = useTranslation("about");
+  const content = useContent();
   const all = useDB((d) => d.team);
-  const team = useMemo(() => all.filter((m) => m.visible), [all]);
+  const team = useMemo(() => all.filter((m) => m.visible).map(content.member), [all, content]);
   if (!team.length) return null;
   return (
     <ul className="grid grid-cols-2 gap-x-[clamp(0.75rem,2vw,2rem)] gap-y-10 md:grid-cols-3 lg:grid-cols-4">
@@ -16,7 +19,7 @@ export function TeamGrid() {
           <div className="relative aspect-[4/5] overflow-hidden rounded-[2px]">
             <Img
               src={m.photo}
-              alt={`Portrait of ${m.name}`}
+              alt={t("team.portraitAlt", { name: m.name })}
               sizes="(min-width: 1024px) 22vw, (min-width: 768px) 30vw, 48vw"
               imgClassName="grayscale-[85%] transition-[filter,transform] duration-700 ease-(--ease-arch) group-hover:grayscale-0 group-hover:scale-[1.03]"
             />

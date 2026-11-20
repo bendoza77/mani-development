@@ -93,7 +93,7 @@ export function LoginForm() {
         </div>
       </div>
       <div className="relative hidden lg:block">
-        <Img src={IMAGES["white-stacked-tower"].src} alt="" sizes="50vw" priority />
+        <Img src={IMAGES["white-stacked-tower"].src} alt="" sizes="50vw" preload />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         <p className="absolute right-10 bottom-10 left-10 font-display text-3xl leading-tight text-white">
           &ldquo;Every detail is drawn before it is poured.&rdquo;

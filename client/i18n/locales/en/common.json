@@ -1,0 +1,73 @@
+{
+  "brand": {
+    "home": "{{name}} home"
+  },
+  "a11y": {
+    "skipToContent": "Skip to content",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "siteMenu": "Site menu",
+    "primaryNav": "Primary",
+    "mobileNav": "Mobile",
+    "footerNav": "Footer",
+    "opensInNewTab": "(opens in a new tab)",
+    "dismissNotification": "Dismiss notification",
+    "closeDialog": "Close dialog"
+  },
+  "nav": {
+    "home": "Home",
+    "services": "Services",
+    "projects": "Projects",
+    "about": "About",
+    "contact": "Contact"
+  },
+  "header": {
+    "cta": "Start a project"
+  },
+  "language": {
+    "label": "Language"
+  },
+  "footer": {
+    "ctaEyebrow": "Start a project",
+    "ctaTitle": "A plot, a sketch or just a question? <em>Let’s talk.</em>",
+    "ctaBody": "We usually reply within two working days. First conversations and site visits are free.",
+    "ctaButton": "Send us a message",
+    "orCall": "Or call",
+    "contact": "Contact",
+    "explore": "Explore",
+    "follow": "Follow",
+    "copyright": "© 2026 {{company}}.",
+    "admin": "Admin demo"
+  },
+  "category": {
+    "residential": "Private houses",
+    "apartments": "Apartments",
+    "commercial": "Commercial",
+    "hospitality": "Hospitality",
+    "renovation": "Renovation"
+  },
+  "status": {
+    "planning": "In planning",
+    "in-progress": "Under construction",
+    "completed": "Completed",
+    "on-hold": "On hold"
+  },
+  "date": {
+    "months": [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec"
+    ],
+    "monthYear": "{{month}} {{year}}",
+    "estimatedYear": "Est. {{year}}"
+  }
+}

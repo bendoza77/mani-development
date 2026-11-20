@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { LocaleLink as Link } from "@/i18n/LocaleLink";
 import type { ComponentProps, ReactNode } from "react";
 import { ArrowUpRight, LoaderCircle } from "lucide-react";
 import { cx } from "@/lib/format";

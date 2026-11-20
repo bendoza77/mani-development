@@ -14,14 +14,18 @@ const TONE: Record<ProjectStatus | InquiryStatus, string> = {
 export function StatusBadge({
   status,
   kind = "project",
+  label: labelOverride,
   className,
 }: {
   status: ProjectStatus | InquiryStatus;
   kind?: "project" | "inquiry";
+  /** Localized label from the public site; the English-only admin relies on the defaults. */
+  label?: string;
   className?: string;
 }) {
   const label =
-    kind === "project" ? STATUS_LABEL[status as ProjectStatus] : INQUIRY_STATUS_LABEL[status as InquiryStatus];
+    labelOverride ??
+    (kind === "project" ? STATUS_LABEL[status as ProjectStatus] : INQUIRY_STATUS_LABEL[status as InquiryStatus]);
   return (
     <span
       className={cx(

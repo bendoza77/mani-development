@@ -3,27 +3,30 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { CircleCheck, TriangleAlert } from "lucide-react";
+import { Trans } from "react-i18next";
 import { Button } from "@/components/ui/Button";
 import { Field, Input, Textarea } from "@/components/ui/Field";
 import { useToast } from "@/components/ui/Toast";
+import { useTranslation } from "@/i18n/client";
 import { recordInquiry } from "@/lib/store";
 
 type Values = { name: string; email: string; phone: string; subject: string; message: string };
-type Errors = Partial<Record<keyof Values, string>>;
+/** Which fields are invalid. Messages are looked up in contact:validation.<field>. */
+type Errors = Partial<Record<keyof Values, true>>;
 const EMPTY: Values = { name: "", email: "", phone: "", subject: "", message: "" };
 
 export function validateContact(v: Values): Errors {
   const e: Errors = {};
-  if (v.name.trim().length < 2) e.name = "Please enter your name.";
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.email.trim())) e.email = "Enter a valid email address, like name@example.com.";
-  if (v.phone.trim() && (v.phone.replace(/\D/g, "").length < 7 || /[^\d\s+()-]/.test(v.phone)))
-    e.phone = "Use digits, spaces and + ( ) - only, at least 7 digits.";
-  if (v.subject.trim().length < 3) e.subject = "Add a short subject.";
-  if (v.message.trim().length < 20) e.message = `Tell us a little more (at least 20 characters, ${v.message.trim().length} so far).`;
+  if (v.name.trim().length < 2) e.name = true;
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.email.trim())) e.email = true;
+  if (v.phone.trim() && (v.phone.replace(/\D/g, "").length < 7 || /[^\d\s+()-]/.test(v.phone))) e.phone = true;
+  if (v.subject.trim().length < 3) e.subject = true;
+  if (v.message.trim().length < 20) e.message = true;
   return e;
 }
 
 export function ContactForm() {
+  const { t } = useTranslation("contact");
   const toast = useToast();
   const [values, setValues] = useState<Values>(EMPTY);
   const [touched, setTouched] = useState<Partial<Record<keyof Values, boolean>>>({});
@@ -39,7 +42,8 @@ export function ContactForm() {
   }, []);
 
   const errors = validateContact(values);
-  const show = (k: keyof Values) => (touched[k] ? errors[k] : undefined);
+  const show = (k: keyof Values) =>
+    touched[k] && errors[k] ? t(`validation.${k}`, { length: values.message.trim().length }) : undefined;
   const bind = (k: keyof Values) => ({
     name: k,
     value: values[k],
@@ -59,7 +63,7 @@ export function ContactForm() {
     await new Promise((r) => setTimeout(r, 1100)); // simulated network latency
     if (simulateFailure) {
       setStatus("failed");
-      toast({ tone: "error", title: "Message not sent", body: "Simulated failure. Your text is still in the form." });
+      toast({ tone: "error", title: t("toast.failedTitle"), body: t("toast.failedBody") });
       return;
     }
     recordInquiry({
@@ -70,23 +74,29 @@ export function ContactForm() {
       message: values.message.trim(),
     });
     setStatus("sent");
-    toast({ tone: "success", title: "Message saved", body: "Stored in this browser's demo inbox." });
+    toast({ tone: "success", title: t("toast.savedTitle"), body: t("toast.savedBody") });
   }
 
   if (status === "sent") {
     return (
       <div className="flex flex-col items-start rounded-[3px] border border-line bg-card p-8 sm:p-10" role="status">
         <CircleCheck aria-hidden className="size-9 text-ok" strokeWidth={1.4} />
-        <h2 className="t-h3 mt-6">Thank you, {values.name.split(" ")[0]}.</h2>
+        <h2 className="t-h3 mt-6">{t("success.title", { name: values.name.split(" ")[0] })}</h2>
         <p className="mt-3 max-w-md leading-relaxed text-ink-soft">
-          Your message about <strong className="font-medium text-ink">{values.subject}</strong> has been recorded.
+          <Trans
+            t={t}
+            i18nKey="success.body"
+            values={{ subject: values.subject }}
+            components={{ strong: <strong className="font-medium text-ink" /> }}
+          />
         </p>
         <p className="mt-4 max-w-md rounded-[3px] bg-paper-2 px-4 py-3 text-[0.85rem] text-muted">
-          Prototype: nothing was emailed or sent to a server. The inquiry is saved in this browser and appears in the{" "}
-          <Link href="/admin/inquiries" className="underline hover:text-ink">
-            admin demo inbox
-          </Link>
-          .
+          {/* The admin demo is English-only, so this link is never localized. */}
+          <Trans
+            t={t}
+            i18nKey="success.note"
+            components={{ link: <Link href="/admin/inquiries" className="underline hover:text-ink" /> }}
+          />
         </p>
         <Button
           variant="outline"
@@ -97,7 +107,7 @@ export function ContactForm() {
             setStatus("idle");
           }}
         >
-          Send another message
+          {t("success.again")}
         </Button>
       </div>
     );
@@ -110,36 +120,36 @@ export function ContactForm() {
       {status === "failed" && (
         <div role="alert" className="flex items-start gap-3 rounded-[3px] border border-danger/30 bg-danger-soft px-4 py-3 text-[0.9rem] text-danger sm:col-span-2">
           <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
-          We couldn&rsquo;t send your message (simulated failure). Nothing was lost: try again, or switch off the failure toggle below.
+          {t("form.failed")}
         </div>
       )}
-      <Field label="Full name" required error={show("name")}>
+      <Field label={t("form.name")} required error={show("name")}>
         {(a) => <Input {...a} {...bind("name")} autoComplete="name" disabled={sending} />}
       </Field>
-      <Field label="Email" required error={show("email")}>
+      <Field label={t("form.email")} required error={show("email")}>
         {(a) => <Input {...a} {...bind("email")} type="email" autoComplete="email" inputMode="email" disabled={sending} />}
       </Field>
-      <Field label="Phone" error={show("phone")} hint="Optional">
+      <Field label={t("form.phone")} error={show("phone")} hint={t("form.optional")}>
         {(a) => <Input {...a} {...bind("phone")} type="tel" autoComplete="tel" inputMode="tel" disabled={sending} />}
       </Field>
-      <Field label="Subject" required error={show("subject")}>
+      <Field label={t("form.subject")} required error={show("subject")}>
         {(a) => <Input {...a} {...bind("subject")} disabled={sending} maxLength={120} />}
       </Field>
-      <Field label="Message" required error={show("message")} className="sm:col-span-2">
-        {(a) => <Textarea {...a} {...bind("message")} rows={6} disabled={sending} placeholder="Where is the site, what are you planning, and when would you like to start?" />}
+      <Field label={t("form.message")} required error={show("message")} className="sm:col-span-2">
+        {(a) => <Textarea {...a} {...bind("message")} rows={6} disabled={sending} placeholder={t("form.messagePlaceholder")} />}
       </Field>
 
       <div className="flex flex-col gap-4 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
         <p id="form-note" className="max-w-sm text-[0.8rem] text-muted">
-          Prototype form: submissions are simulated and stored only in this browser.
+          {t("form.note")}
         </p>
         <Button type="submit" size="lg" loading={sending} arrow>
-          {sending ? "Sending…" : status === "failed" ? "Try again" : "Send message"}
+          {sending ? t("form.sending") : status === "failed" ? t("form.retry") : t("form.submit")}
         </Button>
       </div>
       <label className="flex items-center gap-2 text-[0.8rem] text-muted sm:col-span-2">
         <input type="checkbox" checked={simulateFailure} onChange={(e) => setSimulateFailure(e.target.checked)} className="size-4 accent-(--accent)" />
-        Demo control: simulate a failed send
+        {t("form.simulateFailure")}
       </label>
     </form>
   );

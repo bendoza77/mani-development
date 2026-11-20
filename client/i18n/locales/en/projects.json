@@ -1,0 +1,82 @@
+{
+  "page": {
+    "eyebrow": "Projects",
+    "title": "Private houses, <em>and the rest of our work</em>",
+    "lead": "Family houses and villas, alongside the apartment buildings, workplaces and renovations we also build. Completed, on site, and in design."
+  },
+  "summary": {
+    "cities": "Cities",
+    "projects": "Projects",
+    "onSite": "On site now"
+  },
+  "explorer": {
+    "label": "Project list",
+    "filterByCategory": "Filter by category",
+    "all": "All",
+    "search": "Search projects",
+    "searchPlaceholder": "Search name or place",
+    "status": "Status",
+    "anyStatus": "Any status",
+    "sort": "Sort",
+    "sortHouses": "Private houses first",
+    "sortRecent": "Newest first",
+    "sortAz": "A–Z",
+    "showing": "Showing {{shown}} of {{total}}",
+    "clear": "Clear filters",
+    "emptyTitle": "No projects match those filters.",
+    "emptyBody": "Try a different category or status, or clear your search.",
+    "reset": "Reset filters"
+  },
+  "card": {
+    "imageAlt": "{{title}}, {{location}}"
+  },
+  "detail": {
+    "back": "All projects",
+    "overview": "Project overview",
+    "theProject": "The project",
+    "facts": {
+      "location": "Location",
+      "type": "Type",
+      "architect": "Architect",
+      "started": "Started",
+      "completed": "Completed",
+      "estimatedCompletion": "Est. completion"
+    },
+    "stagesEyebrow": "Construction stages",
+    "state": {
+      "completed": "Delivered",
+      "planning": "In design and permitting",
+      "on-hold": "Paused by the client",
+      "in-progress": "On site now"
+    },
+    "progress": "Overall progress",
+    "stages": ["Groundworks", "Structure", "Envelope", "Interiors", "Handover"],
+    "stageState": {
+      "done": "Complete",
+      "active": "In progress",
+      "upcoming": "Upcoming"
+    },
+    "gallery_one": "Gallery · {{count}} image",
+    "gallery_other": "Gallery · {{count}} images",
+    "ctaTitle": "Planning something like {{title}}?",
+    "ctaButton": "Talk to our team",
+    "ctaSubject": "Project like {{title}}",
+    "related": "Related projects",
+    "loading": "Loading project",
+    "titleTemplate": "{{title}} — {{company}}",
+    "missing": {
+      "eyebrow": "404 · Project not found",
+      "title": "This project isn’t in our portfolio.",
+      "body": "It may have been renamed or removed in the admin demo.",
+      "cta": "Browse all projects"
+    }
+  },
+  "gallery": {
+    "open": "Open image {{n}} of {{total}}",
+    "imageAlt": "{{title}}, image {{n}}",
+    "dialog": "{{title}} gallery",
+    "close": "Close gallery",
+    "previous": "Previous image",
+    "next": "Next image"
+  }
+}

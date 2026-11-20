@@ -1,0 +1,56 @@
+{
+  "page": {
+    "eyebrow": "Contact",
+    "title": "Tell us about <em>your site</em>",
+    "lead": "A plot, a sketch, a set of drawings or just a question. We read every message and usually reply within two working days.",
+    "detailsLabel": "Contact information",
+    "formTitle": "Send us a message"
+  },
+  "map": {
+    "label": "Stylised map showing the studio in Vake, Tbilisi, near the Mtkvari river",
+    "studio": "OUR STUDIO",
+    "district": "VAKE · TBILISI",
+    "river": "MTKVARI",
+    "caption": "Illustrative map · not to scale"
+  },
+  "details": {
+    "email": "Email",
+    "phone": "Phone",
+    "studio": "Studio",
+    "hours": "Hours"
+  },
+  "form": {
+    "name": "Full name",
+    "email": "Email",
+    "phone": "Phone",
+    "subject": "Subject",
+    "message": "Message",
+    "optional": "Optional",
+    "messagePlaceholder": "Where is the site, what are you planning, and when would you like to start?",
+    "note": "Prototype form: submissions are simulated and stored only in this browser.",
+    "submit": "Send message",
+    "sending": "Sending…",
+    "retry": "Try again",
+    "failed": "We couldn’t send your message (simulated failure). Nothing was lost: try again, or switch off the failure toggle below.",
+    "simulateFailure": "Demo control: simulate a failed send"
+  },
+  "validation": {
+    "name": "Please enter your name.",
+    "email": "Enter a valid email address, like name@example.com.",
+    "phone": "Use digits, spaces and + ( ) - only, at least 7 digits.",
+    "subject": "Add a short subject.",
+    "message": "Tell us a little more (at least 20 characters, {{length}} so far)."
+  },
+  "toast": {
+    "failedTitle": "Message not sent",
+    "failedBody": "Simulated failure. Your text is still in the form.",
+    "savedTitle": "Message saved",
+    "savedBody": "Stored in this browser’s demo inbox."
+  },
+  "success": {
+    "title": "Thank you, {{name}}.",
+    "body": "Your message about <strong>{{subject}}</strong> has been recorded.",
+    "note": "Prototype: nothing was emailed or sent to a server. The inquiry is saved in this browser and appears in the <link>admin demo inbox</link>.",
+    "again": "Send another message"
+  }
+}

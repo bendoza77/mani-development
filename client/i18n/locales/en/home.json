@@ -1,0 +1,38 @@
+{
+  "hero": {
+    "eyebrow": "Private house construction · Georgia",
+    "title": "Private houses, <em>designed and built</em> by one team.",
+    "lead": "From steep city plots to vineyard ridges, we plan, engineer and build family homes with one project lead who stays with you from the first footing to handover.",
+    "primaryCta": "Start a project",
+    "secondaryCta": "View our projects"
+  },
+  "services": {
+    "eyebrow": "Services",
+    "title": "One team, from feasibility to handover",
+    "lead": "Planning, engineering and construction under one roof, so the people who plan your house are the people who build it.",
+    "imageAlt": "White two-storey villa with a pool terrace",
+    "link": "Services, working process and FAQ"
+  },
+  "featured": {
+    "eyebrow": "Projects",
+    "title": "Houses we’re proud to put our name on",
+    "allProjects_one": "All {{count}} project",
+    "allProjects_other": "All {{count}} projects"
+  },
+  "about": {
+    "imageAlt": "MANI DEVELOPMENT site team reviewing a slab before a concrete pour",
+    "eyebrow": "About MANI DEVELOPMENT",
+    "title": "Builders who think like architects",
+    "body": "We began with private houses in 2009. Our engineers sit beside the designers, our site leads stay from groundbreaking to handover, and every detail is drawn before it is poured.",
+    "link": "Our story, standards and team"
+  },
+  "testimonials": {
+    "eyebrow": "What clients say",
+    "previous": "Previous testimonial",
+    "next": "Next testimonial",
+    "carousel": "carousel",
+    "slide": "slide",
+    "openQuote": "“",
+    "closeQuote": "”"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "stats": [
+    { "value": "17", "label": "Years building", "note": "Founded in Tbilisi, 2009" },
+    { "value": "64", "label": "Buildings delivered", "note": "Homes, apartments and workplaces" },
+    { "value": "310k", "label": "Square metres built", "note": "Across five Georgian regions" },
+    { "value": "24", "label": "In-house engineers", "note": "Structural, MEP and site" }
+  ],
+  "pillars": [
+    { "title": "Design-led", "body": "We join projects at concept stage, so ambition and budget are tested together." },
+    { "title": "Engineered in-house", "body": "Structural, seismic and temporary-works design by our own team." },
+    { "title": "One accountable team", "body": "The people who quote your house are the people who build it." }
+  ],
+  "heroFacts": [
+    { "label": "Founded", "value": "2009, Tbilisi" },
+    { "label": "Where we build", "value": "Tbilisi, Batumi, Kakheti" },
+    { "label": "Aftercare", "value": "12 months after handover" }
+  ]
+}

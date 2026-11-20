@@ -1,15 +1,17 @@
 "use client";
 
 import { Mail, MapPin, Phone, Clock } from "lucide-react";
+import { useContent, useTranslation } from "@/i18n/client";
 import { useDB } from "@/lib/store";
 
 export function ContactDetails() {
-  const s = useDB((d) => d.settings);
+  const { t } = useTranslation("contact");
+  const s = useContent().settings(useDB((d) => d.settings));
   const rows = [
-    { icon: Mail, label: "Email", value: s.email, href: `mailto:${s.email}` },
-    { icon: Phone, label: "Phone", value: s.phone, href: `tel:${s.phone.replace(/\s/g, "")}` },
-    { icon: MapPin, label: "Studio", value: s.address },
-    { icon: Clock, label: "Hours", value: s.hours },
+    { icon: Mail, label: t("details.email"), value: s.email, href: `mailto:${s.email}` },
+    { icon: Phone, label: t("details.phone"), value: s.phone, href: `tel:${s.phone.replace(/\s/g, "")}` },
+    { icon: MapPin, label: t("details.studio"), value: s.address },
+    { icon: Clock, label: t("details.hours"), value: s.hours },
   ];
   return (
     <ul className="divide-y divide-line border-y border-line">

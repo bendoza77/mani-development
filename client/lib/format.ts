@@ -1,6 +1,7 @@
 import type { InquiryStatus, MediaCategory, ProjectCategory, ProjectStatus } from "./types";
 
-// Locale-independent formatting so server and client markup always match.
+// Locale-independent formatting (admin) so server and client markup always match.
+// Public pages use the translated formatters in i18n/format.ts.
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 function parts(iso: string) {
@@ -9,21 +10,15 @@ function parts(iso: string) {
   return { y: d.getUTCFullYear(), m: d.getUTCMonth(), day: d.getUTCDate() };
 }
 
+/** UTC year / month index / day of an ISO date, or null. Used by the localized formatters in `i18n/format`. */
+export function utcParts(iso?: string) {
+  return iso ? parts(iso) : null;
+}
+
 /** "18 Nov 2026" */
 export function formatDate(iso?: string) {
   const p = iso ? parts(iso) : null;
   return p ? `${p.day} ${MONTHS[p.m]} ${p.y}` : "—";
-}
-
-/** "Nov 2026" */
-export function formatMonth(iso?: string) {
-  const p = iso ? parts(iso) : null;
-  return p ? `${MONTHS[p.m]} ${p.y}` : "—";
-}
-
-export function formatYear(iso?: string) {
-  const p = iso ? parts(iso) : null;
-  return p ? String(p.y) : "—";
 }
 
 /** Relative time for admin views. Only call from client-rendered UI (it reads the clock). */
@@ -56,7 +51,7 @@ export function slugify(input: string) {
 }
 
 export const CATEGORY_LABEL: Record<ProjectCategory, string> = {
-  residential: "Residential",
+  residential: "Private houses",
   apartments: "Apartments",
   commercial: "Commercial",
   hospitality: "Hospitality",
@@ -84,11 +79,12 @@ export const MEDIA_CATEGORY_LABEL: Record<MediaCategory, string> = {
   uploads: "Uploads",
 };
 
-export const STAGES = ["Groundworks", "Structure", "Envelope", "Interiors", "Handover"] as const;
+/** Number of project-page construction stages (labels: projects:detail.stages). */
+export const PROJECT_STAGE_COUNT = 5;
 
 /** Maps overall progress to the five public construction stages. */
 export function stageState(progress: number, index: number): "done" | "active" | "upcoming" {
-  const span = 100 / STAGES.length;
+  const span = 100 / PROJECT_STAGE_COUNT;
   if (progress >= (index + 1) * span) return "done";
   if (progress > index * span) return "active";
   return "upcoming";

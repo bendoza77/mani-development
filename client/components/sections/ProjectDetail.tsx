@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo } from "react";
 import { ArrowLeft, Check } from "lucide-react";
 import { Gallery } from "@/components/sections/Gallery";
@@ -10,19 +9,26 @@ import { Img } from "@/components/ui/Img";
 import { Reveal } from "@/components/ui/Reveal";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useHydrated } from "@/hooks/useHydrated";
+import { useContent, useFormatters, useTranslation } from "@/i18n/client";
+import { LocaleLink as Link } from "@/i18n/LocaleLink";
 import { useDB } from "@/lib/store";
-import { CATEGORY_LABEL, STAGES, cx, formatMonth, stageState } from "@/lib/format";
+import { cx, stageState } from "@/lib/format";
 
 export function ProjectDetail({ slug }: { slug: string }) {
+  const { t } = useTranslation("projects");
+  const { t: tc } = useTranslation("common");
+  const fmt = useFormatters();
+  const content = useContent();
   const projects = useDB((d) => d.projects);
   const hydrated = useHydrated();
-  const project = projects.find((p) => p.slug === slug);
+  const stored = projects.find((p) => p.slug === slug);
+  const project = useMemo(() => (stored ? content.project(stored) : undefined), [stored, content]);
   const company = useDB((d) => d.settings.companyName);
 
   // Server metadata is built from the seed data; keep the tab title in sync with admin edits.
   useEffect(() => {
-    if (project) document.title = `${project.title} — ${company}`;
-  }, [project, company]);
+    if (project) document.title = t("detail.titleTemplate", { title: project.title, company });
+  }, [project, company, t]);
   const related = useMemo(() => {
     if (!project) return [];
     const same = projects.filter((p) => p.id !== project.id && p.category === project.category);
@@ -35,26 +41,30 @@ export function ProjectDetail({ slug }: { slug: string }) {
 
   const p = project;
   const facts: [string, string][] = [
-    ["Location", p.location],
-    ["Type", CATEGORY_LABEL[p.category]],
-    ["Architect", p.architect || "—"],
-    ["Started", formatMonth(p.startDate)],
-    [p.status === "completed" ? "Completed" : "Est. completion", formatMonth(p.completionDate ?? p.estimatedCompletion)],
+    [t("detail.facts.location"), p.location],
+    [t("detail.facts.type"), tc(`category.${p.category}`)],
+    [t("detail.facts.architect"), p.architect || "—"],
+    [t("detail.facts.started"), fmt.month(p.startDate)],
+    [
+      p.status === "completed" ? t("detail.facts.completed") : t("detail.facts.estimatedCompletion"),
+      fmt.month(p.completionDate ?? p.estimatedCompletion),
+    ],
   ];
+  const stages = t("detail.stages", { returnObjects: true });
 
   return (
     <article>
       <header className="pt-[calc(var(--header-h)+clamp(1.5rem,4vw,3rem))]">
         <div className="shell">
           <Link href="/projects" className="inline-flex items-center gap-2 text-[0.88rem] text-muted hover:text-ink">
-            <ArrowLeft aria-hidden className="size-4" /> All projects
+            <ArrowLeft aria-hidden className="size-4" /> {t("detail.back")}
           </Link>
           <div className="mt-8 grid gap-6 lg:grid-cols-12 lg:items-end">
             <div className="lg:col-span-8">
               <div className="rise-in flex flex-wrap items-center gap-3">
-                <StatusBadge status={p.status} />
+                <StatusBadge status={p.status} label={tc(`status.${p.status}`)} />
                 <span className="t-meta text-muted">
-                  {CATEGORY_LABEL[p.category]} · {p.city}
+                  {tc(`category.${p.category}`)} · {p.city}
                 </span>
               </div>
               <h1 className="t-h1 rise-in mt-5" style={{ "--d": "80ms" } as React.CSSProperties}>
@@ -68,14 +78,14 @@ export function ProjectDetail({ slug }: { slug: string }) {
         </div>
         <div className="shell mt-[clamp(2rem,5vw,3.5rem)]">
           <div className="relative aspect-[4/3] overflow-hidden rounded-[2px] sm:aspect-[16/9] lg:aspect-[21/9]">
-            <Img src={p.cover} alt={`${p.title}, ${p.location}`} sizes="100vw" priority quality={80} />
+            <Img src={p.cover} alt={t("card.imageAlt", { title: p.title, location: p.location })} sizes="100vw" preload quality={80} />
           </div>
         </div>
       </header>
 
-      <section className="shell grid gap-12 py-[clamp(3.5rem,8vw,7rem)] lg:grid-cols-12" aria-label="Project overview">
+      <section className="shell grid gap-12 py-[clamp(3.5rem,8vw,7rem)] lg:grid-cols-12" aria-label={t("detail.overview")}>
         <div className="lg:col-span-7">
-          <p className="t-eyebrow text-muted">The project</p>
+          <p className="t-eyebrow text-muted">{t("detail.theProject")}</p>
           <div className="mt-6 space-y-5 text-[1.06rem] leading-[1.75] text-ink-soft">
             {p.description.split(/\n\n+/).map((para, i) => (
               <p key={i} className={i === 0 ? "font-display text-[clamp(1.35rem,1.1rem+0.9vw,1.75rem)] leading-[1.4] text-ink" : ""}>
@@ -100,9 +110,9 @@ export function ProjectDetail({ slug }: { slug: string }) {
         <div className="shell">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="t-eyebrow text-muted">Construction stages</p>
+              <p className="t-eyebrow text-muted">{t("detail.stagesEyebrow")}</p>
               <h2 id="timeline-title" className="t-h3 mt-3">
-                {p.status === "completed" ? "Delivered" : p.status === "planning" ? "In design and permitting" : p.status === "on-hold" ? "Paused by the client" : "On site now"}
+                {t(`detail.state.${p.status}`)}
               </h2>
             </div>
             <p className="font-display text-5xl tabular-nums">
@@ -110,11 +120,11 @@ export function ProjectDetail({ slug }: { slug: string }) {
               <span className="text-2xl text-muted">%</span>
             </p>
           </div>
-          <div className="mt-8 h-1 overflow-hidden rounded-full bg-line" role="progressbar" aria-valuenow={p.progress} aria-valuemin={0} aria-valuemax={100} aria-label="Overall progress">
+          <div className="mt-8 h-1 overflow-hidden rounded-full bg-line" role="progressbar" aria-valuenow={p.progress} aria-valuemin={0} aria-valuemax={100} aria-label={t("detail.progress")}>
             <div className="h-full rounded-full bg-accent transition-[width] duration-1000" style={{ width: `${p.progress}%` }} />
           </div>
           <ol className="mt-8 grid gap-4 sm:grid-cols-5">
-            {STAGES.map((s, i) => {
+            {stages.map((s, i) => {
               const st = stageState(p.progress, i);
               return (
                 <li key={s} className="flex items-center gap-3 sm:flex-col sm:items-start">
@@ -130,7 +140,7 @@ export function ProjectDetail({ slug }: { slug: string }) {
                   </span>
                   <span>
                     <span className={cx("block text-[0.95rem]", st === "upcoming" && "text-muted")}>{s}</span>
-                    <span className="t-meta text-muted">{st === "done" ? "Complete" : st === "active" ? "In progress" : "Upcoming"}</span>
+                    <span className="t-meta text-muted">{t(`detail.stageState.${st}`)}</span>
                   </span>
                 </li>
               );
@@ -142,7 +152,7 @@ export function ProjectDetail({ slug }: { slug: string }) {
       {p.gallery.length > 0 && (
         <section className="shell py-[clamp(3.5rem,8vw,7rem)]" aria-labelledby="gallery-title">
           <h2 id="gallery-title" className="t-eyebrow mb-8 text-muted">
-            Gallery · {p.gallery.length} images
+            {t("detail.gallery", { count: p.gallery.length })}
           </h2>
           <Gallery images={p.gallery} title={p.title} />
         </section>
@@ -150,9 +160,14 @@ export function ProjectDetail({ slug }: { slug: string }) {
 
       <section className="bg-night py-[clamp(3.5rem,8vw,6rem)] text-night-ink">
         <div className="shell flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-          <h2 className="t-h2 max-w-[18ch]">Planning something like {p.title}?</h2>
-          <ButtonLink href={`/contact?subject=${encodeURIComponent(`Project like ${p.title}`)}`} variant="light" size="lg" arrow>
-            Talk to our team
+          <h2 className="t-h2 max-w-[18ch]">{t("detail.ctaTitle", { title: p.title })}</h2>
+          <ButtonLink
+            href={`/contact?subject=${encodeURIComponent(t("detail.ctaSubject", { title: p.title }))}`}
+            variant="light"
+            size="lg"
+            arrow
+          >
+            {t("detail.ctaButton")}
           </ButtonLink>
         </div>
       </section>
@@ -160,7 +175,7 @@ export function ProjectDetail({ slug }: { slug: string }) {
       {related.length > 0 && (
         <section className="shell py-[clamp(3.5rem,8vw,7rem)]" aria-labelledby="related-title">
           <h2 id="related-title" className="t-h2">
-            Related projects
+            {t("detail.related")}
           </h2>
           <div className="mt-10 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
             {related.map((r, i) => (
@@ -176,8 +191,9 @@ export function ProjectDetail({ slug }: { slug: string }) {
 }
 
 export function ProjectDetailSkeleton() {
+  const { t } = useTranslation("projects");
   return (
-    <div className="shell animate-pulse pt-[calc(var(--header-h)+3rem)] pb-24" aria-busy="true" aria-label="Loading project">
+    <div className="shell animate-pulse pt-[calc(var(--header-h)+3rem)] pb-24" aria-busy="true" aria-label={t("detail.loading")}>
       <div className="h-4 w-28 rounded bg-paper-2" />
       <div className="mt-10 h-14 w-2/3 rounded bg-paper-2" />
       <div className="mt-10 aspect-[21/9] rounded-[2px] bg-paper-2" />
@@ -186,13 +202,14 @@ export function ProjectDetailSkeleton() {
 }
 
 function ProjectMissing() {
+  const { t } = useTranslation("projects");
   return (
     <div className="shell flex min-h-[70svh] flex-col items-start justify-center pt-(--header-h)">
-      <p className="t-eyebrow text-muted">404 · Project not found</p>
-      <h1 className="t-h1 mt-5 max-w-[16ch]">This project isn&rsquo;t in our portfolio.</h1>
-      <p className="t-lead mt-5 max-w-xl text-ink-soft">It may have been renamed or removed in the admin demo.</p>
+      <p className="t-eyebrow text-muted">{t("detail.missing.eyebrow")}</p>
+      <h1 className="t-h1 mt-5 max-w-[16ch]">{t("detail.missing.title")}</h1>
+      <p className="t-lead mt-5 max-w-xl text-ink-soft">{t("detail.missing.body")}</p>
       <ButtonLink href="/projects" className="mt-8" arrow>
-        Browse all projects
+        {t("detail.missing.cta")}
       </ButtonLink>
     </div>
   );

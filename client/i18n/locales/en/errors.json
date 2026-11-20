@@ -1,0 +1,16 @@
+{
+  "notFound": {
+    "eyebrow": "Error 404 · Drawing not found",
+    "title": "This opening has <em>no lintel.</em>",
+    "body": "The page you’re looking for doesn’t exist or has moved. Let’s get you back onto solid ground.",
+    "home": "Back to home",
+    "projects": "View projects"
+  },
+  "error": {
+    "eyebrow": "Something went wrong",
+    "title": "We hit an unexpected problem loading this page.",
+    "body": "Try again. If you edited demo data in the admin panel, resetting it from Settings will restore the defaults.",
+    "retry": "Try again",
+    "home": "Back to home"
+  }
+}

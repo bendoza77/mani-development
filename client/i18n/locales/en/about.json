@@ -1,0 +1,112 @@
+{
+  "page": {
+    "eyebrow": "About",
+    "title": "A builder that thinks <em>like an architect</em>",
+    "lead": "MANI DEVELOPMENT was founded on a simple idea: buildings turn out better when the people who design them and the people who build them sit at the same table."
+  },
+  "story": {
+    "imageAlt": "Engineer marking up construction drawings",
+    "eyebrow": "Our story",
+    "title": "Seventeen years, one way of working",
+    "paragraphs": [
+      "We began with private houses and grew project by project into apartment buildings, workplaces and our own developments. The team is larger now, but the principle has not changed: engineers beside designers, a single accountable lead on every site, and no detail left to be solved with a hammer."
+    ],
+    "quote": "“Our job is to make the architect’s drawing true, and to make it last.”",
+    "quoteAuthor": "David Mchedlishvili, founder"
+  },
+  "mission": {
+    "eyebrow": "Mission & values",
+    "title": "Build fewer things, <em>build them properly</em>",
+    "lead": "Our mission is to deliver buildings that their owners are still proud of in thirty years, through honest planning, sound engineering and careful craft.",
+    "values": [
+      {
+        "title": "Say what it will cost",
+        "body": "Honest numbers early, even when they are not the numbers a client hopes for."
+      },
+      {
+        "title": "Draw it before you pour it",
+        "body": "Every junction resolved on paper first. Site is for building, not designing."
+      },
+      {
+        "title": "Leave the site better",
+        "body": "Tidy sites, respected neighbours, trees protected, waste sorted."
+      },
+      {
+        "title": "Stay after handover",
+        "body": "Twelve months of aftercare and a phone number that is always answered."
+      }
+    ]
+  },
+  "numbers": {
+    "label": "Company in numbers"
+  },
+  "standards": {
+    "eyebrow": "Construction philosophy & standards",
+    "title": "How we hold ourselves to account",
+    "items": [
+      {
+        "title": "Inspection hold points",
+        "body": "Reinforcement, waterproofing and facade fixings are inspected and signed before they are covered."
+      },
+      {
+        "title": "Material testing",
+        "body": "Concrete, steel and glazing are sampled and tested by independent laboratories on every project."
+      },
+      {
+        "title": "Seismic detailing",
+        "body": "Ductile detailing and connection design are reviewed by our engineers on every structure."
+      },
+      {
+        "title": "Transparent reporting",
+        "body": "Clients receive weekly progress, cost and risk reports, including problems."
+      }
+    ],
+    "note": "Prototype note: the standards described here are illustrative, not claims of certification."
+  },
+  "milestones": {
+    "eyebrow": "Milestones",
+    "title": "From one house to sixty-four buildings",
+    "items": [
+      {
+        "year": "2009",
+        "title": "Founded in Tbilisi",
+        "body": "David Mchedlishvili starts MANI DEVELOPMENT with six people and a single house in Tskneti."
+      },
+      {
+        "year": "2012",
+        "title": "First apartment building",
+        "body": "A 24-unit block in Vake, delivered three weeks early."
+      },
+      {
+        "year": "2015",
+        "title": "Engineering team in-house",
+        "body": "Structural engineers join the company, beginning our design-and-build offer."
+      },
+      {
+        "year": "2018",
+        "title": "Batumi office",
+        "body": "A second office opens to serve projects along the Black Sea coast."
+      },
+      {
+        "year": "2021",
+        "title": "Development arm",
+        "body": "MANI DEVELOPMENT begins developing its own residential projects with landowners."
+      },
+      {
+        "year": "2023",
+        "title": "Saburtalo Exchange",
+        "body": "Our largest commercial building to date reaches completion."
+      },
+      {
+        "year": "2026",
+        "title": "64 buildings",
+        "body": "Four projects on site, two in design, and a team of 140."
+      }
+    ]
+  },
+  "team": {
+    "eyebrow": "Leadership",
+    "title": "The people accountable for your building",
+    "portraitAlt": "Portrait of {{name}}"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "site": {
+    "title": "MANI DEVELOPMENT — Private House Construction",
+    "template": "%s — MANI DEVELOPMENT",
+    "description": "MANI DEVELOPMENT plans, engineers and builds private houses across Georgia, with one accountable team from the first footing to handover."
+  },
+  "services": {
+    "title": "Services",
+    "description": "Private house construction, planning, structural engineering, renovation and project management, plus apartment and commercial building. How a project runs, ways to work with us, and common questions."
+  },
+  "projects": {
+    "title": "Projects",
+    "description": "Private houses, plus apartment, commercial and renovation projects built by MANI DEVELOPMENT across Georgia."
+  },
+  "project": {
+    "fallbackTitle": "Project"
+  },
+  "about": {
+    "title": "About",
+    "description": "The story, values, standards and people behind MANI DEVELOPMENT, a design-led builder of private houses in Georgia."
+  },
+  "contact": {
+    "title": "Contact",
+    "description": "Start a project with MANI DEVELOPMENT: tell us about your site, sketch or question."
+  },
+  "notFound": {
+    "title": "Page not found"
+  }
+}

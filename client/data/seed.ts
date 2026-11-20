@@ -1,5 +1,6 @@
-// Demo content for the Lintel prototype. Every company detail here is fictional
-// and intended to be replaced; nothing describes a real firm, client or certification.
+// Demo content for the MANI DEVELOPMENT site. The company name, address and email in
+// seedSettings are real. Everything else (projects, team, testimonials, history, figures,
+// phone and opening hours) is placeholder content to be replaced with the company's own.
 import type {
   ActivityItem,
   DB,
@@ -16,7 +17,7 @@ import type {
 } from "@/lib/types";
 import { IMAGES, type ImageKey } from "./images";
 
-export const DB_VERSION = 3;
+export const DB_VERSION = 5;
 
 const img = (k: ImageKey) => IMAGES[k].src;
 const specs = (id: string, rows: [string, string][]): Spec[] =>
@@ -37,7 +38,7 @@ export const seedProjects: Project[] = [
     progress: 68,
     startDate: "2025-03-01",
     estimatedCompletion: "2027-06-30",
-    featured: true,
+    featured: false,
     cover: img("terraces-green"),
     gallery: [img("terraces-green"), img("site-rebar"), img("interior-living"), img("apartments-balconies")],
     specs: specs("p1", [
@@ -92,7 +93,7 @@ export const seedProjects: Project[] = [
     progress: 41,
     startDate: "2025-10-01",
     estimatedCompletion: "2028-03-31",
-    featured: true,
+    featured: false,
     cover: img("white-stacked-tower"),
     gallery: [img("white-stacked-tower"), img("site-cranes"), img("facade-abstract"), img("villa-white-pool")],
     specs: specs("p3", [
@@ -120,7 +121,7 @@ export const seedProjects: Project[] = [
     startDate: "2021-04-01",
     estimatedCompletion: "2023-09-30",
     completionDate: "2023-10-12",
-    featured: true,
+    featured: false,
     cover: img("angular-glass"),
     gallery: [img("angular-glass"), img("towers-glass-up"), img("office-interior"), img("towers-cloud")],
     specs: specs("p4", [
@@ -148,7 +149,7 @@ export const seedProjects: Project[] = [
     startDate: "2021-02-01",
     estimatedCompletion: "2022-07-31",
     completionDate: "2022-08-20",
-    featured: false,
+    featured: true,
     cover: img("villa-pool-terrace"),
     gallery: [img("villa-pool-terrace"), img("pavilion-pool"), img("interior-living")],
     specs: specs("p5", [
@@ -201,7 +202,7 @@ export const seedProjects: Project[] = [
     startDate: "2023-06-01",
     estimatedCompletion: "2025-02-28",
     completionDate: "2025-03-21",
-    featured: true,
+    featured: false,
     cover: img("facade-brick-angle"),
     gallery: [img("facade-brick-angle"), img("interior-concrete"), img("drawings")],
     specs: specs("p7", [
@@ -280,7 +281,7 @@ export const seedProjects: Project[] = [
     startDate: "2024-03-01",
     estimatedCompletion: "2025-06-30",
     completionDate: "2025-06-11",
-    featured: false,
+    featured: true,
     cover: img("pavilion-pool"),
     gallery: [img("pavilion-pool"), img("interior-living"), img("villa-white-palm")],
     specs: specs("p10", [
@@ -306,7 +307,7 @@ export const seedProjects: Project[] = [
     progress: 15,
     startDate: "2026-04-01",
     estimatedCompletion: "2027-08-31",
-    featured: false,
+    featured: true,
     cover: img("house-timber-black"),
     gallery: [img("house-timber-black"), img("house-timber-hill"), img("drawings")],
     specs: specs("p11", [
@@ -349,32 +350,12 @@ export const seedProjects: Project[] = [
 export const seedServices: Service[] = [
   {
     id: "s-residential",
-    title: "Residential construction",
+    title: "Private house construction",
     summary: "Private houses and villas built with the care of a workshop and the discipline of a large site.",
     description:
       "From steep urban plots to remote vineyards, we build single-family homes where tolerances matter. One project lead stays with you from groundwork to handover.",
     image: img("villa-modern-white"),
     features: ["Design-and-build or build-only", "Fixed-price contracts", "Detailed finishing packages", "12-month aftercare"],
-    visible: true,
-  },
-  {
-    id: "s-apartments",
-    title: "Apartment development",
-    summary: "Multi-residential buildings delivered phase by phase, with sales and handover in mind.",
-    description:
-      "We work with developers and landowners on everything from nine-unit infill to whole neighbourhood blocks, coordinating design, procurement and sequencing so residents can move in on time.",
-    image: img("apartments-balconies"),
-    features: ["Feasibility and phasing", "Prefabricated facade systems", "Show-apartment delivery", "Defects management"],
-    visible: true,
-  },
-  {
-    id: "s-commercial",
-    title: "Commercial construction",
-    summary: "Offices, labs and hospitality buildings designed to stay adaptable for decades.",
-    description:
-      "Long-span structures, complex services and occupied-site logistics. We plan commercial buildings around how tenants will use and change them.",
-    image: img("towers-glass-up"),
-    features: ["Shell-and-core and fit-out", "MEP coordination", "Phased occupancy", "Tenant change management"],
     visible: true,
   },
   {
@@ -417,6 +398,26 @@ export const seedServices: Service[] = [
     features: ["Programme control", "Cost reporting", "Contractor procurement", "Weekly client dashboards"],
     visible: true,
   },
+  {
+    id: "s-apartments",
+    title: "Apartment development",
+    summary: "Multi-residential buildings delivered phase by phase, with sales and handover in mind.",
+    description:
+      "We work with developers and landowners on everything from nine-unit infill to whole neighbourhood blocks, coordinating design, procurement and sequencing so residents can move in on time.",
+    image: img("apartments-balconies"),
+    features: ["Feasibility and phasing", "Prefabricated facade systems", "Show-apartment delivery", "Defects management"],
+    visible: true,
+  },
+  {
+    id: "s-commercial",
+    title: "Commercial construction",
+    summary: "Offices, labs and hospitality buildings designed to stay adaptable for decades.",
+    description:
+      "Long-span structures, complex services and occupied-site logistics. We plan commercial buildings around how tenants will use and change them.",
+    image: img("towers-glass-up"),
+    features: ["Shell-and-core and fit-out", "MEP coordination", "Phased occupancy", "Tenant change management"],
+    visible: true,
+  }
 ];
 
 export const seedTestimonials: Testimonial[] = [
@@ -432,7 +433,7 @@ export const seedTestimonials: Testimonial[] = [
   {
     id: "t-2",
     quote:
-      "The cantilever was the part everyone said couldn't be done on our plot. Lintel's engineers solved it before we had even signed the contract.",
+      "The cantilever was the part everyone said couldn't be done on our plot. MANI DEVELOPMENT's engineers solved it before we had even signed the contract.",
     author: "Giorgi & Ana Lomidze",
     role: "Homeowners",
     project: "Mtatsminda House",
@@ -471,7 +472,7 @@ export const seedTeam: TeamMember[] = [
     id: "m-1",
     name: "David Mchedlishvili",
     role: "Founder & Managing Director",
-    bio: "Started Lintel in 2009 after fifteen years as a site engineer. Still visits every site on Fridays.",
+    bio: "Started MANI DEVELOPMENT in 2009 after fifteen years as a site engineer. Still visits every site on Fridays.",
     photo: IMAGES["team-t1"].src,
     visible: true,
   },
@@ -682,11 +683,11 @@ export const seedMedia: MediaAsset[] = (Object.keys(IMAGES) as ImageKey[]).map((
 });
 
 export const seedSettings: Settings = {
-  companyName: "Lintel",
-  tagline: "Building & Development",
-  email: "studio@lintel.example",
+  companyName: "MANI DEVELOPMENT",
+  tagline: "Private house construction",
+  email: "info@manidevelopment.ge",
   phone: "+995 32 200 14 14",
-  address: "14 Ilia Chavchavadze Ave, Tbilisi 0179",
+  address: "37m Ilia Chavchavadze Ave, 5th floor, Terminal, Tbilisi",
   hours: "Mon–Fri, 09:00–18:00",
   instagram: "https://instagram.com/",
   linkedin: "https://linkedin.com/",

@@ -1,0 +1,33 @@
+{
+  "stages": [
+    {
+      "short": "Foundation"
+    },
+    {
+      "short": "Frame"
+    },
+    {
+      "short": "Walls"
+    },
+    {
+      "short": "Roof"
+    },
+    {
+      "short": "Facade"
+    },
+    {
+      "short": "Completed"
+    }
+  ],
+  "ui": {
+    "disclaimer": "Conceptual model for illustration. It does not depict a specific client project.",
+    "loading": "Loading 3D model…",
+    "unsupported": "3D isn’t available in this browser, so a drawing of the house is shown.",
+    "error": "The 3D model couldn’t be displayed, so a drawing is shown.",
+    "retry": "Try again",
+    "dragHint": "Drag to rotate",
+    "drawingLabel": "Axonometric drawing of the completed conceptual house: a two-storey gabled home with a timber-clad single-storey wing, terrace and pool",
+    "replay": "Build again",
+    "modelLabel": "3D model of a private house being built stage by stage, from the foundation to the finished home"
+  }
+}

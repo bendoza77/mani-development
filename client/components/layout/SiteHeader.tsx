@@ -1,65 +1,44 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { ButtonLink } from "@/components/ui/Button";
+import { useTranslation } from "@/i18n/client";
+import { splitLocale } from "@/i18n/config";
+import { LanguageSwitcher } from "@/i18n/LanguageSwitcher";
+import { LocaleLink as Link } from "@/i18n/LocaleLink";
 import { useDB } from "@/lib/store";
 import { cx } from "@/lib/format";
 
+/** Primary navigation (labels are keys in common:nav). Contact is the header's call-to-action button. */
 export const NAV = [
-  { href: "/projects", label: "Projects" },
-  { href: "/services", label: "Services" },
-  { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
+  { href: "/services", key: "services" },
+  { href: "/projects", key: "projects" },
+  { href: "/about", key: "about" },
 ] as const;
 
+/** Every public destination, used by the mobile menu and the footer. */
+export const SITE_LINKS = [{ href: "/", key: "home" }, ...NAV, { href: "/contact", key: "contact" }] as const;
+
 export function SiteHeader() {
-  const pathname = usePathname();
+  const { t } = useTranslation("common");
+  const rawPathname = usePathname();
+  const pathname = splitLocale(rawPathname).path;
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const settings = useDB((d) => d.settings);
   const dialog = useRef<HTMLDialogElement>(null);
-  const header = useRef<HTMLElement>(null);
 
-  // Hide on scroll down / reveal on scroll up, without re-rendering React on every frame:
-  // the hidden state is written straight to data attributes (CSS does the motion). A direction
-  // change must travel a few pixels before it flips the header, so small trackpad deltas never
-  // make it flicker. <html data-header-hidden> lets sticky bars follow the header.
+  // The header stays fixed at the top. Once the page scrolls it gets a solid background so
+  // content never shows through; the state only re-renders when it actually flips.
   useEffect(() => {
-    const el = header.current;
-    if (!el) return;
-    const root = document.documentElement;
     let raf = 0;
-    let last = Math.max(0, window.scrollY);
-    let anchor = last;
-    let dir = 0;
-    let hidden = false;
-
-    const setHidden = (next: boolean) => {
-      if (next === hidden) return;
-      hidden = next;
-      el.dataset.hidden = String(next);
-      root.toggleAttribute("data-header-hidden", next);
-    };
-
     const update = () => {
       raf = 0;
-      const y = Math.max(0, window.scrollY);
-      setScrolled(y > 12); // bails out unless the value actually changes
-      const d = y > last ? 1 : y < last ? -1 : 0;
-      if (d !== 0 && d !== dir) {
-        dir = d;
-        anchor = last;
-      }
-      if (y < 240) setHidden(false);
-      else if (dir === 1 && y - anchor > 24) setHidden(true);
-      else if (dir === -1 && anchor - y > 24) setHidden(false);
-      last = y;
+      setScrolled(window.scrollY > 12);
     };
-
     const onScroll = () => {
       if (!raf) raf = requestAnimationFrame(update);
     };
@@ -68,7 +47,6 @@ export function SiteHeader() {
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("scroll", onScroll);
-      root.removeAttribute("data-header-hidden");
     };
   }, []);
 
@@ -81,14 +59,13 @@ export function SiteHeader() {
   }, [menuOpen]);
 
   // Close the menu after navigating.
-  const [prevPath, setPrevPath] = useState(pathname);
-  if (prevPath !== pathname) {
-    setPrevPath(pathname);
+  const [prevPath, setPrevPath] = useState(rawPathname);
+  if (prevPath !== rawPathname) {
+    setPrevPath(rawPathname);
     setMenuOpen(false);
   }
 
-  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
-  const overHero = pathname === "/" && !scrolled;
+  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`));
 
   return (
     <>
@@ -96,23 +73,20 @@ export function SiteHeader() {
         href="#main"
         className="sr-only z-[60] rounded-[3px] bg-ink px-4 py-2 text-paper focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
       >
-        Skip to content
+        {t("a11y.skipToContent")}
       </a>
       <header
-        ref={header}
-        data-hidden="false"
         className={cx(
           "site-header fixed inset-x-0 top-0 z-50 border-b",
           scrolled ? "border-line bg-paper/[0.97]" : "border-transparent bg-transparent",
-          menuOpen && "!translate-y-0",
         )}
       >
-        <div className="shell flex h-(--header-h) items-center justify-between gap-6">
-          <Link href="/" className="rounded-[2px]" aria-label={`${settings.companyName} home`}>
+        <div className="shell flex h-(--header-h) items-center justify-between gap-3 sm:gap-6">
+          <Link href="/" className="rounded-[2px]" aria-label={t("brand.home", { name: settings.companyName })}>
             <Logo />
           </Link>
 
-          <nav aria-label="Primary" className="hidden md:block">
+          <nav aria-label={t("a11y.primaryNav")} className="hidden lg:block">
             <ul className="flex items-center gap-1">
               {NAV.map((item) => (
                 <li key={item.href}>
@@ -125,7 +99,7 @@ export function SiteHeader() {
                       isActive(item.href) ? "text-ink after:scale-x-100" : "text-ink-soft hover:text-ink",
                     )}
                   >
-                    {item.label}
+                    {t(`nav.${item.key}`)}
                   </Link>
                 </li>
               ))}
@@ -133,13 +107,21 @@ export function SiteHeader() {
           </nav>
 
           <div className="flex items-center gap-2">
-            <ButtonLink href="/contact" size="sm" variant={overHero ? "outline" : "primary"} className="hidden sm:inline-flex">
-              Start a project
+            <LanguageSwitcher className="max-lg:hidden" />
+            <ButtonLink
+              href="/contact"
+              size="sm"
+              variant={isActive("/contact") ? "accent" : "primary"}
+              aria-current={isActive("/contact") ? "page" : undefined}
+              // Phones: the brand name needs the room; Contact stays in the menu, hero and footer.
+              className="max-sm:hidden"
+            >
+              {t("header.cta")}
             </ButtonLink>
             <button
               type="button"
-              className="-mr-2 grid size-11 place-items-center rounded-[3px] md:hidden"
-              aria-label="Open menu"
+              className="-mr-2 grid size-11 place-items-center rounded-[3px] lg:hidden"
+              aria-label={t("a11y.openMenu")}
               aria-haspopup="dialog"
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen(true)}
@@ -152,7 +134,7 @@ export function SiteHeader() {
 
       <dialog
         ref={dialog}
-        aria-label="Site menu"
+        aria-label={t("a11y.siteMenu")}
         onCancel={(e) => {
           e.preventDefault();
           setMenuOpen(false);
@@ -161,21 +143,22 @@ export function SiteHeader() {
       >
         <div className="flex h-full flex-col">
           <div className="shell flex h-(--header-h) shrink-0 items-center justify-between">
-            <Link href="/" onClick={() => setMenuOpen(false)} aria-label={`${settings.companyName} home`}>
+            <Link href="/" onClick={() => setMenuOpen(false)} aria-label={t("brand.home", { name: settings.companyName })}>
               <Logo />
             </Link>
             <button
               type="button"
               className="-mr-2 grid size-11 place-items-center rounded-[3px]"
-              aria-label="Close menu"
+              aria-label={t("a11y.closeMenu")}
+              autoFocus
               onClick={() => setMenuOpen(false)}
             >
               <X aria-hidden className="size-5.5" />
             </button>
           </div>
-          <nav aria-label="Mobile" className="shell flex flex-1 flex-col justify-center">
+          <nav aria-label={t("a11y.mobileNav")} className="shell flex flex-1 flex-col justify-center">
             <ul className="flex flex-col">
-              {[{ href: "/", label: "Home" }, ...NAV].map((item, i) => (
+              {SITE_LINKS.map((item, i) => (
                 <li
                   key={item.href}
                   className="border-b border-white/10"
@@ -184,10 +167,10 @@ export function SiteHeader() {
                   <Link
                     href={item.href}
                     onClick={() => setMenuOpen(false)}
-                    aria-current={(item.href === "/" ? pathname === "/" : isActive(item.href)) ? "page" : undefined}
-                    className="flex items-baseline justify-between py-4 font-display text-[clamp(2rem,9vw,3rem)] leading-none tracking-tight aria-[current=page]:text-accent"
+                    aria-current={isActive(item.href) ? "page" : undefined}
+                    className="flex items-baseline justify-between py-4 font-display text-[clamp(2rem,9vw,3rem)] leading-none tracking-tight [&:lang(ka)]:text-[clamp(1.6rem,7vw,2.3rem)] [&:lang(ka)]:leading-tight [&:lang(ka)]:tracking-normal aria-[current=page]:text-accent"
                   >
-                    {item.label}
+                    {t(`nav.${item.key}`)}
                     <span className="font-mono text-xs text-night-muted">0{i + 1}</span>
                   </Link>
                 </li>
@@ -195,6 +178,7 @@ export function SiteHeader() {
             </ul>
           </nav>
           <div className="shell grid shrink-0 gap-1 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] text-sm text-night-muted">
+            <LanguageSwitcher variant="full" className="mb-5" />
             <a href={`mailto:${settings.email}`} className="text-night-ink">
               {settings.email}
             </a>
