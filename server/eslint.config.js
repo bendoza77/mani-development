@@ -28,7 +28,7 @@ export default defineConfig([
   },
   {
     // The few places allowed to read process.env directly.
-    files: ["src/config/env.ts", "prisma.config.ts", "vitest.config.ts", "test/**/*.ts"],
+    files: ["src/config/env.ts", "prisma.config.ts", "prisma/seed.ts", "vitest.config.ts", "test/**/*.ts"],
     rules: { "no-restricted-properties": "off" },
   },
 ]);

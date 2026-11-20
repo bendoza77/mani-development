@@ -53,6 +53,11 @@ Every significant fact and decision in the planning package, with its classifica
 | C-30 | Phase 1: Supertest 7.3.2 works with Express 5.3.0 | Test run 2026-11-20 |
 | C-31 | Development machine: a PostgreSQL already listens on port 5433 and Docker Desktop was not running. Phase 1 tests ran on a throwaway PostgreSQL 18.6 cluster (port 5544, scratch folder). Docker Compose uses port 5434 | `pg_isready`, `docker info` |
 | C-32 | On Windows, Node can't deliver SIGINT/SIGTERM from another process (it terminates the target), so the signal handler in `src/index.ts` was not exercised locally; `close()` is covered by tests. To be checked on Render (Linux) in Phase 3 | Phase 1 manual verification |
+| C-33 | Phase 2: with `in_progress @map("in-progress")`, Prisma 7.10.1 generates `ProjectStatus.in_progress === "in_progress"` and stores `'in-progress'` in PostgreSQL. Resolves the D-15 docs conflict | `src/generated/prisma/enums.ts`; `test/integration/schema/relations.test.ts` |
+| C-34 | Phase 2: `@default(uuid(7))` works in Prisma 7.10.1 and produces version-7 UUIDs | relations test |
+| C-35 | Phase 2: `prisma migrate diff --from-migrations` needs `datasource.shadowDatabaseUrl` in `prisma.config.ts` (an empty scratch database); it reports no difference for the committed migration and exits 2 when the schema drifts | Run 2026-11-21 |
+| C-36 | Phase 2: the migration inserts the settings row with the real company name, email and address. **Phone (`+995 32 200 14 14`) and opening hours are the prototype's placeholders** and must be changed in the admin before launch; social links start empty | `prisma/migrations/*_init/migration.sql` |
+| C-37 | Phase 2 seed: the prototype never translates project names, so `titleKa` equals the English name for demo projects; images have English alt text only (copied into `altKa`); the sample page has heading, text, image and gallery blocks but no video or embed (no real video to point at) | `prisma/seed.ts`, `prisma/seed-data.json` |
 | C-26 | Public DNS for `manidevelopment.ge`: Route 53 nameservers; no records for the bare domain, `www` or `api`; MX to Google; SPF for Google present; no DKIM (`google._domainkey`) and no DMARC record | DNS lookups from the development machine, 2026-11-20 |
 
 ## 2. Facts from documentation (VERIFIED, fetched 2026-11-20)

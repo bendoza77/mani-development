@@ -428,6 +428,7 @@ Test layers and the per-endpoint matrix are defined once in TESTING_STRATEGY §4
     - **every** constraint and referential behaviour in DATABASE_DESIGN §3–4 has a passing test (counted against the table in §4)
     - the seed loads, and a second run changes nothing
 13. **Rollback:** before any shared environment exists, drop and recreate the local databases. Once deployed (Phase 3+), only forward-fix migrations (DATABASE_DESIGN §7).
+    - **Done 2026-11-21.** The email outbox table stays in Phase 9, as DATABASE_DESIGN §3.6 places it. Findings: EVIDENCE_REGISTER C-33 to C-37.
 14. **Definition of done:** as Phase 1, plus DATABASE_DESIGN updated with any implementation differences.
 
 ### Phase 3 — Staging deployment skeleton

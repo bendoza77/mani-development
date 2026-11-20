@@ -46,6 +46,15 @@ jobs:
 
       - run: npm ci
       - run: npx prisma generate
+
+      - name: Schema matches migrations
+        env:
+          # Empty scratch database that Prisma may wipe; never real data.
+          SHADOW_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mani_shadow
+        run: |
+          node -e "const pg=require('pg');const c=new pg.Client({connectionString:'postgresql://postgres:postgres@localhost:5432/postgres'});c.connect().then(()=>c.query('CREATE DATABASE mani_shadow')).then(()=>c.end())"
+          npx prisma migrate diff --from-migrations prisma/migrations --to-schema prisma/schema.prisma --exit-code
+
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test
