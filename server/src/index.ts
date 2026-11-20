@@ -1,6 +1,9 @@
 import dotenv from "dotenv";
 import { createApp } from "./app.js";
 import { ConfigError, loadConfig, type Config } from "./config/env.js";
+import { startTokenCleanup } from "./jobs/token-cleanup.js";
+import { createBackgroundTasks } from "./lib/background.js";
+import { systemClock } from "./lib/clock.js";
 import { createDatabase } from "./lib/db.js";
 import { createLogger } from "./lib/logger.js";
 import { startServer } from "./server.js";
@@ -20,12 +23,29 @@ try {
 }
 
 const logger = createLogger(config.logLevel);
+if (config.mailTransport === "none") {
+  logger.warn("MAIL_TRANSPORT=none: password-reset and notice emails are logged, not sent");
+}
 const db = createDatabase(config.databaseUrl);
-const server = await startServer({ app: createApp({ config, logger, db }), port: config.port, logger, db });
+const tasks = createBackgroundTasks(logger);
+const server = await startServer({
+  app: createApp({ config, logger, db, tasks }),
+  port: config.port,
+  logger,
+  db,
+  drainBackground: tasks.drain,
+});
+const stopTokenCleanup = startTokenCleanup({
+  prisma: db.prisma,
+  logger,
+  clock: systemClock,
+  sessionIdleMinutes: config.sessionIdleMinutes,
+});
 
 for (const signal of ["SIGTERM", "SIGINT"] as const) {
   process.once(signal, () => {
     logger.info({ signal }, "signal received");
+    stopTokenCleanup();
     server.close().then(
       () => process.exit(0),
       (error: unknown) => {

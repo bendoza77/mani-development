@@ -123,7 +123,8 @@ Every significant fact and decision in the planning package, with its classifica
 | U-14 | Hybrid CMS accepted (Q-21); text formatting in text blocks: yes (Q-22) | 2026-11-20 |
 | U-15 | Georgian first: required, default at `/`; English optional at `/en/` (Q-02a) | 2026-11-20 |
 | U-16 | Video: both uploaded (Cloudflare Stream) and embedded links (Q-25) | 2026-11-20 |
-| U-17 | `info@manidevelopment.ge` is the admin login, sender and inquiry inbox (Q-29); you manage DNS (Q-28) | 2026-11-20 |
+| U-17 | `info@manidevelopment.ge` is the admin login, sender and inquiry inbox (Q-29); you manage DNS (Q-28). *The login part is replaced by U-18* | 2026-11-20 |
+| U-18 | The admin signs in with **`dev@manidevelopment.ge`** (not the public `info@`); `info@` stays the sender and inquiry inbox (refines U-17) | 2026-11-21 |
 | U-11 | The first release stays lightweight; plans are updated, not rewritten; no application code during planning | 2026-11-20 |
 
 ## 4. Engineering proposals (PROPOSED)

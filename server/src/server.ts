@@ -6,7 +6,10 @@ import type { Database } from "./lib/db.js";
 
 export type RunningServer = {
   port: number;
-  /** Stops accepting connections, lets in-flight requests finish (up to the limit), then disconnects the database. */
+  /**
+   * Stops accepting connections, lets in-flight requests finish (up to the limit), waits for
+   * background work, then disconnects the database.
+   */
   close(): Promise<void>;
 };
 
@@ -18,6 +21,8 @@ type StartOptions = {
   /** Render requires binding to 0.0.0.0 (docs/INTEGRATIONS.md §4). */
   host?: string;
   shutdownTimeoutMs?: number;
+  /** Waits for work still running after its response was sent (e.g. emails). */
+  drainBackground?: () => Promise<void>;
 };
 
 export async function startServer({
@@ -27,6 +32,7 @@ export async function startServer({
   db,
   host = "0.0.0.0",
   shutdownTimeoutMs = 10_000,
+  drainBackground = async () => {},
 }: StartOptions): Promise<RunningServer> {
   const server: Server = await new Promise((resolve, reject) => {
     const s = app.listen(port, host, () => resolve(s));
@@ -52,6 +58,7 @@ export async function startServer({
         });
         server.closeIdleConnections();
       });
+      await drainBackground();
       await db.disconnect();
       logger.info("shutdown complete");
     })();

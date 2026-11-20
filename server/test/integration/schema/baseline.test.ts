@@ -1,14 +1,17 @@
-import { afterAll, describe, expect, inject, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { createDatabase } from "../../../src/lib/db.js";
+import { resetDb } from "../../helpers/db.js";
 
 /**
  * The rows the migration itself creates, so every environment (including production)
  * starts with settings, the five built-in pages and today's menu (DATABASE_DESIGN §3.8–3.10).
- * Read-only: no reset needed.
+ * Read-only, but other test files may have left rows behind, so it starts from a reset
+ * (which restores exactly what the migration created).
  */
 
 const db = createDatabase(inject("databaseUrl"));
 const prisma = db.prisma;
+beforeAll(() => resetDb());
 afterAll(() => db.disconnect());
 
 describe("baseline rows created by the migration", () => {

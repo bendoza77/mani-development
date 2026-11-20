@@ -110,12 +110,12 @@ Set-Cookie: __Host-sid=<token>; Path=/; Secure; HttpOnly; SameSite=Strict; Max-A
 
 | Control | Setting |
 |---|---|
-| Per-IP limit on login | 10 attempts / 15 min → `429` with `Retry-After` |
+| Per-IP limit on login | 10 **failed** attempts / 15 min → `429` with `Retry-After`. Successful sign-ins don't count; wrong current passwords on `POST /api/auth/password` do (as built) |
 | Per-account lock | After 10 consecutive failures, `lockedUntil = now + 15 min`; reset on success |
 | Response on lock | Same generic `401 INVALID_CREDENTIALS` as a wrong password, so attackers can't confirm the account exists. The real reason goes to the activity log (`auth` kind) |
 | Timing | If the email doesn't exist, still verify against a fixed dummy Argon2id hash, so response time doesn't reveal valid emails |
 
-**Accepted trade-off:** someone who knows the admin email can trigger 15-minute lockouts. The per-IP limit slows this, and the lock is short. The login email should not be the public `info@` address (operational recommendation).
+**Accepted trade-off:** someone who knows the admin email can trigger 15-minute lockouts. The per-IP limit slows this, and the lock is short. The login email should not be the public `info@` address: **decided 2026-11-21, the admin signs in with `dev@manidevelopment.ge`** (U-18).
 
 ---
 

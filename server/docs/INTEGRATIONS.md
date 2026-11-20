@@ -288,7 +288,7 @@ These only matter if sending through Google Workspace turns out to be unsuitable
 - DNS records needed: `www`, `api` (Phase 16), staging names (Phase 3), DKIM and DMARC (Phase 10), and optionally a Search Console verification record (Phase 16).
 - Moving DNS to Cloudflare is **not required** for the recommended Images setup.
 
-**Mailboxes named by you:** `info@manidevelopment.ge` and `dev@manidevelopment.ge`. `info@` is also the public contact address in the seed settings (`client/data/seed.ts:688`). Which one sends website email, which receives inquiries and which is the admin's login is Q-29.
+**Mailboxes named by you:** `info@manidevelopment.ge` and `dev@manidevelopment.ge`. `info@` is also the public contact address in the seed settings (`client/data/seed.ts:688`). Which one sends website email, which receives inquiries and which is the admin's login is Q-29: `info@` sends and receives inquiries; `dev@` is the admin login (U-18).
 
 **Consequence for preview deployments:**
 - Vercel preview URLs (`*.vercel.app`) are cross-site to `api.manidevelopment.ge`, so **admin login won't work on preview URLs**. Public pages will still work.
@@ -324,8 +324,8 @@ All variables are validated at startup with Zod. **The process exits with a clea
 | `CORS_ORIGINS` | 1 | yes | comma-separated exact origins, e.g. `https://www.manidevelopment.ge` |
 | `LOG_LEVEL` | 1 | no | `info` (default), `debug` in development |
 | `TRUST_PROXY_HOPS` | 1 | prod: yes | integer from the Phase 3 measurement |
-| `SESSION_COOKIE_NAME` | 4 | no | default `__Host-sid`. The `__Host-` prefix is valid because the cookie is host-only on `api.manidevelopment.ge` with `Secure` and `Path=/` (SECURITY_PLAN §2) |
-| `SESSION_IDLE_MINUTES` / `SESSION_MAX_DAYS` | 4 | no | defaults 720 / 7 |
+| *(cookie name)* | 4 | — | **Not a variable** (as built): `__Host-sid` with `Secure` everywhere except `NODE_ENV=development`, which uses `sid` without `Secure` for plain-http localhost. The `__Host-` prefix is valid because the cookie is host-only on `api.manidevelopment.ge` with `Secure` and `Path=/` (SECURITY_PLAN §2) |
+| `SESSION_IDLE_MINUTES` / `SESSION_MAX_DAYS` | 4 | no | defaults 720 / 7; allowed 5–10080 / 1–30 |
 | `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_IMAGES_API_TOKEN`, `CLOUDFLARE_IMAGES_ACCOUNT_HASH` | 5 | yes (from Phase 5) | |
 | `CLOUDFLARE_STREAM_API_TOKEN`, `CLOUDFLARE_STREAM_CUSTOMER_CODE` | 5 | if Q-25 = yes | token scoped to Stream Edit only; the customer code is public (it is part of player addresses) |
 | `PREVIEW_TOKEN_TTL_SECONDS` | 6 | no | default 300 |
@@ -334,8 +334,8 @@ All variables are validated at startup with Zod. **The process exits with a clea
 | `EMAIL_ENABLED` | 10 | no (default `true` in production) | kill switch: `false` keeps queuing but stops sending (Phase 10 rollback) |
 | `FRONTEND_REVALIDATE_URL`, `REVALIDATE_SECRET` | 11 | yes (from Phase 11) | |
 | `INTERNAL_API_KEY` | 11 | yes (from Phase 11) | 32+ random bytes; sent by the Next.js server on public reads to bypass the per-IP limiter (SECURITY_PLAN §9), to read drafts in preview and to verify preview tokens |
-| `PUBLIC_SITE_URL` | 4 | yes | used for links in emails (password-reset link) |
-| `MAIL_TRANSPORT` | 4 | yes | `console` (development only; refused elsewhere) \| `smtp` (staging/production, from Phase 10) \| `fake` (tests) |
+| `PUBLIC_SITE_URL` | 4 | yes | exact origin, e.g. `https://www.manidevelopment.ge`; used for links in emails (password-reset link) |
+| `MAIL_TRANSPORT` | 4 | no (default `none`) | `none` (logs that an email would be sent, without its body) \| `console` (development only; refused elsewhere) \| `smtp` (staging/production, from Phase 10). Tests pass a fake mailer in code, not through this variable |
 
 **Frontend (Vercel) variables added by the new scope:**
 

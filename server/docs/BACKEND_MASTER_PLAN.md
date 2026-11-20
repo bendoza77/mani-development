@@ -44,7 +44,7 @@ This file holds the architecture, the phased roadmap with the per-phase specific
   - SEO built into the data model: optional SEO fields with automatic defaults, generated canonical and language links, sitemap, structured data, and automatic redirects when an address changes.
   - Analytics through Google Tag Manager only, loaded after consent, with two tracked events.
 - **Your answers so far:** domain `manidevelopment.ge`; mainly Georgian content; one admin with an email reset link; Gmail (Google Workspace); you are buying the hosting.
-- **Your latest answers (2026-11-20) unblock the database design:** no separate product catalogue; the slider is its own homepage section and the 3D opening stays; the hybrid CMS; text formatting; Georgian first; uploaded and embedded video; `info@` for login, sending and inquiries; you manage DNS.
+- **Your latest answers (2026-11-20) unblock the database design:** no separate product catalogue; the slider is its own homepage section and the 3D opening stays; the hybrid CMS; text formatting; Georgian first; uploaded and embedded video; `info@` for sending and inquiries, and (changed 2026-11-21) `dev@` for the admin login; you manage DNS.
 - **Verified facts that affect cost and risk:**
   - Render's free tier and Vercel's Hobby plan are unsuitable for a company site.
   - Uploaded video costs at least $5/month.
@@ -490,15 +490,16 @@ Test layers and the per-endpoint matrix are defined once in TESTING_STRATEGY §4
    - the cleanup job
    - mount `/api/admin` behind the guard with a placeholder `GET /api/admin/ping` (returns the user; removed in Phase 5)
    - the route-walker security test
-4. **Files:**
-   - `src/modules/auth/{auth.routes,auth.service,auth.schemas,password,session,password-reset}.ts`
-   - `src/modules/auth/emails/*` (reset and password-changed templates)
+4. **Files** (as built, 2026-11-21):
+   - `src/modules/auth/{auth.routes,auth.service,auth.schemas,password,session,cookies,emails,admin-accounts,admin-cli}.ts` (the reset-token logic lives in `auth.service.ts`; both email templates in `emails.ts`, Georgian then English)
+   - `src/modules/admin/admin.routes.ts` (the placeholder `GET /ping`)
    - `src/integrations/mailer.ts`
    - `src/middleware/{require-admin,origin-check,rate-limits}.ts`
-   - `src/jobs/session-cleanup.ts`
-   - `scripts/{admin-create,admin-set-password}.ts`
+   - `src/lib/{clock,activity,background}.ts` (`background` lets shutdown and tests wait for emails sent after a response)
+   - `src/jobs/token-cleanup.ts` (sessions, reset tokens and preview tokens)
+   - `src/scripts/{admin-create,admin-set-password,terminal}.ts`: under `src/` so the build compiles them and a Render shell can run `node dist/scripts/admin-create.js` without dev tools
    - `test/security/route-walker.test.ts`
-   - auth integration tests
+   - `test/integration/auth/*`, `test/integration/jobs/token-cleanup.test.ts`, `test/helpers/auth.ts`
 5. **Database changes:** none if Phase 2 created the `AdminUser`/`AdminSession` tables; otherwise a migration.
 6. **API contracts:** API_CONTRACTS §4.
 7. **Unit tests:** Argon2id round trip with OWASP parameters; PHC parse/format; a wrong password fails; dummy-hash path; session expiry math (idle and absolute) with an injected clock.

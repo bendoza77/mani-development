@@ -28,7 +28,7 @@ Phase numbers refer to the 16-phase roadmap in [BACKEND_MASTER_PLAN.md](BACKEND_
 | Q-22 Text formatting | Yes | Bold, italic, links and lists in text blocks (Tiptap editor, admin only) |
 | Q-02a Language | "Both is good, first Georgian" | Georgian required, English optional. `manidevelopment.ge/` opens in Georgian; English is at `/en/`. Admin screens stay English for launch (assumed; say if not) |
 | Q-25 Video | Both options | Uploaded video on Cloudflare Stream (from $5/month) **and** YouTube/Vimeo links |
-| Q-29 Mailboxes | `info@` | `info@manidevelopment.ge` is the admin login, the sending account and the inquiry inbox. It needs 2-Step Verification and an app password |
+| Q-29 Mailboxes | `info@`; admin login changed to `dev@` (2026-11-21) | `dev@manidevelopment.ge` is the **admin login** (and so receives password-reset links), because `info@` is public and anyone knowing the login address can trigger 15-minute lockouts. `info@manidevelopment.ge` stays the sending account and the inquiry inbox; it needs 2-Step Verification and an app password |
 | Q-28 DNS | You manage DNS | You add the records when each phase needs them; exact values will be given then |
 
 ### Sharing resources safely

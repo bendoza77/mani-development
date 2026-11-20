@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { ConfigError, loadConfig } from "./env.js";
+import { ConfigError, loadConfig, loadScriptConfig } from "./env.js";
 
 const valid = {
   NODE_ENV: "development",
   DATABASE_URL: "postgresql://postgres:postgres@localhost:5434/mani_dev",
   CORS_ORIGINS: "http://localhost:3000, https://www.manidevelopment.ge",
+  PUBLIC_SITE_URL: "http://localhost:3000",
 };
 
 function problemsOf(source: Record<string, string | undefined>): string[] {
@@ -28,7 +29,41 @@ describe("loadConfig", () => {
       corsOrigins: ["http://localhost:3000", "https://www.manidevelopment.ge"],
       logLevel: "info",
       trustProxyHops: 0,
+      publicSiteUrl: "http://localhost:3000",
+      sessionIdleMinutes: 720,
+      sessionMaxDays: 7,
+      mailTransport: "none",
+      // Development runs on plain http://localhost, so the cookie can't be Secure or __Host-.
+      sessionCookie: { name: "sid", secure: false },
     });
+  });
+
+  it("uses a Secure __Host- cookie everywhere except development", () => {
+    for (const NODE_ENV of ["test", "production"]) {
+      const config = loadConfig({ ...valid, NODE_ENV, TRUST_PROXY_HOPS: "1" });
+
+      expect(config.sessionCookie).toEqual({ name: "__Host-sid", secure: true });
+    }
+  });
+
+  it("requires PUBLIC_SITE_URL to be an exact origin", () => {
+    expect(problemsOf({ ...valid, PUBLIC_SITE_URL: undefined })[0]).toMatch(/PUBLIC_SITE_URL/);
+    expect(problemsOf({ ...valid, PUBLIC_SITE_URL: "https://www.manidevelopment.ge/admin" })[0]).toMatch(
+      /PUBLIC_SITE_URL/,
+    );
+  });
+
+  it("refuses the console mail transport outside development (it would print reset links to logs)", () => {
+    expect(loadConfig({ ...valid, MAIL_TRANSPORT: "console" }).mailTransport).toBe("console");
+    expect(problemsOf({ ...valid, NODE_ENV: "test", MAIL_TRANSPORT: "console" })[0]).toMatch(/MAIL_TRANSPORT/);
+  });
+
+  it("accepts session lengths within limits", () => {
+    const config = loadConfig({ ...valid, SESSION_IDLE_MINUTES: "60", SESSION_MAX_DAYS: "3" });
+
+    expect(config.sessionIdleMinutes).toBe(60);
+    expect(config.sessionMaxDays).toBe(3);
+    expect(problemsOf({ ...valid, SESSION_MAX_DAYS: "90" })[0]).toMatch(/SESSION_MAX_DAYS/);
   });
 
   it("names every missing required variable at once", () => {
@@ -80,5 +115,17 @@ describe("loadConfig", () => {
 
     expect(config.trustProxyHops).toBe(2);
     expect(config.port).toBe(10000);
+  });
+});
+
+describe("loadScriptConfig (command-line scripts need only the database)", () => {
+  it("reads DATABASE_URL alone", () => {
+    expect(loadScriptConfig({ DATABASE_URL: valid.DATABASE_URL })).toEqual({ databaseUrl: valid.DATABASE_URL });
+  });
+
+  it("names DATABASE_URL when it is missing or wrong", () => {
+    for (const DATABASE_URL of [undefined, "mysql://localhost/db"]) {
+      expect(() => loadScriptConfig({ DATABASE_URL })).toThrow(/DATABASE_URL/);
+    }
   });
 });

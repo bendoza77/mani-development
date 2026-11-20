@@ -41,6 +41,23 @@ describe("startServer", () => {
     expect(await canConnect(server.port)).toBe(false);
   });
 
+  it("on close, waits for background work (such as emails) before disconnecting the database", async () => {
+    const config = testConfig();
+    const logger = createLogger("silent");
+    const real = createDatabase(config.databaseUrl);
+    const order: string[] = [];
+    const db: Database = { ...real, disconnect: async () => (order.push("disconnect"), real.disconnect()) };
+    const drainBackground = async () => {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      order.push("drained");
+    };
+
+    const server = await startServer({ app: createApp({ config, logger, db }), port: 0, logger, db, drainBackground });
+    await server.close();
+
+    expect(order).toEqual(["drained", "disconnect"]);
+  });
+
   it("can be closed twice without throwing", async () => {
     const config = testConfig();
     const logger = createLogger("silent");
