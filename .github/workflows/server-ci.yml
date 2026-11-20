@@ -1,0 +1,58 @@
+# Checks for the API in server/ (docs/TESTING_STRATEGY.md §7).
+name: server-ci
+
+on:
+  push:
+    paths: ["server/**", ".github/workflows/server-ci.yml"]
+  pull_request:
+    paths: ["server/**", ".github/workflows/server-ci.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mani_dev
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    env:
+      # The test setup creates this database and refuses any name not ending in "_test".
+      DATABASE_URL_TEST: postgresql://postgres:postgres@localhost:5432/mani_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: server/.node-version
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm audit --omit=dev --audit-level=high
+
+      - name: No unsafe raw SQL or eval in source
+        run: |
+          if grep -rnE '\$(queryRawUnsafe|executeRawUnsafe)|\beval\(' src --include='*.ts' --exclude-dir=generated; then
+            echo "Banned API found (docs/SECURITY_PLAN.md §6)"; exit 1
+          fi

@@ -1,0 +1,12 @@
+// Phase 1: generator and datasource only. Models arrive in Phase 2 (docs/DATABASE_DESIGN.md).
+// The connection URL lives in prisma.config.ts (Prisma 7).
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
