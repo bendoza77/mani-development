@@ -1,3 +1,5 @@
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { Logger } from "pino";
 import { inject } from "vitest";
 import { createApp } from "../../src/app.js";
@@ -10,6 +12,7 @@ import { createLogger } from "../../src/lib/logger.js";
 import type { RateLimits } from "../../src/middleware/rate-limits.js";
 
 export const ALLOWED_ORIGIN = "https://www.example.test";
+export const TEST_MEDIA_DIR = join(tmpdir(), "mani-test-media");
 
 /**
  * Tests send many requests from one address, so every limit is raised unless a test sets its own.
@@ -31,6 +34,8 @@ export function testConfig(overrides: Record<string, string> = {}): Config {
     CORS_ORIGINS: ALLOWED_ORIGIN,
     PUBLIC_SITE_URL: ALLOWED_ORIGIN,
     LOG_LEVEL: "silent",
+    // Uploaded photos go to a throwaway folder, never into the project.
+    MEDIA_LOCAL_DIR: TEST_MEDIA_DIR,
     ...overrides,
   });
 }

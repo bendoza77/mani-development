@@ -471,6 +471,8 @@ model Page {
   titleEn     String?        @map("title_en") @db.VarChar(120)
   introKa     String         @default("") @map("intro_ka") @db.VarChar(400)
   introEn     String?        @map("intro_en") @db.VarChar(400)
+  /// Page colors chosen in the editor: { background, textColor, accent } as #rrggbb or null.
+  style       Json           @default("{}")
   isPublished Boolean        @default(false) @map("is_published")
   publishedAt DateTime?      @map("published_at") @db.Timestamptz(3)
 
@@ -500,6 +502,9 @@ enum BlockType {
   gallery
   video
   embed
+  banner
+  textImage @map("text-image")
+  cards
 
   @@map("block_type")
 }

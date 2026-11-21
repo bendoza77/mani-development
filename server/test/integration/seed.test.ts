@@ -58,7 +58,7 @@ describe("runSeed", () => {
     });
     expect(first.specs).toBeGreaterThan(0);
     expect(first.gallery).toBeGreaterThan(0);
-    expect(first.blocks).toBe(4);
+    expect(first.blocks).toBe(3);
   });
 
   it("can run again without errors or duplicates", async () => {

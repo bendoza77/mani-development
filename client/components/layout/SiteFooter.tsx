@@ -10,12 +10,15 @@ import { useContent, useTranslation } from "@/i18n/client";
 import { splitLocale } from "@/i18n/config";
 import { LocaleLink } from "@/i18n/LocaleLink";
 import { useDB } from "@/lib/store";
-import { SITE_LINKS } from "./SiteHeader";
+import { useNavigation } from "@/lib/navigation";
+import { MenuLink } from "./SiteHeader";
 
 export function SiteFooter() {
   const { t } = useTranslation("common");
   const s = useContent().settings(useDB((d) => d.settings));
   const pathname = splitLocale(usePathname()).path;
+  // The footer menu is edited per page in the admin (Pages → Menu).
+  const { footer } = useNavigation();
   const tel = `tel:${s.phone.replace(/\s/g, "")}`;
   const socials = [
     { label: "Instagram", href: s.instagram },
@@ -78,11 +81,9 @@ export function SiteFooter() {
         <nav aria-label={t("a11y.footerNav")}>
           <p className="t-eyebrow text-night-muted">{t("footer.explore")}</p>
           <ul className="mt-4 space-y-2 text-[0.95rem]">
-            {SITE_LINKS.map((n) => (
+            {footer.map((n) => (
               <li key={n.href}>
-                <LocaleLink href={n.href} className="hover:text-accent">
-                  {t(`nav.${n.key}`)}
-                </LocaleLink>
+                <MenuLink link={n} className="hover:text-accent" />
               </li>
             ))}
           </ul>

@@ -4,6 +4,7 @@ import helmet from "helmet";
 import type { Logger } from "pino";
 import type { Config } from "./config/env.js";
 import { createMailer, type Mailer } from "./integrations/mailer.js";
+import { createMediaStorage, type MediaStorage } from "./integrations/media-storage.js";
 import { createBackgroundTasks, type BackgroundTasks } from "./lib/background.js";
 import { systemClock, type Clock } from "./lib/clock.js";
 import type { Database } from "./lib/db.js";
@@ -18,6 +19,10 @@ import { adminRoutes } from "./modules/admin/admin.routes.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
 import { createAuthService } from "./modules/auth/auth.service.js";
 import { healthRoutes } from "./modules/health/health.routes.js";
+import { mediaRoutes } from "./modules/media/media.routes.js";
+import { publicNavigationRoutes } from "./modules/pages/menu.js";
+import { adminPageRoutes, publicPageRoutes } from "./modules/pages/pages.routes.js";
+import { adminProjectRoutes, publicProjectRoutes } from "./modules/projects/projects.routes.js";
 
 export type AppDeps = {
   config: Config;
@@ -30,6 +35,8 @@ export type AppDeps = {
   limits?: Partial<RateLimits>;
   /** Work that outlives its request (emails). Pass one in to be able to wait for it at shutdown. */
   tasks?: BackgroundTasks;
+  /** Photo storage; defaults to the one named by MEDIA_PROVIDER. */
+  storage?: MediaStorage;
 };
 
 /** Routes that use the session cookie: credentialed CORS, origin check, no caching. */
@@ -45,7 +52,7 @@ const noStore = (_req: Request, res: Response, next: NextFunction) => {
  * Builds the Express app without starting a server, so tests can use it directly.
  * Pipeline: docs/BACKEND_MASTER_PLAN.md §3.2.
  */
-export function createApp({ config, logger, db, mailer, clock = systemClock, limits = {}, tasks }: AppDeps) {
+export function createApp({ config, logger, db, mailer, clock = systemClock, limits = {}, tasks, storage }: AppDeps) {
   const app = express();
   const prisma = db.prisma;
   const limiters = createRateLimiters({ ...DEFAULT_RATE_LIMITS, ...limits });
@@ -83,10 +90,30 @@ export function createApp({ config, logger, db, mailer, clock = systemClock, lim
 
   app.use("/api/health", healthRoutes(db));
 
+  // Locally stored photos (development). Other sites (the website on another port) may show them.
+  if (config.media.provider === "local") {
+    app.use(
+      "/media",
+      (_req, res, next) => {
+        res.set("Cross-Origin-Resource-Policy", "cross-origin");
+        next();
+      },
+      express.static(config.media.dir, { fallthrough: false, immutable: true, maxAge: "365d", index: false }),
+    );
+  }
+
+  app.use("/api/public/projects", publicProjectRoutes({ config, prisma }));
+  app.use("/api/public/pages", publicPageRoutes({ config, prisma }));
+  app.use("/api/public/navigation", publicNavigationRoutes({ prisma }));
+
   app.use(COOKIE_ROUTES, noStore, originCheck(config.corsOrigins), limiters.admin);
   app.use("/api/auth", authRoutes({ config, prisma, auth, requireAdmin: guard, limiters }));
   // Every admin route sits behind the guard, so a new one can't accidentally be public.
-  app.use("/api/admin", guard, adminRoutes());
+  app.use("/api/admin", guard);
+  app.use("/api/admin", adminRoutes());
+  app.use("/api/admin/media", mediaRoutes({ config, prisma, storage: storage ?? createMediaStorage(config) }));
+  app.use("/api/admin/projects", adminProjectRoutes({ config, prisma }));
+  app.use("/api/admin/pages", adminPageRoutes({ config, prisma }));
 
   app.use(notFound);
   app.use(errorHandler(logger));

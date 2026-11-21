@@ -265,7 +265,7 @@ export async function runSeed(prisma: PrismaClient): Promise<void> {
         await tx.homeSlide.upsert({ where: { id }, create: { id, ...row }, update: row });
       }
 
-      // A sample custom page with the block types that need no external video (heading, text, image, gallery).
+      // A sample custom page with heading, text and image blocks.
       const sp = data.samplePage;
       const pageId = stableId(`page-${SAMPLE_PAGE_SLUG}`);
       const page = {
@@ -281,10 +281,11 @@ export async function runSeed(prisma: PrismaClient): Promise<void> {
       await tx.contentBlock.deleteMany({ where: { pageId } });
 
       const blocks = [
-        { type: "heading" as const, data: { level: 2, text: { ka: sp.headingKa, en: sp.headingEn } }, media: [] },
-        { type: "text" as const, data: { doc: { ka: paragraphsDoc(sp.paragraphsKa), en: paragraphsDoc(sp.paragraphsEn) } }, media: [] },
-        { type: "image" as const, data: { caption: { ka: sp.imageCaptionKa, en: sp.imageCaptionEn } }, media: ["/images/drawings.jpg"] },
-        { type: "gallery" as const, data: {}, media: ["/images/site-cranes.jpg", "/images/site-rebar.jpg", "/images/site-team.jpg"] },
+        // Same stored shape as the pages API writes (src/modules/pages/pages.routes.ts blockData).
+        { type: "heading" as const, data: { level: 2, textKa: sp.headingKa, textEn: sp.headingEn }, media: [] },
+        { type: "text" as const, data: { docKa: paragraphsDoc(sp.paragraphsKa), docEn: paragraphsDoc(sp.paragraphsEn) }, media: [] },
+        { type: "image" as const, data: { captionKa: sp.imageCaptionKa, captionEn: sp.imageCaptionEn }, media: ["/images/drawings.jpg"] },
+        // Gallery blocks come later; the API doesn't accept them yet.
       ];
       for (const [position, b] of blocks.entries()) {
         const blockId = stableId(`${SAMPLE_PAGE_SLUG}-block-${position}`);

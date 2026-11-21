@@ -1,67 +1,68 @@
 "use client";
 
-// Demo-only admin "session". It is a flag in localStorage, not authentication:
-// anyone with the browser can toggle it. Never reuse this pattern for real access control.
-import { useSyncExternalStore } from "react";
+// The admin session lives on the API server (an HttpOnly cookie the browser sends along).
+// This module asks the server who is signed in and shares the answer with every component.
+import { useEffect, useSyncExternalStore } from "react";
+import { api, UNAUTHENTICATED_EVENT } from "./api";
 
-const KEY = "lintel:session";
-export const DEMO_CREDENTIALS = { email: "demo@lintel.example", password: "lintel-demo" } as const;
+export type SessionUser = { id: string; name: string; email: string };
+/** `undefined` while unknown (server render / first check pending), `null` when signed out. */
+type SessionState = SessionUser | null | undefined;
 
-export type DemoSession = { name: string; email: string; since: string };
-/** `undefined` while unknown (server render / before hydration), `null` when signed out. */
-type SessionState = DemoSession | null | undefined;
-
-let cached: { raw: string | null; value: DemoSession | null } = { raw: null, value: null };
+let state: SessionState = undefined;
+let pending: Promise<void> | null = null;
 const listeners = new Set<() => void>();
 
-function read(): DemoSession | null {
-  let raw: string | null = null;
-  try {
-    raw = window.localStorage.getItem(KEY);
-  } catch {
-    return null;
-  }
-  if (raw === cached.raw) return cached.value;
-  let value: DemoSession | null = null;
-  try {
-    const parsed = raw ? JSON.parse(raw) : null;
-    if (parsed && typeof parsed.email === "string" && typeof parsed.name === "string") value = parsed;
-  } catch {
-    value = null;
-  }
-  cached = { raw, value };
-  return value;
+function set(next: SessionState) {
+  state = next;
+  listeners.forEach((l) => l());
 }
 
+/** Asks the server for the current session (once at a time). */
+export function refreshSession(): Promise<void> {
+  pending ??= api<{ user: SessionUser }>("/api/auth/session")
+    .then(({ user }) => set(user))
+    .catch(() => set(null))
+    .finally(() => {
+      pending = null;
+    });
+  return pending;
+}
+
+const onUnauthenticated = () => set(null);
+
 function subscribe(listener: () => void) {
+  if (listeners.size === 0) window.addEventListener(UNAUTHENTICATED_EVENT, onUnauthenticated);
   listeners.add(listener);
-  const onStorage = (e: StorageEvent) => e.key === KEY && listener();
-  window.addEventListener("storage", onStorage);
   return () => {
     listeners.delete(listener);
-    window.removeEventListener("storage", onStorage);
+    if (listeners.size === 0) window.removeEventListener(UNAUTHENTICATED_EVENT, onUnauthenticated);
   };
 }
 
 export function useSession(): SessionState {
-  return useSyncExternalStore(subscribe, read, () => undefined);
+  const session = useSyncExternalStore(
+    subscribe,
+    () => state,
+    () => undefined,
+  );
+  useEffect(() => {
+    if (state === undefined) void refreshSession();
+  }, []);
+  return session;
 }
 
-export function signIn(email: string) {
-  const session: DemoSession = { name: "Demo Administrator", email, since: new Date().toISOString() };
-  try {
-    window.localStorage.setItem(KEY, JSON.stringify(session));
-  } catch {
-    /* storage unavailable: session will not persist */
-  }
-  listeners.forEach((l) => l());
+/** Signs in on the server. Throws ApiError (e.g. INVALID_CREDENTIALS, RATE_LIMITED) on failure. */
+export async function signIn(email: string, password: string): Promise<SessionUser> {
+  const { user } = await api<{ user: SessionUser }>("/api/auth/login", { method: "POST", body: { email, password } });
+  set(user);
+  return user;
 }
 
-export function signOut() {
+export async function signOut(): Promise<void> {
   try {
-    window.localStorage.removeItem(KEY);
-  } catch {
-    /* ignore */
+    await api("/api/auth/logout", { method: "POST", body: {} });
+  } finally {
+    set(null);
   }
-  listeners.forEach((l) => l());
 }

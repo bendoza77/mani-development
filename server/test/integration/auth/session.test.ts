@@ -133,7 +133,8 @@ describe("POST /api/auth/password", () => {
 
     await post(app, "/api/auth/password", { currentPassword: ADMIN_PASSWORD, newPassword: NEW_PASSWORD }, cookie);
 
-    await expect.poll(() => mailer.sent.map((m) => [m.to, m.subject])).toEqual([
+    await settle();
+    expect(mailer.sent.map((m) => [m.to, m.subject])).toEqual([
       [ADMIN_EMAIL, "Your MANI DEVELOPMENT admin password was changed"],
     ]);
   });

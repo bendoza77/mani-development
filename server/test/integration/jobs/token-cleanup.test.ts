@@ -77,7 +77,7 @@ describe("startTokenCleanup", () => {
       await addExpired();
       await expect.poll(() => prisma.adminSession.count()).toBe(0);
     } finally {
-      stop();
+      await stop();
     }
 
     await addExpired();

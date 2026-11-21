@@ -3,13 +3,24 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
-import { ArrowLeft, Info } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/Button";
 import { Field, Input } from "@/components/ui/Field";
 import { Img } from "@/components/ui/Img";
 import { IMAGES } from "@/data/images";
-import { DEMO_CREDENTIALS, signIn, useSession } from "@/lib/session";
+import { ApiError } from "@/lib/api";
+import { signIn, useSession } from "@/lib/session";
+
+function messageFor(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.code === "INVALID_CREDENTIALS") return "The email or password is incorrect.";
+    if (error.code === "RATE_LIMITED") return "Too many attempts. Please wait a few minutes and try again.";
+    if (error.status === 400) return "Enter your email address and password.";
+    return error.message;
+  }
+  return "Sign-in failed. Please try again.";
+}
 
 export function LoginForm() {
   const router = useRouter();
@@ -27,17 +38,12 @@ export function LoginForm() {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 500));
-    if (email.trim().toLowerCase() !== DEMO_CREDENTIALS.email || password !== DEMO_CREDENTIALS.password) {
+    try {
+      await signIn(email.trim(), password);
+    } catch (err) {
       setLoading(false);
-      setError("Those details don't match the demo account shown below.");
-      return;
+      setError(messageFor(err));
     }
-    signIn(DEMO_CREDENTIALS.email);
-  }
-
-  function enterDemo() {
-    signIn(DEMO_CREDENTIALS.email);
   }
 
   return (
@@ -50,9 +56,9 @@ export function LoginForm() {
           </Link>
         </div>
         <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-12">
-          <p className="t-eyebrow text-muted">Admin · Prototype</p>
+          <p className="t-eyebrow text-muted">Admin</p>
           <h1 className="mt-4 font-display text-4xl tracking-tight">Sign in to the studio</h1>
-          <p className="mt-3 text-[0.95rem] text-muted">Manage projects, services, inquiries and site settings.</p>
+          <p className="mt-3 text-[0.95rem] text-muted">Manage projects, pages and site content.</p>
 
           <form onSubmit={submit} className="mt-8 grid gap-4" noValidate>
             {error && (
@@ -61,35 +67,17 @@ export function LoginForm() {
               </p>
             )}
             <Field label="Email">
-              {(a) => <Input {...a} type="email" autoComplete="off" value={email} onChange={(e) => setEmail(e.target.value)} />}
+              {(a) => <Input {...a} type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} />}
             </Field>
             <Field label="Password">
               {(a) => (
-                <Input {...a} type="password" autoComplete="off" value={password} onChange={(e) => setPassword(e.target.value)} />
+                <Input {...a} type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
               )}
             </Field>
             <Button type="submit" size="lg" loading={loading} className="mt-2 w-full">
               Sign in
             </Button>
-            <Button type="button" variant="outline" size="lg" className="w-full" onClick={enterDemo}>
-              Enter demo without signing in
-            </Button>
           </form>
-
-          <div className="mt-8 flex gap-3 rounded-[3px] border border-line bg-card p-4 text-[0.85rem]">
-            <Info aria-hidden className="mt-0.5 size-4 shrink-0 text-info" />
-            <div className="text-ink-soft">
-              <p className="font-medium text-ink">Demo credentials</p>
-              <p className="mt-1 font-mono text-[0.8rem]">
-                {DEMO_CREDENTIALS.email}
-                <br />
-                {DEMO_CREDENTIALS.password}
-              </p>
-              <p className="mt-2 text-muted">
-                This is a simulated sign-in stored in your browser. It is not real authentication and does not protect anything.
-              </p>
-            </div>
-          </div>
         </div>
       </div>
       <div className="relative hidden lg:block">

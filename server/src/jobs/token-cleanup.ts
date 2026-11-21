@@ -19,7 +19,7 @@ export async function cleanupExpiredTokens(
   return { sessions: sessions.count, resetTokens: resetTokens.count, previewTokens: previewTokens.count };
 }
 
-/** Runs the cleanup now and then every `intervalMs` (hourly by default). Returns a function that stops it. */
+/** Runs the cleanup now and then every `intervalMs` (hourly by default). Returns an async function that stops it. */
 export function startTokenCleanup({
   prisma,
   logger,
@@ -32,24 +32,31 @@ export function startTokenCleanup({
   clock: Clock;
   sessionIdleMinutes: number;
   intervalMs?: number;
-}): () => void {
-  let running = false;
-  const run = async () => {
-    if (running) return;
-    running = true;
-    try {
-      const deleted = await cleanupExpiredTokens(prisma, { now: clock.now(), sessionIdleMinutes });
-      logger.debug({ deleted }, "expired tokens cleaned up");
-    } catch (error) {
-      logger.error({ err: error }, "token cleanup failed");
-    } finally {
-      running = false;
-    }
+}): () => Promise<void> {
+  let current: Promise<void> | undefined;
+  let stopped = false;
+  const run = () => {
+    if (current || stopped) return;
+    current = (async () => {
+      try {
+        const deleted = await cleanupExpiredTokens(prisma, { now: clock.now(), sessionIdleMinutes });
+        logger.debug({ deleted }, "expired tokens cleaned up");
+      } catch (error) {
+        logger.error({ err: error }, "token cleanup failed");
+      } finally {
+        current = undefined;
+      }
+    })();
   };
 
-  void run();
-  const timer = setInterval(() => void run(), intervalMs);
+  run();
+  const timer = setInterval(run, intervalMs);
   // Never keeps the process alive on its own.
   timer.unref();
-  return () => clearInterval(timer);
+  /** Stops the schedule and waits for a run still in progress, so nothing runs after this resolves. */
+  return async () => {
+    stopped = true;
+    clearInterval(timer);
+    await current;
+  };
 }

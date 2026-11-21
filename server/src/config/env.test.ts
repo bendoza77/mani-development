@@ -8,6 +8,13 @@ const valid = {
   PUBLIC_SITE_URL: "http://localhost:3000",
 };
 
+const cloudflare = {
+  MEDIA_PROVIDER: "cloudflare",
+  CLOUDFLARE_ACCOUNT_ID: "0123456789abcdef0123456789abcdef",
+  CLOUDFLARE_IMAGES_API_TOKEN: "test-token-0123456789abcdef",
+  CLOUDFLARE_IMAGES_ACCOUNT_HASH: "AbCdEf123456",
+};
+
 function problemsOf(source: Record<string, string | undefined>): string[] {
   try {
     loadConfig(source);
@@ -35,12 +42,14 @@ describe("loadConfig", () => {
       mailTransport: "none",
       // Development runs on plain http://localhost, so the cookie can't be Secure or __Host-.
       sessionCookie: { name: "sid", secure: false },
+      apiPublicUrl: "http://localhost:4000",
+      media: { provider: "local", dir: "uploads" },
     });
   });
 
   it("uses a Secure __Host- cookie everywhere except development", () => {
     for (const NODE_ENV of ["test", "production"]) {
-      const config = loadConfig({ ...valid, NODE_ENV, TRUST_PROXY_HOPS: "1" });
+      const config = loadConfig({ ...valid, ...cloudflare, NODE_ENV, TRUST_PROXY_HOPS: "1" });
 
       expect(config.sessionCookie).toEqual({ name: "__Host-sid", secure: true });
     }
@@ -111,10 +120,33 @@ describe("loadConfig", () => {
   });
 
   it("accepts a production environment with TRUST_PROXY_HOPS set", () => {
-    const config = loadConfig({ ...valid, NODE_ENV: "production", TRUST_PROXY_HOPS: "2", PORT: "10000" });
+    const config = loadConfig({ ...valid, ...cloudflare, NODE_ENV: "production", TRUST_PROXY_HOPS: "2", PORT: "10000" });
 
     expect(config.trustProxyHops).toBe(2);
     expect(config.port).toBe(10000);
+  });
+});
+
+describe("media storage", () => {
+  it("uses Cloudflare Images when its three settings are given", () => {
+    expect(loadConfig({ ...valid, ...cloudflare }).media).toEqual({
+      provider: "cloudflare",
+      accountId: cloudflare.CLOUDFLARE_ACCOUNT_ID,
+      apiToken: cloudflare.CLOUDFLARE_IMAGES_API_TOKEN,
+      accountHash: cloudflare.CLOUDFLARE_IMAGES_ACCOUNT_HASH,
+    });
+  });
+
+  it("names each missing Cloudflare setting", () => {
+    const problems = problemsOf({ ...valid, MEDIA_PROVIDER: "cloudflare" });
+    const all = problems.join(" | ");
+    expect(all).toMatch(/CLOUDFLARE_ACCOUNT_ID/);
+    expect(all).toMatch(/CLOUDFLARE_IMAGES_API_TOKEN/);
+    expect(all).toMatch(/CLOUDFLARE_IMAGES_ACCOUNT_HASH/);
+  });
+
+  it("refuses local photo storage in production", () => {
+    expect(problemsOf({ ...valid, NODE_ENV: "production", TRUST_PROXY_HOPS: "1" })[0]).toMatch(/MEDIA_PROVIDER/);
   });
 });
 

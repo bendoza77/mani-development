@@ -17,3 +17,6 @@
 # logs and OS files
 *.log
 .DS_Store
+
+# photos uploaded during local development (MEDIA_PROVIDER=local)
+/uploads

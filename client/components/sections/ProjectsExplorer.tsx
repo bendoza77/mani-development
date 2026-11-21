@@ -4,8 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
 import { ProjectCard } from "@/components/sections/ProjectCard";
 import { Button } from "@/components/ui/Button";
-import { useContent, useLocale, useTranslation } from "@/i18n/client";
-import { useDB } from "@/lib/store";
+import { useLocale, useTranslation } from "@/i18n/client";
+import { usePublicProjects } from "@/lib/public-projects";
 import { CATEGORY_LABEL, STATUS_LABEL, cx } from "@/lib/format";
 import type { Project, ProjectCategory, ProjectStatus } from "@/lib/types";
 
@@ -19,10 +19,9 @@ export function ProjectsExplorer() {
   const { t } = useTranslation("projects");
   const { t: tc } = useTranslation("common");
   const locale = useLocale();
-  const content = useContent();
-  const stored = useDB((d) => d.projects);
-  // Localized copies, so search and A–Z sorting work on the text the visitor actually sees.
-  const projects = useMemo(() => stored.map(content.project), [stored, content]);
+  // Published projects from the API, already in the visitor's language (so search and A–Z work on visible text).
+  const { projects: loaded, error: loadError } = usePublicProjects();
+  const projects = useMemo(() => loaded ?? [], [loaded]);
   const [f, setF] = useState<Filters>(DEFAULTS);
   const [restored, setRestored] = useState(false);
 
@@ -150,7 +149,17 @@ export function ProjectsExplorer() {
           )}
         </div>
 
-        {results.length === 0 ? (
+        {loadError ? (
+          <p role="alert" className="mt-10 rounded-[3px] border border-dashed border-line-strong px-6 py-20 text-center text-muted">
+            {loadError}
+          </p>
+        ) : !loaded ? (
+          <div className="mt-6 grid gap-x-[clamp(1rem,2.5vw,2.5rem)] gap-y-12 sm:grid-cols-2 lg:grid-cols-3" aria-busy="true">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="aspect-[4/3] animate-pulse rounded-[2px] bg-paper-2" />
+            ))}
+          </div>
+        ) : results.length === 0 ? (
           <div className="mt-10 flex flex-col items-center rounded-[3px] border border-dashed border-line-strong px-6 py-20 text-center">
             <p className="font-display text-2xl">{t("explorer.emptyTitle")}</p>
             <p className="mt-2 max-w-sm text-muted">{t("explorer.emptyBody")}</p>
@@ -175,7 +184,7 @@ export function ProjectsExplorer() {
 /** Live portfolio numbers for the page intro, derived from the same store the admin edits. */
 export function ProjectsSummary() {
   const { t } = useTranslation("projects");
-  const projects = useDB((d) => d.projects);
+  const projects = usePublicProjects().projects ?? [];
   const stats: [string, number][] = [
     [t("summary.cities"), new Set(projects.map((p) => p.city)).size],
     [t("summary.projects"), projects.length],

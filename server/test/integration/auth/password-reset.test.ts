@@ -28,7 +28,8 @@ async function requestReset(email = ADMIN_EMAIL) {
 
 /** Waits for the reset email and returns the token from its link. */
 async function tokenFromEmail(index = 0): Promise<string> {
-  await expect.poll(() => mailer.sent.length).toBeGreaterThan(index);
+  await settle();
+  expect(mailer.sent.length).toBeGreaterThan(index);
   const match = LINK.exec(mailer.sent[index]!.text);
   if (!match) throw new Error(`no reset link in: ${mailer.sent[index]!.text}`);
   return match[1]!;
@@ -44,7 +45,8 @@ describe("POST /api/auth/password-reset/request", () => {
 
     expect(unknown.status).toBe(202);
     expect(known.status).toBe(202);
-    await expect.poll(() => mailer.sent.map((m) => m.to)).toEqual([ADMIN_EMAIL]);
+    await settle();
+    expect(mailer.sent.map((m) => m.to)).toEqual([ADMIN_EMAIL]);
     expect(mailer.sent[0]!.subject).toBe("Reset your MANI DEVELOPMENT admin password");
   });
 
@@ -95,7 +97,8 @@ describe("POST /api/auth/password-reset/confirm", () => {
     expect((await request(app).get("/api/auth/session").set("Cookie", existing)).status).toBe(401);
     expect((await post(app, "/api/auth/login", { email: ADMIN_EMAIL, password: NEW_PASSWORD })).status).toBe(200);
     expect((await post(app, "/api/auth/login", { email: ADMIN_EMAIL, password: ADMIN_PASSWORD })).status).toBe(401);
-    await expect.poll(() => mailer.sent.map((m) => m.subject)).toContain(
+    await settle();
+    expect(mailer.sent.map((m) => m.subject)).toContain(
       "Your MANI DEVELOPMENT admin password was changed",
     );
     const log = await prisma.activityLog.findMany({ where: { kind: "auth" } });
@@ -108,7 +111,8 @@ describe("POST /api/auth/password-reset/confirm", () => {
     const logged = buildTestApp({ clock, logger });
     try {
       await post(logged.app, "/api/auth/password-reset/request", { email: ADMIN_EMAIL });
-      await expect.poll(() => logged.mailer.sent.length).toBe(1);
+      await logged.settle();
+      expect(logged.mailer.sent.length).toBe(1);
       const token = LINK.exec(logged.mailer.sent[0]!.text)![1]!;
       await post(logged.app, "/api/auth/password-reset/confirm", { token, newPassword: NEW_PASSWORD });
 

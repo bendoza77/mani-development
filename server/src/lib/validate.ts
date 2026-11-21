@@ -24,7 +24,8 @@ export function toFieldErrors(error: z.ZodError): FieldErrors {
       continue;
     }
 
-    const entry: FieldIssue = { code: issue.code };
+    // Custom rules (superRefine) carry their code in the message, e.g. "before_start".
+    const entry: FieldIssue = { code: issue.code === "custom" ? issue.message : issue.code };
     if (issue.code === "too_small") entry.minimum = Number(issue.minimum);
     if (issue.code === "too_big") entry.maximum = Number(issue.maximum);
     add(base || ROOT, entry);

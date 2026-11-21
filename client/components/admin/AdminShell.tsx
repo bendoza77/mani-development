@@ -9,6 +9,7 @@ import {
   Building2,
   ChevronRight,
   ExternalLink,
+  FileText,
   Image as ImageIcon,
   Inbox,
   LayoutDashboard,
@@ -40,6 +41,7 @@ import type { ThemePreference } from "@/lib/types";
 const NAV = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard, exact: true },
   { href: "/admin/projects", label: "Projects", icon: Building2 },
+  { href: "/admin/pages", label: "Pages", icon: FileText },
   { href: "/admin/services", label: "Services", icon: Briefcase },
   { href: "/admin/inquiries", label: "Inquiries", icon: Inbox, badge: "inquiries" as const },
   { href: "/admin/testimonials", label: "Testimonials", icon: MessageSquareQuote },
@@ -51,13 +53,14 @@ const NAV = [
 const SEGMENT_LABEL: Record<string, string> = {
   admin: "Admin",
   projects: "Projects",
+  pages: "Pages",
   services: "Services",
   inquiries: "Inquiries",
   testimonials: "Testimonials",
   team: "Team",
   media: "Media",
   settings: "Settings",
-  new: "New project",
+  new: "New",
   edit: "Edit",
 };
 
@@ -219,7 +222,7 @@ function SidebarContent({ collapsed, pathname }: { collapsed: boolean; pathname:
           {collapsed ? <span className="sr-only">View website (new tab)</span> : "View website"}
         </Link>
         {!collapsed && (
-          <p className="mt-2 rounded-[3px] bg-warn-soft px-3 py-2 text-[0.72rem] leading-snug text-warn">Prototype · data is stored in this browser only</p>
+          <p className="mt-2 rounded-[3px] bg-warn-soft px-3 py-2 text-[0.72rem] leading-snug text-warn">Projects and pages are live. Other sections are still demo data in this browser.</p>
         )}
       </div>
     </>
@@ -232,7 +235,7 @@ function Breadcrumbs({ pathname }: { pathname: string }) {
   const crumbs = parts.map((seg, i) => {
     const href = "/" + parts.slice(0, i + 1).join("/");
     const label = SEGMENT_LABEL[seg] ?? projects.find((p) => p.id === seg)?.title ?? "Item";
-    return { href, label, linkable: seg !== "edit" && !(parts[i - 1] === "projects" && parts[i + 1] === "edit") };
+    return { href, label, linkable: seg !== "edit" && !((parts[i - 1] === "projects" || parts[i - 1] === "pages") && parts[i + 1] === "edit") };
   });
   return (
     <nav aria-label="Breadcrumb" className="min-w-0">
@@ -315,6 +318,8 @@ function GlobalSearch({ autoFocus, onNavigate }: { autoFocus?: boolean; onNaviga
   // Ctrl/⌘ + K focuses search.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // Inside the text editor, Ctrl/⌘ + K means "add link".
+      if (e.defaultPrevented || (e.target instanceof HTMLElement && e.target.isContentEditable)) return;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         input.current?.focus();
@@ -496,6 +501,15 @@ function Notifications() {
   );
 }
 
+function initials(name: string) {
+  const letters = name
+    .trim()
+    .split(/\s+/)
+    .map((w) => w[0] ?? "")
+    .join("");
+  return (letters.slice(0, 2) || "A").toUpperCase();
+}
+
 function ProfileMenu({ email, name }: { email: string; name: string }) {
   const theme = useDB((d) => d.settings.theme);
   const router = useRouter();
@@ -518,7 +532,7 @@ function ProfileMenu({ email, name }: { email: string; name: string }) {
             className="ml-1 grid size-9 place-items-center rounded-full bg-ink text-[0.78rem] font-semibold text-paper"
             aria-label="Account menu"
           >
-            DA
+            {initials(name)}
           </button>
         )}
       >
@@ -562,8 +576,8 @@ function ProfileMenu({ email, name }: { email: string; name: string }) {
             <button
               type="button"
               onClick={() => {
-                signOut();
-                router.replace("/admin/login");
+                close();
+                void signOut().finally(() => router.replace("/admin/login"));
               }}
               className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-[0.88rem] hover:bg-paper-2"
             >

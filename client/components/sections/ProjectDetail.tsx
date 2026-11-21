@@ -8,9 +8,9 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Img } from "@/components/ui/Img";
 import { Reveal } from "@/components/ui/Reveal";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { useHydrated } from "@/hooks/useHydrated";
-import { useContent, useFormatters, useTranslation } from "@/i18n/client";
+import { useFormatters, useTranslation } from "@/i18n/client";
 import { LocaleLink as Link } from "@/i18n/LocaleLink";
+import { usePublicProject, usePublicProjects } from "@/lib/public-projects";
 import { useDB } from "@/lib/store";
 import { cx, stageState } from "@/lib/format";
 
@@ -18,11 +18,10 @@ export function ProjectDetail({ slug }: { slug: string }) {
   const { t } = useTranslation("projects");
   const { t: tc } = useTranslation("common");
   const fmt = useFormatters();
-  const content = useContent();
-  const projects = useDB((d) => d.projects);
-  const hydrated = useHydrated();
-  const stored = projects.find((p) => p.slug === slug);
-  const project = useMemo(() => (stored ? content.project(stored) : undefined), [stored, content]);
+  const { project: loaded } = usePublicProject(slug);
+  const list = usePublicProjects().projects;
+  const projects = useMemo(() => list ?? [], [list]);
+  const project = loaded ?? undefined;
   const company = useDB((d) => d.settings.companyName);
 
   // Server metadata is built from the seed data; keep the tab title in sync with admin edits.
@@ -36,8 +35,8 @@ export function ProjectDetail({ slug }: { slug: string }) {
     return [...same, ...others].slice(0, 3);
   }, [projects, project]);
 
-  // Admin-created projects exist only in this browser: wait for the client store before declaring a 404.
-  if (!project) return hydrated ? <ProjectMissing /> : <ProjectDetailSkeleton />;
+  // undefined = still loading (or the server can't be reached); null = no such published project.
+  if (!project) return loaded === null ? <ProjectMissing /> : <ProjectDetailSkeleton />;
 
   const p = project;
   const facts: [string, string][] = [

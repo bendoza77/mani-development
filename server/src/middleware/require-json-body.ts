@@ -12,8 +12,11 @@ function hasBody(req: Request): boolean {
  * The API only accepts JSON bodies. A body of any other type on an unsafe method is refused
  * with 415 instead of being silently ignored (docs/SECURITY_PLAN.md §5).
  */
+/** The one route that takes raw image bytes: the local photo storage's upload URL. */
+const RAW_UPLOAD = /^\/api\/admin\/media\/[^/]+\/file$/;
+
 export function requireJsonBody(req: Request, _res: Response, next: NextFunction) {
-  if (UNSAFE_METHODS.has(req.method) && hasBody(req) && !req.is("application/json")) {
+  if (UNSAFE_METHODS.has(req.method) && hasBody(req) && !req.is("application/json") && !RAW_UPLOAD.test(req.path)) {
     next(new AppError(415, "UNSUPPORTED_MEDIA_TYPE", "Request bodies must be JSON."));
     return;
   }

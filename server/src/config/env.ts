@@ -52,6 +52,15 @@ const schema = z
     SESSION_MAX_DAYS: integerString(1, 30).optional(),
     // "smtp" arrives in Phase 10. "none" logs that an email would be sent, without its content.
     MAIL_TRANSPORT: z.enum(["none", "console"]).optional(),
+    // Where uploaded photos go: "local" = a folder on this machine (development only),
+    // "cloudflare" = Cloudflare Images (docs/INTEGRATIONS.md §1).
+    MEDIA_PROVIDER: z.enum(["local", "cloudflare"]).optional(),
+    MEDIA_LOCAL_DIR: z.string().min(1).optional(),
+    // This API's own public address, for links to locally stored photos.
+    API_PUBLIC_URL: z.string().refine(isOrigin, "must be an exact origin such as http://localhost:4000").optional(),
+    CLOUDFLARE_ACCOUNT_ID: z.string().regex(/^[a-f0-9]{32}$/, "must be the 32-character account ID").optional(),
+    CLOUDFLARE_IMAGES_API_TOKEN: z.string().min(20).optional(),
+    CLOUDFLARE_IMAGES_ACCOUNT_HASH: z.string().regex(/^[A-Za-z0-9_-]{10,}$/, "must be the Images account hash").optional(),
   });
 
 /**
@@ -62,6 +71,13 @@ function environmentProblems(source: Record<string, string | undefined>): string
   const problems: string[] = [];
   if (source.NODE_ENV === "production" && source.TRUST_PROXY_HOPS === undefined) {
     problems.push("TRUST_PROXY_HOPS is required in production (number of proxies in front of the app)");
+  }
+  if (source.MEDIA_PROVIDER === "cloudflare") {
+    for (const name of ["CLOUDFLARE_ACCOUNT_ID", "CLOUDFLARE_IMAGES_API_TOKEN", "CLOUDFLARE_IMAGES_ACCOUNT_HASH"]) {
+      if (!source[name]) problems.push(`${name} is required when MEDIA_PROVIDER=cloudflare`);
+    }
+  } else if (source.NODE_ENV === "production") {
+    problems.push("MEDIA_PROVIDER=cloudflare is required in production (local files are lost on every deploy)");
   }
   if (source.MAIL_TRANSPORT === "console" && source.NODE_ENV !== "development") {
     problems.push("MAIL_TRANSPORT=console is only allowed in development (it prints password-reset links)");
@@ -86,6 +102,11 @@ export type Config = {
    * plain http://localhost, where a Secure / __Host- cookie can't be used.
    */
   sessionCookie: { name: "__Host-sid" | "sid"; secure: boolean };
+  /** This API's public origin (links to locally stored photos). */
+  apiPublicUrl: string;
+  media:
+    | { provider: "local"; dir: string }
+    | { provider: "cloudflare"; accountId: string; apiToken: string; accountHash: string };
 };
 
 export class ConfigError extends Error {
@@ -128,5 +149,15 @@ export function loadConfig(source: Record<string, string | undefined> = process.
     sessionMaxDays: env.SESSION_MAX_DAYS ?? 7,
     mailTransport: env.MAIL_TRANSPORT ?? "none",
     sessionCookie: secureCookie ? { name: "__Host-sid", secure: true } : { name: "sid", secure: false },
+    apiPublicUrl: env.API_PUBLIC_URL ?? `http://localhost:${env.PORT ?? 4000}`,
+    media:
+      env.MEDIA_PROVIDER === "cloudflare"
+        ? {
+            provider: "cloudflare",
+            accountId: env.CLOUDFLARE_ACCOUNT_ID!,
+            apiToken: env.CLOUDFLARE_IMAGES_API_TOKEN!,
+            accountHash: env.CLOUDFLARE_IMAGES_ACCOUNT_HASH!,
+          }
+        : { provider: "local", dir: env.MEDIA_LOCAL_DIR ?? "uploads" },
   };
 }

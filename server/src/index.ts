@@ -45,8 +45,9 @@ const stopTokenCleanup = startTokenCleanup({
 for (const signal of ["SIGTERM", "SIGINT"] as const) {
   process.once(signal, () => {
     logger.info({ signal }, "signal received");
-    stopTokenCleanup();
-    server.close().then(
+    stopTokenCleanup()
+      .then(() => server.close())
+      .then(
       () => process.exit(0),
       (error: unknown) => {
         logger.error({ err: error }, "shutdown failed");

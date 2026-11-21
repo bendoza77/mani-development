@@ -3,7 +3,7 @@
 Express 5 + PostgreSQL 18 + Prisma 7 API for the website and admin panel in `../client`.
 Plans and decisions are in [docs/](docs/BACKEND_MASTER_PLAN.md).
 
-**Status:** Phase 4 (admin sign-in). Health checks, admin sign-in/sign-out, password change and password reset by email work. The admin API has one placeholder route (`GET /api/admin/ping`) until Phase 5. Phase 3 (hosting) is waiting for the Render, Vercel and Cloudflare accounts.
+**Status:** Phase 4 (admin sign-in) done, plus a first working slice of Phases 5–7 (2026-11-22): photo uploads, projects and pages with content blocks, for the admin panel and the public site. Phase 3 (hosting) is waiting for the Render and Vercel accounts.
 
 ## Requirements
 
@@ -58,6 +58,20 @@ Details: [docs/SECURITY_PLAN.md](docs/SECURITY_PLAN.md) §2–5 and [docs/API_CO
 - **Unsafe requests** (POST, PUT, PATCH, DELETE) to `/api/auth` and `/api/admin` must carry an `Origin` header listed in `CORS_ORIGINS`.
 - **In production** (Render shell), run the compiled scripts instead: `node dist/scripts/admin-create.js` and `node dist/scripts/admin-set-password.js`.
 - Expired sessions and reset links are deleted by a job that runs at startup and then hourly.
+
+## Photos, projects and pages (first slice of Phases 5–7)
+
+| Area | Admin (`/api/admin/…`, sign-in required) | Public |
+|---|---|---|
+| Photos | `POST media/uploads` → upload the file → `POST media/:id/complete`; `GET media` | `/media/<file>` (local storage only) |
+| Projects | `GET/POST projects`, `GET/PUT/DELETE projects/:id` | `GET /api/public/projects`, `GET /api/public/projects/:slug` (`?locale=ka\|en`) |
+| Pages | `GET/POST pages`, `GET/PUT/DELETE pages/:id` (heading, formatted text and photo blocks) | `GET /api/public/pages/:slug` |
+
+- **Photo storage:** `MEDIA_PROVIDER=local` saves files in `server/uploads/` (development only). With `MEDIA_PROVIDER=cloudflare` and the three `CLOUDFLARE_*` settings in `.env`, the browser uploads straight to Cloudflare Images. Production refuses `local`.
+- Uploads accept JPEG, PNG, WebP and AVIF up to 10 MB; the file's first bytes must match its type.
+- Only published projects and pages are visible publicly; English text falls back to Georgian when empty.
+- Formatted text is stored as an allow-listed JSON document (paragraphs, lists, bold, italic, safe links), never as HTML.
+- **Not yet built:** gallery/video/embed blocks, SEO fields, drafts preview, redirects on slug change, deleting photos, the Cloudflare upload check against the live service.
 
 ## Database
 

@@ -5,14 +5,15 @@ import { ProjectCard } from "@/components/sections/ProjectCard";
 import { Reveal } from "@/components/ui/Reveal";
 import { TextLink } from "@/components/ui/Button";
 import { useTranslation } from "@/i18n/client";
-import { useDB } from "@/lib/store";
+import { usePublicProjects } from "@/lib/public-projects";
 
 const MAX = 4;
 
 /** Featured projects (the admin "featured" flag), topped up with private houses if fewer than four are flagged. */
 export function FeaturedProjects() {
   const { t } = useTranslation("home");
-  const projects = useDB((d) => d.projects);
+  const all = usePublicProjects().projects;
+  const projects = useMemo(() => all ?? [], [all]);
   const featured = useMemo(() => {
     const f = projects.filter((p) => p.featured);
     const houses = projects.filter((p) => !p.featured && p.category === "residential");
