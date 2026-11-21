@@ -22,7 +22,8 @@
     "contact": "კონტაქტი"
   },
   "header": {
-    "cta": "დაიწყეთ პროექტი"
+    "cta": "დაიწყეთ პროექტი",
+    "call": "დარეკვა: {{phone}}"
   },
   "language": {
     "label": "ენა"
@@ -69,5 +70,10 @@
     ],
     "monthYear": "{{month}} {{year}}",
     "estimatedYear": "სავარაუდოდ {{year}}"
+  },
+  "chat": {
+    "region": "მოგვწერეთ",
+    "whatsapp": "მოგვწერეთ WhatsApp-ში",
+    "messenger": "მოგვწერეთ Messenger-ში"
   }
 }

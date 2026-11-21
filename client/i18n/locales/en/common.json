@@ -22,7 +22,8 @@
     "contact": "Contact"
   },
   "header": {
-    "cta": "Start a project"
+    "cta": "Start a project",
+    "call": "Call {{phone}}"
   },
   "language": {
     "label": "Language"
@@ -69,5 +70,10 @@
     ],
     "monthYear": "{{month}} {{year}}",
     "estimatedYear": "Est. {{year}}"
+  },
+  "chat": {
+    "region": "Chat with us",
+    "whatsapp": "Chat on WhatsApp",
+    "messenger": "Message us on Messenger"
   }
 }
