@@ -13,6 +13,7 @@ import {
   isSafeLink,
   toProject,
   type Menus,
+  type PublicReview,
   type PublicService,
   type PublicSettings,
   type PublicSeo,
@@ -87,6 +88,16 @@ export async function getTestimonials(locale: Locale): Promise<PublicTestimonial
   cacheLife(LIFE);
   cacheTag("testimonials");
   return getItems<PublicTestimonial>(`/api/public/testimonials?locale=${locale}`);
+}
+
+/** Approved visitor reviews, newest first (at most 30). Shown as written, so no locale. */
+export async function getReviews(): Promise<PublicReview[]> {
+  "use cache";
+  cacheLife(LIFE);
+  cacheTag("reviews");
+  // Unlike the other lists, this endpoint answers with a bare array (API_CONTRACTS §6.3a).
+  const data = await getJson<PublicReview[]>("/api/public/reviews");
+  return Array.isArray(data) ? data : [];
 }
 
 export async function getSlides(locale: Locale): Promise<PublicSlide[]> {

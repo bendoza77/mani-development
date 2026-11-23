@@ -44,5 +44,42 @@
     "next": "Next slide",
     "pause": "Pause the slideshow",
     "play": "Play the slideshow"
+  },
+  "reviews": {
+    "title": "Reviews",
+    "empty": "No reviews yet. Be the first to tell others how it went.",
+    "write": "Write a review",
+    "previous": "Previous review",
+    "next": "Next review",
+    "pause": "Pause the reviews",
+    "play": "Play the reviews",
+    "stars": "{{count}} out of 5 stars",
+    "carousel": "carousel",
+    "slide": "slide",
+    "position": "{{n}} of {{total}}",
+    "form": {
+      "name": "Full name",
+      "text": "Your review",
+      "textMin": "At least 20 characters, {{length}} so far",
+      "textCount": "{{length}} of 1000 characters",
+      "rating": "Your rating",
+      "send": "Send review",
+      "sending": "Sending…",
+      "thanksTitle": "Thank you for your review",
+      "thanksBody": "It will appear here after we check it.",
+      "close": "Close",
+      "website": "Leave this field empty",
+      "validation": {
+        "name": "Please enter your name.",
+        "text": "Please write at least 20 characters ({{length}} so far).",
+        "rating": "Choose from 1 to 5 stars."
+      },
+      "errors": {
+        "failed": "We couldn’t send your review. Your text is still here: please try again in a moment.",
+        "rateLimited": "You’ve sent several reviews in a short time. Please wait a while and try again.",
+        "spam": "Our spam check didn’t go through. Please complete the check again and resend.",
+        "verify": "Please complete the short check above the button first."
+      }
+    }
   }
 }

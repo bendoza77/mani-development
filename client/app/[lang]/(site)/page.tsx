@@ -3,11 +3,12 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { AboutSection } from "@/components/sections/home/AboutSection";
 import { FeaturedProjects } from "@/components/sections/home/FeaturedProjects";
 import { Hero } from "@/components/sections/home/Hero";
+import { Reviews } from "@/components/sections/home/Reviews";
 import { ServicesOverview } from "@/components/sections/home/ServicesOverview";
 import { Slider } from "@/components/sections/home/Slider";
 import { Testimonials } from "@/components/sections/home/Testimonials";
 import { getLocale, getT } from "@/i18n/server";
-import { getPageSeo, getSettings, getSlides, getTestimonials } from "@/lib/public-api";
+import { getPageSeo, getReviews, getSettings, getSlides, getTestimonials } from "@/lib/public-api";
 import { contractorJsonLd, websiteJsonLd } from "@/lib/seo/jsonld";
 import { routeMetadata } from "@/lib/seo/route";
 
@@ -18,11 +19,17 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 // What the company does (with the self-building 3D house) → the slider (when the admin added
-// slides) → what it offers → its work → who it is → what clients say.
+// slides) → what it offers → its work → who it is → what clients say →
+// visitor reviews (with the form to write one).
 // The site footer closes every page with the contact call to action and details.
 export default async function HomePage() {
   const locale = await getLocale();
-  const [slides, testimonials, settings] = await Promise.all([getSlides(locale), getTestimonials(locale), getSettings(locale)]);
+  const [slides, testimonials, reviews, settings] = await Promise.all([
+    getSlides(locale),
+    getTestimonials(locale),
+    getReviews(),
+    getSettings(locale),
+  ]);
   return (
     <>
       <JsonLd data={[websiteJsonLd(settings, locale), contractorJsonLd(settings, locale)]} />
@@ -33,6 +40,7 @@ export default async function HomePage() {
       <FeaturedProjects />
       <AboutSection />
       <Testimonials items={testimonials} />
+      <Reviews items={reviews} />
     </>
   );
 }

@@ -70,6 +70,9 @@ export type PublicTestimonial = {
   project: { slug: string; title: string } | null;
 };
 
+/** An approved visitor review, shown as written (not translated). */
+export type PublicReview = { id: string; fullName: string; text: string; rating: number; createdAt: string };
+
 export type PublicSlide = {
   id: string;
   image: ApiImage;
