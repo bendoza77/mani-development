@@ -16,6 +16,7 @@ const href = z.string().trim().max(500).regex(SAFE_HREF, "unsafe_link");
 const card = z.strictObject({
   titleKa: requiredText(80),
   titleEn: optionalText(80),
+  titleRu: optionalText(80),
   textKa: z
     .string()
     .trim()
@@ -23,6 +24,7 @@ const card = z.strictObject({
     .nullish()
     .transform((v) => v ?? ""),
   textEn: optionalText(300),
+  textRu: optionalText(300),
   mediaId: z.uuid().nullish(),
 });
 
@@ -33,9 +35,10 @@ export const blockInput = z.discriminatedUnion("type", [
     level: z.union([z.literal(2), z.literal(3)]),
     textKa: requiredText(150),
     textEn: optionalText(150),
+    textRu: optionalText(150),
   }),
-  z.strictObject({ style: blockStyleInput.optional(), type: z.literal("text"), docKa: richTextDoc, docEn: richTextDoc.nullish() }),
-  z.strictObject({ style: blockStyleInput.optional(), type: z.literal("image"), mediaId: z.uuid(), captionKa: optionalText(200), captionEn: optionalText(200) }),
+  z.strictObject({ style: blockStyleInput.optional(), type: z.literal("text"), docKa: richTextDoc, docEn: richTextDoc.nullish(), docRu: richTextDoc.nullish() }),
+  z.strictObject({ style: blockStyleInput.optional(), type: z.literal("image"), mediaId: z.uuid(), captionKa: optionalText(200), captionEn: optionalText(200), captionRu: optionalText(200) }),
   z
     .strictObject({
       style: blockStyleInput.optional(),
@@ -43,10 +46,13 @@ export const blockInput = z.discriminatedUnion("type", [
       mediaId: z.uuid(),
       titleKa: requiredText(120),
       titleEn: optionalText(120),
+      titleRu: optionalText(120),
       textKa: optionalText(300),
       textEn: optionalText(300),
+      textRu: optionalText(300),
       buttonLabelKa: optionalText(40),
       buttonLabelEn: optionalText(40),
+      buttonLabelRu: optionalText(40),
       buttonHref: href.nullish().transform((v) => v || null),
     })
     .refine((b) => !b.buttonLabelKa === !b.buttonHref, { path: ["buttonHref"], message: "button_needs_label_and_link" }),
@@ -58,14 +64,17 @@ export const blockInput = z.discriminatedUnion("type", [
     imageSide: z.enum(["left", "right"]),
     titleKa: optionalText(120),
     titleEn: optionalText(120),
+    titleRu: optionalText(120),
     docKa: richTextDoc,
     docEn: richTextDoc.nullish(),
+    docRu: richTextDoc.nullish(),
   }),
   z.strictObject({
     style: blockStyleInput.optional(),
     type: z.literal("cards"),
     titleKa: optionalText(120),
     titleEn: optionalText(120),
+    titleRu: optionalText(120),
     items: z.array(card).min(1).max(12),
   }),
 ]);
@@ -97,7 +106,10 @@ function dataOf(block: BlockInput): BlockData {
   delete rest.type;
   delete rest.mediaId;
   delete rest.mediaIds;
-  if (block.type === "text" || block.type === "textImage") rest.docEn = block.docEn ?? null;
+  if (block.type === "text" || block.type === "textImage") {
+    rest.docEn = block.docEn ?? null;
+    rest.docRu = block.docRu ?? null;
+  }
   if (block.type === "cards") rest.items = block.items.map(({ mediaId: _m, ...item }) => item);
   return rest;
 }

@@ -23,6 +23,7 @@ const placement = z.strictObject({
 export const menuInput = z.strictObject({
   labelKa: optionalText(LABEL_MAX),
   labelEn: optionalText(LABEL_MAX),
+  labelRu: optionalText(LABEL_MAX),
   header: placement,
   footer: placement,
 });
@@ -34,11 +35,12 @@ const LOCATIONS = { header: "HEADER", footer: "FOOTER" } as const satisfies Reco
 /** Puts (or removes) the page in each menu and renumbers that menu 0, 1, 2… */
 export async function applyMenu(
   tx: Prisma.TransactionClient,
-  page: { id: string; titleKa: string; titleEn: string | null },
+  page: { id: string; titleKa: string; titleEn: string | null; titleRu: string | null },
   menu: MenuInput,
 ) {
   const labelKa = menu.labelKa ?? page.titleKa.slice(0, LABEL_MAX);
   const labelEn = menu.labelEn ?? page.titleEn?.slice(0, LABEL_MAX) ?? null;
+  const labelRu = menu.labelRu ?? page.titleRu?.slice(0, LABEL_MAX) ?? null;
 
   for (const [key, location] of Object.entries(LOCATIONS) as [keyof typeof LOCATIONS, NavLocation][]) {
     const wanted = menu[key];
@@ -53,8 +55,8 @@ export async function applyMenu(
       const index = Math.min(at, others.length);
       const existing = items[currentIndex];
       const mine = existing
-        ? await tx.navigationItem.update({ where: { id: existing.id }, data: { labelKa, labelEn, visible: true } })
-        : await tx.navigationItem.create({ data: { location, pageId: page.id, labelKa, labelEn, position: others.length } });
+        ? await tx.navigationItem.update({ where: { id: existing.id }, data: { labelKa, labelEn, labelRu, visible: true } })
+        : await tx.navigationItem.create({ data: { location, pageId: page.id, labelKa, labelEn, labelRu, position: others.length } });
       order = [...others.slice(0, index), mine, ...others.slice(index)];
     } else if (currentIndex >= 0) {
       await tx.navigationItem.delete({ where: { id: items[currentIndex]!.id } });
@@ -72,7 +74,7 @@ export async function applyMenu(
  */
 export async function readMenu(prisma: Pick<PrismaClient, "navigationItem" | "page">, pageId: string) {
   const items = await prisma.navigationItem.findMany({ orderBy: { position: "asc" } });
-  const page = await prisma.page.findUnique({ where: { id: pageId }, select: { titleKa: true, titleEn: true } });
+  const page = await prisma.page.findUnique({ where: { id: pageId }, select: { titleKa: true, titleEn: true, titleRu: true } });
   const placementIn = (location: NavLocation) => {
     const list = items.filter((i) => i.location === location);
     const index = list.findIndex((i) => i.pageId === pageId);
@@ -84,6 +86,7 @@ export async function readMenu(prisma: Pick<PrismaClient, "navigationItem" | "pa
   return {
     labelKa: custom(mine?.labelKa, page?.titleKa),
     labelEn: custom(mine?.labelEn, page?.titleEn),
+    labelRu: custom(mine?.labelRu, page?.titleRu),
     header: placementIn("HEADER"),
     footer: placementIn("FOOTER"),
   };

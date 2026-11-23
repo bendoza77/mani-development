@@ -2,7 +2,7 @@ import request from "supertest";
 import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
 import { buildTestApp } from "../../helpers/app.js";
 import { createTestAdmin, signIn } from "../../helpers/auth.js";
-import { api, projectInput, uploadImage } from "../../helpers/content.js";
+import { api, paragraph, projectInput, uploadImage } from "../../helpers/content.js";
 import { resetDb } from "../../helpers/db.js";
 
 /** Russian (docs/superpowers/specs/2026-11-23-russian-language-design.md): Russian → English → Georgian. */
@@ -223,5 +223,94 @@ describe("admin saves Russian", () => {
 
     expect(res.status).toBe(200);
     expect(res.body.altRu).toBe("Фасад дома");
+  });
+});
+
+describe("admin saves Russian for projects and pages", () => {
+  const page = (overrides: Record<string, unknown> = {}) => ({
+    slug: "warranty",
+    titleKa: "გარანტია",
+    titleEn: "Warranty",
+    introKa: "შესავალი",
+    isPublished: true,
+    blocks: [],
+    ...overrides,
+  });
+
+  it("stores a project's Russian text, specs and SEO and shows them publicly", async () => {
+    const created = await api(app, "post", "/api/admin/projects", cookie, projectInput(imageId, {
+      titleRu: "Дом в Ваке",
+      summaryRu: "Двухэтажный дом",
+      descriptionRu: "Описание",
+      locationRu: "Ваке",
+      cityRu: "Тбилиси",
+      specs: [{ labelKa: "ფართი", labelEn: "Area", labelRu: "Площадь", valueKa: "240 მ²", valueRu: "240 м²" }],
+      seo: { titleKa: "", titleRu: "Дом в Ваке — MANI", descriptionKa: "", descriptionRu: "Дом в Тбилиси." },
+    }));
+    expect(created.status).toBe(201);
+    expect(created.body).toMatchObject({
+      titleRu: "Дом в Ваке",
+      cityRu: "Тбилиси",
+      specs: [{ labelRu: "Площадь", valueRu: "240 м²" }],
+      seo: { titleRu: "Дом в Ваке — MANI", descriptionRu: "Дом в Тбилиси." },
+    });
+
+    const ru = (await pub("/api/public/projects/vake-house?locale=ru")).body;
+    expect(ru).toMatchObject({ title: "Дом в Ваке", summary: "Двухэтажный дом", city: "Тбилиси", specs: [{ label: "Площадь", value: "240 м²" }] });
+    expect(ru.seo).toMatchObject({ title: "Дом в Ваке — MANI", description: "Дом в Тбилиси." });
+  });
+
+  it("stores Russian page text and sections and shows them publicly", async () => {
+    const created = await api(app, "post", "/api/admin/pages", cookie, page({
+      titleRu: "Гарантия",
+      introRu: "Введение",
+      blocks: [
+        { type: "heading", level: 2, textKa: "პირობები", textRu: "Условия" },
+        { type: "text", docKa: paragraph("ქართ."), docEn: paragraph("English"), docRu: paragraph("Русский") },
+        { type: "cards", titleKa: "უპირატესობები", items: [{ titleKa: "ხარისხი", titleRu: "Качество", textKa: "ტექსტი", textRu: "Текст" }] },
+      ],
+    }));
+    expect(created.status).toBe(201);
+    expect(created.body).toMatchObject({ titleRu: "Гарантия", introRu: "Введение" });
+
+    const ru = (await pub("/api/public/pages/warranty?locale=ru")).body;
+    expect(ru).toMatchObject({ title: "Гарантия", intro: "Введение" });
+    expect(ru.blocks).toMatchObject([
+      { type: "heading", text: "Условия" },
+      { type: "text", doc: paragraph("Русский") },
+      { type: "cards", title: "უპირატესობები", items: [{ title: "Качество", text: "Текст" }] },
+    ]);
+  });
+
+  it("still shows and re-saves page sections stored before Russian existed", async () => {
+    const created = await api(app, "post", "/api/admin/pages", cookie, page({
+      blocks: [{ type: "text", docKa: paragraph("ქართ."), docEn: paragraph("English") }],
+    }));
+    // A section as it was stored before this change: no Russian keys at all.
+    await prisma.contentBlock.updateMany({
+      where: { pageId: created.body.id },
+      data: { data: { docKa: paragraph("ქართ."), docEn: paragraph("English") } },
+    });
+
+    const ru = (await pub("/api/public/pages/warranty?locale=ru")).body;
+    expect(ru.blocks[0].doc).toEqual(paragraph("English"));
+
+    const admin = (await api(app, "get", `/api/admin/pages/${created.body.id}`, cookie)).body;
+    const resaved = await api(app, "put", `/api/admin/pages/${created.body.id}`, cookie, page({
+      blocks: admin.blocks.map(({ id: _id, ...rest }: Record<string, unknown>) => rest),
+    }));
+    expect(resaved.status).toBe(200);
+  });
+
+  it("stores a Russian menu label for a page", async () => {
+    const created = await api(app, "post", "/api/admin/pages", cookie, page({
+      titleRu: "Гарантия",
+      menu: { labelKa: null, labelEn: null, labelRu: "Гарантии", header: { show: true, position: null }, footer: { show: false, position: null } },
+    }));
+    expect(created.status).toBe(201);
+    expect(created.body.menu.labelRu).toBe("Гарантии");
+
+    const nav = await api(app, "get", "/api/admin/navigation", cookie);
+    expect(nav.body.header.find((i: { pageId: string | null }) => i.pageId === created.body.id).labelRu).toBe("Гарантии");
   });
 });

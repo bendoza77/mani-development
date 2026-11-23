@@ -28,8 +28,10 @@ const pageInput = z.strictObject({
   slug: slugField,
   titleKa: requiredText(120),
   titleEn: optionalText(120),
+  titleRu: optionalText(120),
   introKa: z.string().trim().max(400).default(""),
   introEn: optionalText(400),
+  introRu: optionalText(400),
   isPublished: z.boolean(),
   style: pageStyleInput.optional(),
   blocks: z.array(blockInput).max(60),
@@ -58,8 +60,10 @@ function toAdminPage(page: PageRow, config: Config, menu: Awaited<ReturnType<typ
     slug: page.slug,
     titleKa: page.titleKa,
     titleEn: page.titleEn,
+    titleRu: page.titleRu,
     introKa: page.introKa,
     introEn: page.introEn,
+    introRu: page.introRu,
     isPublished: page.isPublished,
     style: pageStyle(page.style),
     blocks: page.blocks.map((b) => toAdminBlock(b, config)),
@@ -90,6 +94,7 @@ export function adminPageRoutes({ config, prisma }: { config: Config; prisma: Pr
         slug: p.slug,
         titleKa: p.titleKa,
         titleEn: p.titleEn,
+        titleRu: p.titleRu,
         isPublished: p.isPublished,
         inHeader: p.navItems.some((n) => n.location === "HEADER" && n.visible),
         inFooter: p.navItems.some((n) => n.location === "FOOTER" && n.visible),
@@ -116,8 +121,10 @@ export function adminPageRoutes({ config, prisma }: { config: Config; prisma: Pr
             slug: input.slug,
             titleKa: input.titleKa,
             titleEn: input.titleEn,
+            titleRu: input.titleRu,
             introKa: input.introKa,
             introEn: input.introEn,
+            introRu: input.introRu,
             style: pageStyle(input.style),
             isPublished: input.isPublished,
             publishedAt: input.isPublished ? new Date() : null,
@@ -152,8 +159,10 @@ export function adminPageRoutes({ config, prisma }: { config: Config; prisma: Pr
           data: {
             titleKa: input.titleKa,
             titleEn: input.titleEn,
+            titleRu: input.titleRu,
             introKa: input.introKa,
             introEn: input.introEn,
+            introRu: input.introRu,
             ...(input.style ? { style: pageStyle(input.style) } : {}),
             ...(input.seo ? seoColumns(input.seo) : {}),
             ...(isSystem
@@ -169,7 +178,7 @@ export function adminPageRoutes({ config, prisma }: { config: Config; prisma: Pr
           await recordAddressChange(tx, customPagePath(existing.slug), customPagePath(input.slug));
         }
         await writeBlocks(tx, { pageId: id }, input.blocks);
-        if (input.menu) await applyMenu(tx, { id, titleKa: input.titleKa, titleEn: input.titleEn }, input.menu);
+        if (input.menu) await applyMenu(tx, { id, titleKa: input.titleKa, titleEn: input.titleEn, titleRu: input.titleRu }, input.menu);
         return tx.page.findUniqueOrThrow({ where: { id }, include: withBlocks });
       });
       await recordActivity(prisma, { kind: "page", message: `Page updated: ${page.titleKa}`, actorId: req.session!.user.id });
