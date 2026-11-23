@@ -1,6 +1,6 @@
 {
   "notFound": {
-    "eyebrow": "Error 404 · Drawing not found",
+    "eyebrow": "Error 404: drawing not found",
     "title": "This opening has <em>no lintel.</em>",
     "body": "The page you’re looking for doesn’t exist or has moved. Let’s get you back onto solid ground.",
     "home": "Back to home",

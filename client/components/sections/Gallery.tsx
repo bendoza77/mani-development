@@ -78,8 +78,11 @@ export function Gallery({ images, title }: { images: string[]; title: string }) 
         {index !== null && (
           <div className="flex h-full flex-col">
             <div className="flex items-center justify-between px-4 py-3 sm:px-6">
-              <p className="t-meta text-white/70">
-                {index + 1} / {images.length} · {title}
+              <p className="t-meta flex gap-4 text-white/70">
+                <span>{title}</span>
+                <span>
+                  {index + 1} / {images.length}
+                </span>
               </p>
               <button type="button" onClick={close} className="grid size-11 place-items-center rounded-full hover:bg-white/10" aria-label={t("gallery.close")}>
                 <X aria-hidden className="size-5" />

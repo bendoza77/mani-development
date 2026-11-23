@@ -1,13 +1,13 @@
 import { LocaleLink as Link } from "@/i18n/LocaleLink";
 import type { ComponentProps, ReactNode } from "react";
-import { ArrowUpRight, LoaderCircle } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 import { cx } from "@/lib/format";
 
 type Variant = "primary" | "accent" | "outline" | "ghost" | "light" | "danger";
 type Size = "sm" | "md" | "lg";
 
 const base =
-  "group/btn relative inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium tracking-[0.01em] transition-[background-color,color,border-color,box-shadow,transform] duration-300 ease-(--ease-arch) disabled:cursor-not-allowed disabled:opacity-55 active:translate-y-px select-none";
+  "relative inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium tracking-[0.01em] transition-[background-color,color,border-color,box-shadow,transform] duration-300 ease-(--ease-arch) disabled:cursor-not-allowed disabled:opacity-55 active:translate-y-px select-none";
 
 const variants: Record<Variant, string> = {
   primary: "bg-ink text-paper hover:bg-accent hover:text-accent-ink",
@@ -28,21 +28,11 @@ export function buttonClass(variant: Variant = "primary", size: Size = "md", cla
   return cx(base, variants[variant], sizes[size], className);
 }
 
-type CommonProps = { variant?: Variant; size?: Size; arrow?: boolean; children: ReactNode };
-
-function Arrow() {
-  return (
-    <ArrowUpRight
-      aria-hidden
-      className="size-4 transition-transform duration-300 ease-(--ease-arch) group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5"
-    />
-  );
-}
+type CommonProps = { variant?: Variant; size?: Size; children: ReactNode };
 
 export function Button({
   variant,
   size,
-  arrow,
   loading,
   className,
   children,
@@ -59,7 +49,6 @@ export function Button({
     >
       {loading && <LoaderCircle aria-hidden className="size-4 animate-spin" />}
       {children}
-      {arrow && !loading && <Arrow />}
     </button>
   );
 }
@@ -67,7 +56,6 @@ export function Button({
 export function ButtonLink({
   variant,
   size,
-  arrow,
   className,
   children,
   ...rest
@@ -75,26 +63,21 @@ export function ButtonLink({
   return (
     <Link className={buttonClass(variant, size, className)} {...rest}>
       {children}
-      {arrow && <Arrow />}
     </Link>
   );
 }
 
-/** Understated underlined text link with an arrow, used in editorial sections. */
+/** Understated underlined text link, used in editorial sections. */
 export function TextLink({ className, children, ...rest }: ComponentProps<typeof Link>) {
   return (
     <Link
       className={cx(
-        "group/tl inline-flex items-center gap-1.5 border-b border-current pb-0.5 text-[0.92rem] font-medium transition-colors hover:text-accent",
+        "inline-flex items-center border-b border-current pb-0.5 text-[0.95rem] font-medium transition-colors hover:text-accent",
         className,
       )}
       {...rest}
     >
       {children}
-      <ArrowUpRight
-        aria-hidden
-        className="size-3.5 transition-transform duration-300 group-hover/tl:translate-x-0.5 group-hover/tl:-translate-y-0.5"
-      />
     </Link>
   );
 }

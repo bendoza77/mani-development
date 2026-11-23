@@ -128,7 +128,7 @@ export function Slider({ slides, priority = false }: { slides: PublicSlide[]; pr
                 </h3>
                 {s.text && <p className="mt-3 max-w-xl text-[0.98rem] leading-relaxed text-white/85 max-sm:line-clamp-3">{s.text}</p>}
                 {s.cta && (
-                  <ButtonLink href={s.cta.href} variant="light" className="mt-6" arrow>
+                  <ButtonLink href={s.cta.href} variant="light" className="mt-6">
                     {s.cta.label}
                   </ButtonLink>
                 )}
@@ -141,7 +141,7 @@ export function Slider({ slides, priority = false }: { slides: PublicSlide[]; pr
           <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <p className="t-meta tabular-nums text-muted" aria-hidden>
-                {String(index + 1).padStart(2, "0")} / {String(count).padStart(2, "0")}
+                {index + 1} / {count}
               </p>
               <ol className="flex items-center gap-1">
                 {slides.map((s, i) => (

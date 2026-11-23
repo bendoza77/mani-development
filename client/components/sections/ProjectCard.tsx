@@ -1,6 +1,5 @@
 "use client";
 
-import { ArrowUpRight } from "lucide-react";
 import { useFormatters, useTranslation } from "@/i18n/client";
 import { LocaleLink as Link } from "@/i18n/LocaleLink";
 import { Img } from "@/components/ui/Img";
@@ -13,13 +12,14 @@ type Props = {
   sizes: string;
   /** Tailwind aspect class for the image frame. */
   aspect?: string;
-  index?: number;
   className?: string;
+  /** The lead card of a group: a larger title for a full-width image. */
+  lead?: boolean;
   /** Admin preview renders without a link. */
   asPreview?: boolean;
 };
 
-export function ProjectCard({ project: p, sizes, aspect = "aspect-[4/3]", index, className, asPreview }: Props) {
+export function ProjectCard({ project: p, sizes, aspect = "aspect-[4/3]", lead, className, asPreview }: Props) {
   const { t } = useTranslation("common");
   const { t: tp } = useTranslation("projects");
   const fmt = useFormatters();
@@ -33,20 +33,20 @@ export function ProjectCard({ project: p, sizes, aspect = "aspect-[4/3]", index,
           sizes={sizes}
           imgClassName="zoom-media group-hover:scale-[1.04]"
         />
-        <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-3 sm:p-4">
-          <StatusBadge status={p.status} label={t(`status.${p.status}`)} className="bg-card/90 backdrop-blur-sm" />
-          <span className="grid size-9 translate-y-1 place-items-center rounded-full bg-card/90 text-ink opacity-0 transition-all duration-500 ease-(--ease-arch) group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:opacity-100">
-            <ArrowUpRight aria-hidden className="size-4" />
-          </span>
-        </div>
+        <StatusBadge
+          status={p.status}
+          label={t(`status.${p.status}`)}
+          className="pointer-events-none absolute top-3 left-3 bg-card/90 backdrop-blur-sm sm:top-4 sm:left-4"
+        />
       </div>
       <div className="mt-4">
-        <h3 className="t-h3 transition-colors group-hover:text-accent">{p.title}</h3>
-        <p className="mt-1.5 text-[0.92rem] text-muted">{p.location}</p>
-        <p className="t-meta mt-2 text-ink-soft">
-          {index !== undefined && <span className="text-muted">{String(index + 1).padStart(2, "0")} · </span>}
-          {t(`category.${p.category}`)} · {year}
-        </p>
+        {/* The year sits on the title's baseline so a row of cards reads as a schedule. */}
+        <div className="flex items-baseline justify-between gap-4">
+          <h3 className={cx(lead ? "t-h2" : "t-h3", "transition-colors group-hover:text-accent")}>{p.title}</h3>
+          <span className="t-meta shrink-0 text-muted">{year}</span>
+        </div>
+        <p className="mt-1.5 text-[0.92rem] text-ink-soft">{p.location}</p>
+        <p className="t-meta mt-0.5 text-muted">{t(`category.${p.category}`)}</p>
       </div>
     </>
   );

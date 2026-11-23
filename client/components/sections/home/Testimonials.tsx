@@ -20,7 +20,6 @@ export function Testimonials({ items }: { items: PublicTestimonial[] }) {
   const i = index % items.length;
   const t = items[i];
   const go = (dir: 1 | -1) => setIndex((v) => (v + dir + items.length) % items.length);
-  const byline = [t.role, t.project?.title].filter(Boolean).join(" · ");
 
   return (
     <section className="border-t border-line bg-paper-2/50 py-[clamp(4rem,9vw,7rem)]" aria-labelledby="testimonials-title" aria-roledescription={tr("testimonials.carousel")}>
@@ -30,7 +29,7 @@ export function Testimonials({ items }: { items: PublicTestimonial[] }) {
             {tr("testimonials.eyebrow")}
           </p>
           <p className="t-meta mt-4 text-muted tabular-nums" aria-live="polite">
-            {String(i + 1).padStart(2, "0")} / {String(items.length).padStart(2, "0")}
+            {i + 1} / {items.length}
           </p>
         </div>
 
@@ -47,7 +46,8 @@ export function Testimonials({ items }: { items: PublicTestimonial[] }) {
             </blockquote>
             <figcaption className="mt-8 flex flex-wrap items-baseline gap-x-4 gap-y-1">
               <span className="font-medium">{t.author}</span>
-              {byline && <span className="text-[0.9rem] text-muted">{byline}</span>}
+              {t.role && <span className="text-[0.9rem] text-muted">{t.role}</span>}
+              {t.project?.title && <span className="text-[0.9rem] text-muted">{t.project.title}</span>}
             </figcaption>
           </figure>
         </div>

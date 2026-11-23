@@ -250,7 +250,7 @@ export function ContactForm() {
         <p id="form-note" className="max-w-sm text-[0.8rem] text-muted">
           {t("form.note")}
         </p>
-        <Button type="submit" size="lg" loading={sending} arrow>
+        <Button type="submit" size="lg" loading={sending}>
           {sending ? t("form.sending") : problem && problem !== "verify" ? t("form.retry") : t("form.submit")}
         </Button>
       </div>

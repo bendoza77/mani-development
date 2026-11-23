@@ -29,11 +29,11 @@ export default async function NotFound() {
       <div className="shell flex flex-1 flex-col justify-center py-16">
         <p className="t-eyebrow text-muted">{t("notFound.eyebrow")}</p>
         <h1 className="t-display mt-6 max-w-[14ch]">
-          <Trans t={t} i18n={i18n} i18nKey="notFound.title" components={{ em: <em className="text-accent" /> }} />
+          <Trans t={t} i18n={i18n} i18nKey="notFound.title" components={{ em: <span /> }} />
         </h1>
         <p className="t-lead mt-6 max-w-xl text-ink-soft">{t("notFound.body")}</p>
         <div className="mt-9 flex flex-wrap gap-3">
-          <ButtonLink href="/" arrow size="lg">
+          <ButtonLink href="/" size="lg">
             {t("notFound.home")}
           </ButtonLink>
           <ButtonLink href="/projects" variant="outline" size="lg">

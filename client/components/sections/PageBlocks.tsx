@@ -149,7 +149,7 @@ function Banner({ block, align }: { block: Extract<PublicBlock, { type: "banner"
               <ArrowUpRight aria-hidden className="size-4" />
             </a>
           ) : (
-            <ButtonLink href={button.href} variant="light" size="lg" arrow className="mt-8">
+            <ButtonLink href={button.href} variant="light" size="lg" className="mt-8">
               {button.label}
             </ButtonLink>
           ))}

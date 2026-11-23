@@ -58,9 +58,9 @@ async function StudioMap({ mapHref }: { mapHref: string | null }) {
         <text x="236" y="99" fontFamily="var(--font-mono)" fontSize="8" fill="currentColor" opacity="0.6">{t("map.district")}</text>
         <text x="40" y="232" fontFamily="var(--font-mono)" fontSize="8" fill="var(--info)" letterSpacing="2" opacity="0.8">{t("map.river")}</text>
       </svg>
-      <figcaption className="t-meta border-t border-line px-4 py-3 text-muted">
+      <figcaption className="t-meta flex flex-wrap justify-between gap-x-4 gap-y-1 border-t border-line px-4 py-3 text-muted">
         {t("map.caption")}
-        {mapHref && <span className="text-ink"> · {t("map.open")}</span>}
+        {mapHref && <span className="text-ink underline underline-offset-4">{t("map.open")}</span>}
       </figcaption>
     </figure>
   );
@@ -81,7 +81,7 @@ export default async function ContactPage() {
       <JsonLd data={[contractorJsonLd(settings, locale)]} />
       <PageIntro
         eyebrow={t("page.eyebrow")}
-        title={<Trans t={t} i18n={i18n} i18nKey="page.title" components={{ em: <em className="text-accent" /> }} />}
+        title={<Trans t={t} i18n={i18n} i18nKey="page.title" components={{ em: <span /> }} />}
         lead={t("page.lead")}
       />
       <section className="shell grid gap-12 pb-[clamp(4rem,9vw,7rem)] lg:grid-cols-12 lg:gap-14">

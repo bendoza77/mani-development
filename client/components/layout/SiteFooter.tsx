@@ -39,12 +39,12 @@ export function SiteFooter({ menus, analytics = false }: { menus?: Menus | null;
           <div>
             <p className="t-eyebrow text-night-muted">{t("footer.ctaEyebrow")}</p>
             <h2 className="t-h2 mt-4 max-w-[16ch] lg:max-w-[18ch]">
-              <Trans t={t} i18nKey="footer.ctaTitle" components={{ em: <em className="text-accent" /> }} />
+              <Trans t={t} i18nKey="footer.ctaTitle" components={{ em: <span /> }} />
             </h2>
             <p className="mt-5 max-w-md text-night-muted">{t("footer.ctaBody")}</p>
           </div>
           <div className="flex flex-col items-start gap-5">
-            <ButtonLink href="/contact" variant="light" size="lg" arrow>
+            <ButtonLink href="/contact" variant="light" size="lg">
               {t("footer.ctaButton")}
             </ButtonLink>
             {tel && (

@@ -18,17 +18,16 @@ export function Hero() {
   return (
     <section className="pt-(--header-h)" aria-labelledby="hero-title">
       <div className="shell grid gap-10 py-[clamp(2rem,6vw,4.5rem)] lg:grid-cols-12 lg:items-center lg:gap-12">
-        <div className="lg:col-span-6 xl:col-span-5">
-          <p className="t-eyebrow rise-in text-muted">{t("hero.eyebrow")}</p>
-          <h1 id="hero-title" className="t-h1 rise-in mt-6" style={{ "--d": "60ms" } as React.CSSProperties}>
-            <Trans t={t} i18nKey="hero.title" components={{ em: <em className="text-accent" /> }} />
+        <div className="lg:col-span-6">
+          <h1 id="hero-title" className="t-h1 rise-in">
+            <Trans t={t} i18nKey="hero.title" components={{ em: <span /> }} />
           </h1>
           <p className="t-lead leading-relaxed rise-in mt-6 max-w-[34rem] text-ink-soft" style={{ "--d": "120ms" } as React.CSSProperties}>
             {t("hero.lead")}
           </p>
           {/* On phones the two actions stack at full width instead of two ragged lengths. */}
           <div className="rise-in mt-8 flex flex-wrap gap-3" style={{ "--d": "180ms" } as React.CSSProperties}>
-            <ButtonLink href="/contact" size="lg" arrow className="max-sm:w-full">
+            <ButtonLink href="/contact" size="lg" className="max-sm:w-full">
               {t("hero.primaryCta")}
             </ButtonLink>
             <ButtonLink href="/projects" size="lg" variant="outline" className="max-sm:w-full">
@@ -45,7 +44,7 @@ export function Hero() {
           </dl>
         </div>
 
-        <figure className="min-w-0 lg:col-span-6 lg:self-start xl:col-span-7">
+        <figure className="min-w-0 lg:col-span-6 lg:self-start">
           <HouseViewer className="aspect-[4/3] text-ink/45 [--drawing-bg:var(--paper)] lg:aspect-[6/5] xl:aspect-[5/4]" />
           <figcaption className="t-meta mt-3 text-muted">{th("ui.disclaimer")}</figcaption>
         </figure>

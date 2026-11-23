@@ -1,4 +1,4 @@
-import { ArrowUpRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Img } from "@/components/ui/Img";
 import { TextLink } from "@/components/ui/Button";
 import { IMAGES } from "@/data/images";
@@ -31,21 +31,20 @@ export async function ServicesOverview() {
 
         <div className="lg:col-span-7">
           <ul className="border-t border-line">
-            {services.map((s, i) => (
+            {services.map((s) => (
               <li key={s.id} className="border-b border-line">
                 <Link
                   // Anchors are the service's slug, the same in every language (see ServicesList).
                   href={`/services#${s.slug}`}
-                  className="group grid grid-cols-[2.25rem_1fr_auto] gap-x-4 py-6 sm:grid-cols-[3rem_1fr_auto] sm:py-7"
+                  className="group grid grid-cols-[1fr_auto] gap-x-6 py-6 sm:py-7"
                 >
-                  <span className="t-meta pt-2 text-muted">{String(i + 1).padStart(2, "0")}</span>
                   <span>
                     <span className="t-h3 block transition-colors group-hover:text-accent">{s.title}</span>
                     <span className="mt-2 block max-w-lg text-[0.95rem] leading-relaxed text-ink-soft">{s.summary}</span>
                   </span>
-                  <ArrowUpRight
+                  <ArrowRight
                     aria-hidden
-                    className="mt-2 size-5 text-muted transition-[color,transform] duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-accent"
+                    className="mt-2 size-5 text-muted transition-[color,transform] duration-300 group-hover:translate-x-1 group-hover:text-accent"
                   />
                 </Link>
               </li>

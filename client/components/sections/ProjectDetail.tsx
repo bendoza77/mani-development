@@ -40,9 +40,8 @@ export function ProjectDetail({ project: p, related }: { project: Project; relat
             <div className="lg:col-span-8">
               <div className="rise-in flex flex-wrap items-center gap-3">
                 <StatusBadge status={p.status} label={tc(`status.${p.status}`)} />
-                <span className="t-meta text-muted">
-                  {tc(`category.${p.category}`)} · {p.city}
-                </span>
+                <span className="t-meta text-muted">{tc(`category.${p.category}`)}</span>
+                <span className="t-meta text-muted">{p.city}</span>
               </div>
               <h1 className="t-h1 rise-in mt-5" style={{ "--d": "80ms" } as React.CSSProperties}>
                 {p.title}
@@ -142,7 +141,6 @@ export function ProjectDetail({ project: p, related }: { project: Project; relat
             href={`/contact?subject=${encodeURIComponent(t("detail.ctaSubject", { title: p.title }))}`}
             variant="light"
             size="lg"
-            arrow
           >
             {t("detail.ctaButton")}
           </ButtonLink>

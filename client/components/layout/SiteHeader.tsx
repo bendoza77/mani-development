@@ -114,7 +114,8 @@ export function SiteHeader({ menus }: { menus?: Menus | null }) {
             <Logo />
           </Link>
 
-          <nav aria-label={t("a11y.primaryNav")} className="hidden lg:block">
+          {/* The full menu needs xl. Georgian menu labels run long, so in Georgian the full menu waits for 2xl; below that the menu button covers it. */}
+          <nav aria-label={t("a11y.primaryNav")} className="hidden xl:block xl:max-2xl:[:lang(ka)_&]:hidden">
             <ul className="flex items-center gap-1">
               {header.map((item) => (
                 <li key={item.href}>
@@ -122,7 +123,7 @@ export function SiteHeader({ menus }: { menus?: Menus | null }) {
                     link={item}
                     current={isActive(item.href)}
                     className={cx(
-                      "relative inline-flex h-10 items-center px-3.5 text-[0.9rem] transition-colors",
+                      "relative inline-flex h-10 items-center px-3.5 text-[0.9rem] whitespace-nowrap transition-colors",
                       "after:absolute after:inset-x-3.5 after:bottom-1.5 after:h-px after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-500 after:ease-(--ease-arch) hover:after:scale-x-100",
                       isActive(item.href) ? "text-ink after:scale-x-100" : "text-ink-soft hover:text-ink",
                     )}
@@ -133,7 +134,7 @@ export function SiteHeader({ menus }: { menus?: Menus | null }) {
           </nav>
 
           <div className="flex items-center gap-2">
-            <LanguageSwitcher className="max-lg:hidden" />
+            <LanguageSwitcher className="max-xl:hidden max-2xl:[:lang(ka)_&]:hidden" />
             <ButtonLink
               href="/contact"
               size="sm"
@@ -146,7 +147,7 @@ export function SiteHeader({ menus }: { menus?: Menus | null }) {
             </ButtonLink>
             <button
               type="button"
-              className="-mr-2 grid size-11 place-items-center rounded-[3px] lg:hidden"
+              className="-mr-2 grid size-11 place-items-center rounded-[3px] xl:hidden xl:max-2xl:[:lang(ka)_&]:grid"
               aria-label={t("a11y.openMenu")}
               aria-haspopup="dialog"
               aria-expanded={menuOpen}
@@ -187,18 +188,15 @@ export function SiteHeader({ menus }: { menus?: Menus | null }) {
               {mobileLinks.map((item, i) => (
                 <li
                   key={item.href}
-                  className="flex items-baseline justify-between border-b border-white/10"
+                  className="border-b border-white/10"
                   style={{ animation: menuOpen ? `rise-in .7s var(--ease-arch) ${80 + i * 55}ms both` : undefined }}
                 >
                   <MenuLink
                     link={item}
                     onClick={() => setMenuOpen(false)}
                     current={isActive(item.href)}
-                    className="flex-1 py-4 font-display text-[clamp(2rem,9vw,3rem)] leading-none tracking-tight [&:lang(ka)]:text-[clamp(1.6rem,7vw,2.3rem)] [&:lang(ka)]:leading-tight [&:lang(ka)]:tracking-normal aria-[current=page]:text-accent"
+                    className="block py-4 font-display text-[clamp(2rem,9vw,3rem)] leading-none tracking-tight [&:lang(ka)]:text-[clamp(1.6rem,7vw,2.3rem)] [&:lang(ka)]:leading-tight [&:lang(ka)]:tracking-normal aria-[current=page]:text-accent"
                   />
-                  <span aria-hidden className="font-mono text-xs text-night-muted">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
                 </li>
               ))}
             </ul>

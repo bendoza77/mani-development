@@ -24,7 +24,7 @@ export default async function ProjectsPage() {
     <>
       <PageIntro
         eyebrow={t("page.eyebrow")}
-        title={<Trans t={t} i18n={i18n} i18nKey="page.title" components={{ em: <em className="text-accent" /> }} />}
+        title={<Trans t={t} i18n={i18n} i18nKey="page.title" components={{ em: <span /> }} />}
         lead={t("page.lead")}
         aside={<ProjectsSummary initialProjects={projects} />}
       />
