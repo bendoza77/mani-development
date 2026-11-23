@@ -316,14 +316,32 @@ describe("admin saves Russian for projects and pages", () => {
 });
 
 describe("Russian around the site", () => {
-  it("lists a page for Russian in the sitemap only when it has a Russian title", async () => {
-    await api(app, "post", "/api/admin/projects", cookie, projectInput(imageId, { slug: "with-ru", titleRu: "Дом" }));
-    await api(app, "post", "/api/admin/projects", cookie, projectInput(imageId, { slug: "without-ru" }));
+  it("lists a page for Russian in the sitemap when it has a Russian or an English title", async () => {
+    await api(app, "post", "/api/admin/projects", cookie, projectInput(imageId, { slug: "english", titleRu: null }));
+    await api(app, "post", "/api/admin/projects", cookie, projectInput(imageId, { slug: "russian", titleEn: null, titleRu: "Дом" }));
+    await api(app, "post", "/api/admin/projects", cookie, projectInput(imageId, { slug: "georgian", titleEn: null, titleRu: null }));
 
     const items = (await pub("/api/public/sitemap")).body.items as { path: string; locales: string[] }[];
+    const locales = (slug: string) => items.find((i) => i.path.endsWith(`/${slug}`))!.locales;
 
-    expect(items.find((i) => i.path.endsWith("/with-ru"))!.locales).toEqual(["ka", "en", "ru"]);
-    expect(items.find((i) => i.path.endsWith("/without-ru"))!.locales).toEqual(["ka", "en"]);
+    expect(locales("english")).toEqual(["ka", "en", "ru"]);
+    expect(locales("russian")).toEqual(["ka", "ru"]);
+    expect(locales("georgian")).toEqual(["ka"]);
+    // The built-in pages have English titles, so the Russian home page is listed (and not sent to /ka).
+    expect(items.find((i) => i.path === "/")!.locales).toEqual(["ka", "en", "ru"]);
+  });
+
+  it("gives the built-in pages, menus and contact details Russian text", async () => {
+    const nav = (await pub("/api/public/navigation?locale=ru")).body;
+    const home = await prisma.page.findFirstOrThrow({ where: { systemKey: "home" } });
+    const settings = (await pub("/api/public/settings?locale=ru")).body;
+
+    expect(nav.header.map((i: { label: string }) => i.label)).toEqual(["Услуги", "Проекты", "О компании"]);
+    expect(nav.footer.map((i: { label: string }) => i.label)).toEqual(["Главная", "Услуги", "Проекты", "О компании", "Контакты"]);
+    expect(home.titleRu).toMatch(/[А-Яа-яЁё]/);
+    expect(home.seoDescriptionRu).toMatch(/[А-Яа-яЁё]/);
+    expect(await prisma.page.count({ where: { kind: "SYSTEM", titleRu: null } })).toBe(0);
+    expect(settings).toMatchObject({ tagline: "Строительство частных домов", hours: "Пн–Пт, 09:00–18:00" });
   });
 
   it("finds a project by its Russian title in the admin search", async () => {

@@ -153,7 +153,7 @@ describe("GET /api/public/sitemap", () => {
     const careers = res.body.items.find((i: { path: string }) => i.path === "/careers");
     expect(careers).toEqual({ path: "/careers", lastModified: expect.any(String), locales: ["ka"] });
     const shown = res.body.items.find((i: { path: string }) => i.path === "/projects/shown");
-    expect(shown.locales).toEqual(["ka", "en"]);
+    expect(shown.locales).toEqual(["ka", "en", "ru"]);
   });
 });
 

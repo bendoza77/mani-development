@@ -85,9 +85,14 @@ export function publicPathRoutes({ prisma }: { prisma: PrismaClient }) {
         orderBy: { updatedAt: "desc" },
       }),
     ]);
-    // A language is listed only once the page has its own title in it, so search engines never
-    // see a fallback copy as a separate page.
-    const locales = (p: { titleEn: string | null; titleRu: string | null }) => ["ka", ...(p.titleEn ? ["en"] : []), ...(p.titleRu ? ["ru"] : [])];
+    // English is listed once the page has an English title. Russian is listed once it has a Russian
+    // or an English title: project names often stay untranslated, and the Russian page around them
+    // (menus, labels, any Russian text) is still Russian.
+    const locales = (p: { titleEn: string | null; titleRu: string | null }) => [
+      "ka",
+      ...(p.titleEn ? ["en"] : []),
+      ...(p.titleRu || p.titleEn ? ["ru"] : []),
+    ];
     res.json({
       items: [
         ...pages.map((p) => ({ path: pageHref(p), lastModified: p.updatedAt.toISOString(), locales: locales(p) })),
