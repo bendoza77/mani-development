@@ -26,6 +26,7 @@ import {
   Search,
   Settings,
   Signpost,
+  Star,
   Sun,
   Users,
   X,
@@ -39,7 +40,7 @@ import { useDebounced } from "@/hooks/useDebounced";
 import { useNow } from "@/hooks/useNow";
 import { useStoredPref } from "@/hooks/useStoredPref";
 import { useApplyTheme, useThemePref, type ThemePreference } from "@/hooks/useThemePref";
-import { api, errorMessage, type InquiryList, type NotificationList, type SearchResult } from "@/lib/api";
+import { api, errorMessage, type InquiryList, type NotificationList, type ReviewList, type SearchResult } from "@/lib/api";
 import { cx, timeAgo } from "@/lib/format";
 
 const NAV = [
@@ -51,6 +52,7 @@ const NAV = [
   { href: "/admin/services", label: "Services", icon: Briefcase },
   { href: "/admin/inquiries", label: "Inquiries", icon: Inbox, badge: "inquiries" as const },
   { href: "/admin/testimonials", label: "Testimonials", icon: MessageSquareQuote },
+  { href: "/admin/reviews", label: "Reviews", icon: Star, badge: "reviews" as const },
   { href: "/admin/team", label: "Team", icon: Users },
   { href: "/admin/media", label: "Media", icon: ImageIcon },
   { href: "/admin/redirects", label: "Redirects", icon: Signpost },
@@ -66,6 +68,7 @@ const SEGMENT_LABEL: Record<string, string> = {
   services: "Services",
   inquiries: "Inquiries",
   testimonials: "Testimonials",
+  reviews: "Reviews",
   team: "Team",
   media: "Media",
   redirects: "Redirects",
@@ -94,6 +97,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const signedIn = !!session;
   const inbox = useAdminPoll<InquiryList>(signedIn ? "/api/admin/inquiries?status=new&pageSize=1" : null, { refreshKey: pathname });
   const newInquiries = inbox.data?.counts.new ?? 0;
+  const reviewsPoll = useAdminPoll<ReviewList>(signedIn ? "/api/admin/reviews?status=pending" : null, { refreshKey: pathname });
+  const pendingReviews = reviewsPoll.data?.counts.pending ?? 0;
 
   const toggleCollapsed = () => setSidebarPref(collapsed ? "open" : "collapsed");
 
@@ -132,7 +137,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           )}
           aria-label="Admin navigation"
         >
-          <SidebarContent collapsed={collapsed} pathname={pathname} newInquiries={newInquiries} />
+          <SidebarContent collapsed={collapsed} pathname={pathname} newInquiries={newInquiries} pendingReviews={pendingReviews} />
           <button
             type="button"
             onClick={toggleCollapsed}
@@ -165,7 +170,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 <X aria-hidden className="size-5" />
               </button>
             </div>
-            <SidebarContent collapsed={false} pathname={pathname} newInquiries={newInquiries} />
+            <SidebarContent collapsed={false} pathname={pathname} newInquiries={newInquiries} pendingReviews={pendingReviews} />
           </div>
         </dialog>
 
@@ -186,7 +191,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   );
 }
 
-function SidebarContent({ collapsed, pathname, newInquiries }: { collapsed: boolean; pathname: string; newInquiries: number }) {
+function SidebarContent({ collapsed, pathname, newInquiries, pendingReviews }: { collapsed: boolean; pathname: string; newInquiries: number; pendingReviews: number }) {
   return (
     <>
       <div className={cx("flex h-16 items-center border-b border-line", collapsed ? "justify-center" : "px-5")}>
@@ -198,7 +203,8 @@ function SidebarContent({ collapsed, pathname, newInquiries }: { collapsed: bool
         <ul className="space-y-0.5">
           {NAV.map((item) => {
             const active = item.exact ? pathname === item.href : pathname === item.href || pathname.startsWith(`${item.href}/`);
-            const badge = item.badge === "inquiries" && newInquiries > 0 ? newInquiries : null;
+            const count = item.badge === "inquiries" ? newInquiries : item.badge === "reviews" ? pendingReviews : 0;
+            const badge = count > 0 ? count : null;
             return (
               <li key={item.href}>
                 <Link

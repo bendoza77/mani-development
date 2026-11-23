@@ -510,6 +510,19 @@ export type AdminTestimonial = Required<TestimonialInput> & {
 };
 export type TestimonialList = { items: AdminTestimonial[]; counts: { all: number; published: number; draft: number } };
 
+export type ReviewStatus = "pending" | "approved" | "rejected";
+export type AdminReview = {
+  id: string;
+  fullName: string;
+  text: string;
+  rating: number;
+  locale: "ka" | "en" | "ru";
+  status: ReviewStatus;
+  reviewedAt: string | null;
+  createdAt: string;
+};
+export type ReviewList = { items: AdminReview[]; counts: { all: number; pending: number; approved: number; rejected: number } };
+
 export type SlideInput = {
   imageId: string;
   headingKa: string;
