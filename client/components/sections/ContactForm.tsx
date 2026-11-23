@@ -1,12 +1,13 @@
 "use client";
 
 import Script from "next/script";
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { CircleCheck, TriangleAlert } from "lucide-react";
 import { Trans } from "react-i18next";
 import { Button } from "@/components/ui/Button";
 import { Field, Input, Textarea } from "@/components/ui/Field";
 import { useToast } from "@/components/ui/Toast";
+import { TURNSTILE_SCRIPT_SRC, useTurnstile } from "@/hooks/useTurnstile";
 import { useLocale, useTranslation } from "@/i18n/client";
 import { track } from "@/lib/analytics";
 import { api, ApiError } from "@/lib/api";
@@ -17,16 +18,6 @@ type Key = keyof Values;
 type Errors = Partial<Record<Key, true>>;
 const EMPTY: Values = { name: "", email: "", phone: "", subject: "", message: "" };
 const KEYS: Key[] = ["name", "email", "phone", "subject", "message"];
-
-/** Cloudflare Turnstile (spam check), only when a site key is configured. */
-const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
-
-type Turnstile = {
-  render: (el: HTMLElement, options: Record<string, unknown>) => string;
-  reset: (id?: string) => void;
-  remove: (id?: string) => void;
-};
-type TurnstileWindow = Window & { turnstile?: Turnstile };
 
 export function validateContact(v: Values): Errors {
   const e: Errors = {};
@@ -53,11 +44,7 @@ export function ContactForm() {
   const [website, setWebsite] = useState(""); // honeypot: people never see or fill it
   const form = useRef<HTMLFormElement>(null);
 
-  // Turnstile widget state.
-  const widgetEl = useRef<HTMLDivElement>(null);
-  const widgetId = useRef<string | null>(null);
-  const [turnstileReady, setTurnstileReady] = useState(false);
-  const [token, setToken] = useState("");
+  const { enabled: turnstileOn, token, widgetRef, reset: resetTurnstile, onScriptLoad } = useTurnstile(locale);
 
   // Prefill the subject when arriving from a project page (?subject=...).
   useEffect(() => {
@@ -65,36 +52,6 @@ export function ContactForm() {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time read of browser-only state after hydration
     if (subject) setValues((v) => ({ ...v, subject: subject.slice(0, 120) }));
   }, []);
-
-  const renderWidget = useCallback(() => {
-    const ts = (window as TurnstileWindow).turnstile;
-    if (!ts || !widgetEl.current || widgetId.current) return;
-    widgetId.current = ts.render(widgetEl.current, {
-      sitekey: TURNSTILE_SITE_KEY,
-      language: locale,
-      callback: (value: string) => setToken(value),
-      "expired-callback": () => setToken(""),
-      "error-callback": () => setToken(""),
-    });
-  }, [locale]);
-
-  // The widget container mounts again after "Send another message", so it is wired with a callback ref.
-  const widgetRef = useCallback(
-    (el: HTMLDivElement | null) => {
-      widgetEl.current = el;
-      if (el) {
-        renderWidget();
-      } else if (widgetId.current) {
-        (window as TurnstileWindow).turnstile?.remove(widgetId.current);
-        widgetId.current = null;
-      }
-    },
-    [renderWidget],
-  );
-
-  useEffect(() => {
-    if (TURNSTILE_SITE_KEY && turnstileReady) renderWidget();
-  }, [turnstileReady, renderWidget]);
 
   const errors = { ...validateContact(values), ...serverErrors };
   const show = (k: Key) => ((touched[k] || serverErrors[k]) && errors[k] ? t(`validation.${k}`, { length: values.message.trim().length }) : undefined);
@@ -130,7 +87,7 @@ export function ContactForm() {
       focusField(first);
       return;
     }
-    if (TURNSTILE_SITE_KEY && !token) {
+    if (turnstileOn && !token) {
       setStatus("verify");
       return;
     }
@@ -151,8 +108,7 @@ export function ContactForm() {
       });
     } catch (error) {
       // A Turnstile token works once: get a fresh one for the next attempt.
-      if (widgetId.current) (window as TurnstileWindow).turnstile?.reset(widgetId.current);
-      setToken("");
+      resetTurnstile();
       if (error instanceof ApiError && error.status === 400 && Object.keys(error.fieldErrors).length) {
         const rejected: Errors = {};
         for (const k of KEYS) if (error.fieldErrors[k]?.length) rejected[k] = true;
@@ -207,13 +163,7 @@ export function ContactForm() {
 
   return (
     <form ref={form} onSubmit={onSubmit} noValidate className="grid gap-5 sm:grid-cols-2" aria-describedby="form-note">
-      {TURNSTILE_SITE_KEY && (
-        <Script
-          src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
-          strategy="afterInteractive"
-          onReady={() => setTurnstileReady(true)}
-        />
-      )}
+      {turnstileOn && <Script src={TURNSTILE_SCRIPT_SRC} strategy="afterInteractive" onReady={onScriptLoad} />}
       {problem && (
         <div role="alert" className="flex items-start gap-3 rounded-[3px] border border-danger/30 bg-danger-soft px-4 py-3 text-[0.9rem] text-danger sm:col-span-2">
           <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
@@ -244,7 +194,7 @@ export function ContactForm() {
         </label>
       </div>
 
-      {TURNSTILE_SITE_KEY && <div ref={widgetRef} className="min-h-[65px] sm:col-span-2" />}
+      {turnstileOn && <div ref={widgetRef} className="min-h-[65px] sm:col-span-2" />}
 
       <div className="flex flex-col gap-4 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
         <p id="form-note" className="max-w-sm text-[0.8rem] text-muted">
