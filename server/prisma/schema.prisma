@@ -392,6 +392,31 @@ model Notification {
   @@map("notifications")
 }
 
+// ─── Visitor reviews ──────────────────────────────────────────────────────
+
+enum ReviewStatus {
+  pending
+  approved
+  rejected
+
+  @@map("review_status")
+}
+
+model Review {
+  id         String       @id @default(uuid(7)) @db.Uuid
+  fullName   String       @map("full_name") @db.VarChar(100)
+  text       String       @db.VarChar(1000)
+  rating     Int          @db.SmallInt
+  locale     String       @default("ka") @db.VarChar(2)
+  status     ReviewStatus @default(pending)
+  reviewedAt DateTime?    @map("reviewed_at") @db.Timestamptz(3)
+  createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([status, createdAt(sort: Desc)])
+  @@map("reviews")
+}
+
 // ─── Activity log (§3.7) ──────────────────────────────────────────────────
 
 enum ActivityKind {
@@ -407,6 +432,7 @@ enum ActivityKind {
   navigation
   slide
   redirect
+  review
 
   @@map("activity_kind")
 }

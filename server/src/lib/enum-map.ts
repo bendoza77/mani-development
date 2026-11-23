@@ -1,4 +1,4 @@
-import type { InquiryStatus, ProjectStatus } from "../generated/prisma/enums.js";
+import type { InquiryStatus, ProjectStatus, ReviewStatus } from "../generated/prisma/enums.js";
 
 /**
  * The database and API use the frontend's hyphenated values ("in-progress"), but Prisma's
@@ -27,4 +27,10 @@ export const inquiryStatus = enumMap<InquiryStatus, "new" | "in-progress" | "res
   new: "new",
   in_progress: "in-progress",
   resolved: "resolved",
+});
+
+export const reviewStatus = enumMap<ReviewStatus, "pending" | "approved" | "rejected">({
+  pending: "pending",
+  approved: "approved",
+  rejected: "rejected",
 });
