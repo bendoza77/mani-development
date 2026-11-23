@@ -32,6 +32,12 @@ type SeedInquiry = {
 };
 type SeedMedia = { id: string; name: string; src: string; alt: string; category: MediaCategory; width: number; height: number; size: number; createdAt: string };
 type Localized = Record<string, string | undefined>;
+type Translations = {
+  projects: Record<string, Localized & { specs?: { label: string; value: string }[] }>;
+  services: Record<string, Localized & { features?: string[] }>;
+  team: Record<string, Localized>;
+  testimonials: Record<string, Localized>;
+};
 type SeedData = {
   media: SeedMedia[];
   projects: SeedProject[];
@@ -41,17 +47,15 @@ type SeedData = {
   inquiries: SeedInquiry[];
   activity: { id: string; kind: string; message: string; at: string }[];
   notifications: { id: string; href: string; at: string; read: boolean }[];
-  ka: {
-    projects: Record<string, Localized & { specs?: { label: string; value: string }[] }>;
-    services: Record<string, Localized & { features?: string[] }>;
-    team: Record<string, Localized>;
-    testimonials: Record<string, Localized>;
-  };
+  ka: Translations;
+  /** Russian: every text except project names, which stay untranslated as in Georgian. */
+  ru: Translations;
   samplePage: {
     headingEn: string; headingKa: string; paragraphsEn: string[]; paragraphsKa: string[];
     imageCaptionEn: string; imageCaptionKa: string;
+    headingRu: string; paragraphsRu: string[]; imageCaptionRu: string;
   };
-  slideCta: { ka: string; en: string };
+  slideCta: { ka: string; en: string; ru: string };
 };
 
 const data: SeedData = JSON.parse(readFileSync(new URL("./seed-data.json", import.meta.url), "utf8"));
@@ -109,6 +113,7 @@ export async function runSeed(prisma: PrismaClient): Promise<void> {
 
       for (const p of data.projects) {
         const ka = data.ka.projects[p.id] ?? {};
+        const ru = data.ru.projects[p.id] ?? {};
         const status = projectStatus.fromApi(p.status);
         if (!status) throw new Error(`seed: unknown project status ${p.status}`);
         const published = !DRAFT_PROJECTS.has(p.id);
@@ -116,14 +121,19 @@ export async function runSeed(prisma: PrismaClient): Promise<void> {
           slug: p.slug,
           titleKa: ka.title ?? p.title,
           titleEn: p.title,
+          titleRu: p.title,
           summaryKa: ka.summary ?? p.summary,
           summaryEn: p.summary,
+          summaryRu: ru.summary ?? null,
           descriptionKa: ka.description ?? p.description,
           descriptionEn: p.description,
+          descriptionRu: ru.description ?? null,
           locationKa: ka.location ?? p.location,
           locationEn: p.location,
+          locationRu: ru.location ?? null,
           cityKa: ka.city ?? p.city,
           cityEn: p.city,
+          cityRu: ru.city ?? null,
           category: p.category,
           status,
           progress: p.progress,
@@ -147,8 +157,10 @@ export async function runSeed(prisma: PrismaClient): Promise<void> {
             position,
             labelKa: ka.specs?.[position]?.label ?? s.label,
             labelEn: s.label,
+            labelRu: ru.specs?.[position]?.label ?? null,
             valueKa: ka.specs?.[position]?.value ?? s.value,
             valueEn: s.value,
+            valueRu: ru.specs?.[position]?.value ?? null,
           })),
         });
 
@@ -160,16 +172,21 @@ export async function runSeed(prisma: PrismaClient): Promise<void> {
 
       for (const [position, s] of data.services.entries()) {
         const ka = data.ka.services[s.id] ?? {};
+        const ru = data.ru.services[s.id] ?? {};
         const row = {
           slug: slugify(s.title),
           titleKa: ka.title ?? s.title,
           titleEn: s.title,
+          titleRu: ru.title ?? null,
           summaryKa: ka.summary ?? s.summary,
           summaryEn: s.summary,
+          summaryRu: ru.summary ?? null,
           descriptionKa: ka.description ?? s.description,
           descriptionEn: s.description,
+          descriptionRu: ru.description ?? null,
           featuresKa: ka.features ?? s.features,
           featuresEn: s.features,
+          featuresRu: ru.features ?? [],
           imageId: mediaId(s.image),
           visible: s.visible,
           position,
@@ -180,13 +197,17 @@ export async function runSeed(prisma: PrismaClient): Promise<void> {
 
       for (const [position, m] of data.team.entries()) {
         const ka = data.ka.team[m.id] ?? {};
+        const ru = data.ru.team[m.id] ?? {};
         const row = {
           nameKa: ka.name ?? m.name,
           nameEn: m.name,
+          nameRu: ru.name ?? null,
           roleKa: ka.role ?? m.role,
           roleEn: m.role,
+          roleRu: ru.role ?? null,
           bioKa: ka.bio ?? m.bio,
           bioEn: m.bio,
+          bioRu: ru.bio ?? null,
           photoId: mediaId(m.photo),
           visible: m.visible,
           position,
@@ -198,13 +219,17 @@ export async function runSeed(prisma: PrismaClient): Promise<void> {
       const projectIdByTitle = new Map(data.projects.map((p) => [p.title, stableId(p.id)]));
       for (const t of data.testimonials) {
         const ka = data.ka.testimonials[t.id] ?? {};
+        const ru = data.ru.testimonials[t.id] ?? {};
         const row = {
           quoteKa: ka.quote ?? t.quote,
           quoteEn: t.quote,
+          quoteRu: ru.quote ?? null,
           authorKa: ka.author ?? t.author,
           authorEn: t.author,
+          authorRu: ru.author ?? null,
           roleKa: ka.role ?? t.role,
           roleEn: t.role,
+          roleRu: ru.role ?? null,
           projectId: projectIdByTitle.get(t.project) ?? null,
           published: t.published,
         };
@@ -245,18 +270,22 @@ export async function runSeed(prisma: PrismaClient): Promise<void> {
         await tx.activityLog.upsert({ where: { id: stableId(a.id) }, create: { id: stableId(a.id), ...row }, update: row });
       }
 
-      // Homepage slides reuse existing Georgian and English texts (project names and summaries).
+      // Homepage slides reuse existing Georgian, English and Russian texts (project names and summaries).
       for (const [position, projectKey] of SLIDE_PROJECTS.entries()) {
         const p = data.projects.find((x) => x.id === projectKey)!;
         const ka = data.ka.projects[p.id] ?? {};
+        const ru = data.ru.projects[p.id] ?? {};
         const row = {
           imageId: mediaId(p.cover),
           headingKa: ka.title ?? p.title,
           headingEn: p.title,
+          headingRu: p.title,
           textKa: ka.summary ?? p.summary,
           textEn: p.summary,
+          textRu: ru.summary ?? null,
           ctaLabelKa: data.slideCta.ka,
           ctaLabelEn: data.slideCta.en,
+          ctaLabelRu: data.slideCta.ru,
           ctaUrl: `/projects/${p.slug}`,
           isPublished: true,
           position,
@@ -273,6 +302,7 @@ export async function runSeed(prisma: PrismaClient): Promise<void> {
         slug: SAMPLE_PAGE_SLUG,
         titleKa: sp.headingKa,
         titleEn: sp.headingEn,
+        titleRu: sp.headingRu,
         isPublished: true,
         publishedAt: new Date("2026-11-20T00:00:00Z"),
         robotsIndex: false, // demo content must never be indexed
@@ -282,9 +312,9 @@ export async function runSeed(prisma: PrismaClient): Promise<void> {
 
       const blocks = [
         // Same stored shape as the pages API writes (src/modules/pages/pages.routes.ts blockData).
-        { type: "heading" as const, data: { level: 2, textKa: sp.headingKa, textEn: sp.headingEn }, media: [] },
-        { type: "text" as const, data: { docKa: paragraphsDoc(sp.paragraphsKa), docEn: paragraphsDoc(sp.paragraphsEn) }, media: [] },
-        { type: "image" as const, data: { captionKa: sp.imageCaptionKa, captionEn: sp.imageCaptionEn }, media: ["/images/drawings.jpg"] },
+        { type: "heading" as const, data: { level: 2, textKa: sp.headingKa, textEn: sp.headingEn, textRu: sp.headingRu }, media: [] },
+        { type: "text" as const, data: { docKa: paragraphsDoc(sp.paragraphsKa), docEn: paragraphsDoc(sp.paragraphsEn), docRu: paragraphsDoc(sp.paragraphsRu) }, media: [] },
+        { type: "image" as const, data: { captionKa: sp.imageCaptionKa, captionEn: sp.imageCaptionEn, captionRu: sp.imageCaptionRu }, media: ["/images/drawings.jpg"] },
         // Gallery blocks come later; the API doesn't accept them yet.
       ];
       for (const [position, b] of blocks.entries()) {

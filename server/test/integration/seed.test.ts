@@ -78,6 +78,25 @@ describe("runSeed", () => {
     expect(vake.status).toBe("in_progress");
   });
 
+  it("adds Russian as the third language", async () => {
+    const vake = await prisma.project.findUniqueOrThrow({ where: { slug: "vake-terraces" }, include: { specs: true } });
+    const services = await prisma.service.findMany();
+    const cyrillic = /[А-Яа-яЁё]/;
+
+    // Project names stay untranslated, as in Georgian.
+    expect(vake.titleRu).toBe("Vake Terraces");
+    expect(vake.locationRu).toMatch(cyrillic);
+    expect(vake.summaryRu).toMatch(cyrillic);
+    expect(vake.specs.every((s) => s.labelRu && cyrillic.test(s.labelRu))).toBe(true);
+    for (const s of services) {
+      expect(s.titleRu).toMatch(cyrillic);
+      expect(s.featuresRu).toHaveLength(s.featuresEn.length);
+    }
+    expect(await prisma.teamMember.count({ where: { bioRu: null } })).toBe(0);
+    expect(await prisma.testimonial.count({ where: { quoteRu: null } })).toBe(0);
+    expect(await prisma.homeSlide.count({ where: { ctaLabelRu: "Проекты" } })).toBeGreaterThan(0);
+  });
+
   it("publishes every demo project except one draft", async () => {
     const drafts = await prisma.project.findMany({ where: { isPublished: false }, select: { slug: true } });
 
