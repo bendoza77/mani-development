@@ -23,6 +23,7 @@ const uploadBody = z.strictObject({
   category: z.enum(["exterior", "interior", "construction", "team", "uploads"]).optional(),
   altKa: z.string().trim().max(300).optional(),
   altEn: z.string().trim().max(300).optional(),
+  altRu: z.string().trim().max(300).optional(),
 });
 
 const completeBody = z.strictObject({
@@ -38,6 +39,7 @@ const editBody = z
   .strictObject({
     altKa: z.string().trim().max(300).optional(),
     altEn: z.string().trim().max(300).nullish(),
+    altRu: z.string().trim().max(300).nullish(),
     category: categoryField.optional(),
   })
   .refine((b) => Object.keys(b).length > 0, { message: "empty_update" });
@@ -113,6 +115,7 @@ export function mediaRoutes({ config, prisma, storage }: { config: Config; prism
     const data = {
       ...(body.altKa !== undefined ? { altKa: body.altKa } : {}),
       ...(body.altEn !== undefined ? { altEn: body.altEn || null } : {}),
+      ...(body.altRu !== undefined ? { altRu: body.altRu || null } : {}),
       ...(body.category ? { category: body.category } : {}),
     };
     if ((await prisma.mediaAsset.updateMany({ where: { id, status: "READY" }, data })).count === 0) throw notFound();
@@ -165,6 +168,7 @@ export function mediaRoutes({ config, prisma, storage }: { config: Config; prism
         category: body.category ?? "uploads",
         altKa: body.altKa ?? "",
         altEn: body.altEn || null,
+        altRu: body.altRu || null,
         width: 1,
         height: 1,
         uploadedById: req.session!.user.id,

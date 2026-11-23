@@ -30,6 +30,7 @@ const settingsInput = z.strictObject({
   companyName: z.string().trim().min(2).max(24),
   taglineKa: z.string().trim().max(40),
   taglineEn: optionalText(40),
+  taglineRu: optionalText(40),
   email: z.email().max(254),
   phone: z
     .string()
@@ -39,8 +40,10 @@ const settingsInput = z.strictObject({
     .refine((v) => v.replace(/\D/g, "").length >= 7, { message: "invalid_phone" }),
   addressKa: z.string().trim().min(5).max(200),
   addressEn: optionalText(200),
+  addressRu: optionalText(200),
   hoursKa: z.string().trim().max(100),
   hoursEn: optionalText(100),
+  hoursRu: optionalText(100),
   instagramUrl: socialUrl,
   linkedinUrl: socialUrl,
   facebookUrl: socialUrl,
@@ -51,6 +54,7 @@ const settingsInput = z.strictObject({
   longitude: z.number().min(-180).max(180).nullable().default(null),
   defaultSeoDescriptionKa: z.string().trim().max(300).default(""),
   defaultSeoDescriptionEn: optionalText(300),
+  defaultSeoDescriptionRu: optionalText(300),
   defaultOgImageId: z.uuid().nullable().default(null),
   googleSiteVerification: emptyOr(z.string().trim().max(100).regex(/^[A-Za-z0-9_-]+$/, "invalid_token")),
   gtmContainerId: emptyOr(z.string().trim().max(20).regex(/^GTM-[A-Z0-9]+$/, "invalid_gtm_id")),
