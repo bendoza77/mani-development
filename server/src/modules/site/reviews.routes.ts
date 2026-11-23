@@ -1,6 +1,6 @@
 import { Router, type RequestHandler } from "express";
 import { z } from "zod";
-import type { PrismaClient } from "../../generated/prisma/client.js";
+import type { Prisma, PrismaClient, ReviewStatus } from "../../generated/prisma/client.js";
 import type { SpamCheck } from "../../integrations/turnstile.js";
 import { recordActivity } from "../../lib/activity.js";
 import type { Clock } from "../../lib/clock.js";
@@ -63,6 +63,69 @@ export function publicReviewRoutes({
       await recordActivity(tx, { kind: "review", message: `New review from ${input.fullName}`, at: now });
     });
     res.status(201).json({ received: true });
+  });
+
+  return router;
+}
+
+const idParam = z.uuid();
+const notFound = () => new AppError(404, "NOT_FOUND", "That review doesn't exist.");
+const statusValues = reviewStatus.apiValues as [string, ...string[]];
+
+const toAdmin = (r: Prisma.ReviewGetPayload<object>) => ({
+  id: r.id,
+  fullName: r.fullName,
+  text: r.text,
+  rating: r.rating,
+  locale: r.locale,
+  status: reviewStatus.toApi(r.status),
+  reviewedAt: r.reviewedAt?.toISOString() ?? null,
+  createdAt: r.createdAt.toISOString(),
+});
+
+const ACTIVITY: Record<string, string> = { approved: "approved", rejected: "hidden", pending: "moved back to waiting" };
+
+export function adminReviewRoutes({ prisma, clock }: { prisma: PrismaClient; clock: Clock }) {
+  const router = Router();
+  const actor = (req: { session?: { user: { id: string } } }) => req.session!.user.id;
+
+  router.get("/", async (req, res) => {
+    const query = parse(z.object({ status: z.enum(statusValues).optional() }), req.query);
+    const [items, grouped] = await Promise.all([
+      prisma.review.findMany({
+        where: query.status ? { status: reviewStatus.fromApi(query.status) as ReviewStatus } : {},
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      }),
+      prisma.review.groupBy({ by: ["status"], _count: { _all: true } }),
+    ]);
+    const counts = { all: 0, pending: 0, approved: 0, rejected: 0 };
+    for (const row of grouped) {
+      counts[reviewStatus.toApi(row.status) as keyof typeof counts] = row._count._all;
+      counts.all += row._count._all;
+    }
+    res.json({ items: items.map(toAdmin), counts });
+  });
+
+  router.patch("/:id", async (req, res) => {
+    const id = parse(idParam, req.params.id);
+    const { status } = parse(z.strictObject({ status: z.enum(statusValues) }), req.body);
+    const updated = await prisma.review.updateMany({
+      where: { id },
+      data: { status: reviewStatus.fromApi(status) as ReviewStatus, reviewedAt: clock.now() },
+    });
+    if (updated.count === 0) throw notFound();
+    const review = await prisma.review.findUniqueOrThrow({ where: { id } });
+    await recordActivity(prisma, { kind: "review", message: `Review ${ACTIVITY[status]}: ${review.fullName}`, actorId: actor(req) });
+    res.json(toAdmin(review));
+  });
+
+  router.delete("/:id", async (req, res) => {
+    const id = parse(idParam, req.params.id);
+    const review = await prisma.review.findUnique({ where: { id }, select: { fullName: true } });
+    if (!review) throw notFound();
+    await prisma.review.delete({ where: { id } });
+    await recordActivity(prisma, { kind: "review", message: `Review deleted: ${review.fullName}`, actorId: actor(req) });
+    res.status(204).end();
   });
 
   return router;

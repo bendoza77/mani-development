@@ -1,7 +1,8 @@
 import request from "supertest";
 import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
 import { ALLOWED_ORIGIN, buildTestApp } from "../../helpers/app.js";
-import { testClock } from "../../helpers/auth.js";
+import { createTestAdmin, signIn, testClock } from "../../helpers/auth.js";
+import { api } from "../../helpers/content.js";
 import { resetDb } from "../../helpers/db.js";
 
 /** Visitor reviews: the public form and the public list of approved reviews. */
@@ -121,5 +122,87 @@ describe("GET /api/public/reviews", () => {
     expect(res.body).toHaveLength(30);
     expect(res.body[0].fullName).toBe("Visitor 30");
     expect(res.body[29].fullName).toBe("Visitor 1");
+  });
+});
+
+describe("admin reviews", () => {
+  let cookie: string;
+  beforeEach(async () => {
+    await createTestAdmin(prisma);
+    cookie = await signIn(app);
+  });
+
+  const seed = async () => {
+    const row = (fullName: string, status: "pending" | "approved" | "rejected", day: number) => ({
+      fullName,
+      text: "A review text that is long enough.",
+      rating: 4,
+      status,
+      createdAt: new Date(new Date("2026-11-01T00:00:00Z").getTime() + day * 86_400_000),
+    });
+    await prisma.review.createMany({
+      data: [row("P1", "pending", 1), row("P2", "pending", 2), row("A1", "approved", 3), row("R1", "rejected", 4)],
+    });
+  };
+  const first = async (fullName: string) => prisma.review.findFirstOrThrow({ where: { fullName } });
+
+  it("lists newest first with counts, and filters by status", async () => {
+    await seed();
+
+    const all = await api(app, "get", "/api/admin/reviews", cookie);
+    expect(all.status).toBe(200);
+    expect(all.body.items.map((r: { fullName: string }) => r.fullName)).toEqual(["R1", "A1", "P2", "P1"]);
+    expect(all.body.counts).toEqual({ all: 4, pending: 2, approved: 1, rejected: 1 });
+    expect(Object.keys(all.body.items[0]).sort()).toEqual(["createdAt", "fullName", "id", "locale", "rating", "reviewedAt", "status", "text"]);
+    expect(all.body.items[0].reviewedAt).toBeNull();
+
+    const pending = await api(app, "get", "/api/admin/reviews?status=pending", cookie);
+    expect(pending.body.items.map((r: { fullName: string }) => r.fullName)).toEqual(["P2", "P1"]);
+    expect(pending.body.counts.all).toBe(4);
+  });
+
+  it("approving shows it publicly and hiding removes it", async () => {
+    await seed();
+    const p1 = await first("P1");
+
+    const approved = await api(app, "patch", `/api/admin/reviews/${p1.id}`, cookie, { status: "approved" });
+    expect(approved.status).toBe(200);
+    expect(approved.body).toMatchObject({ id: p1.id, status: "approved", reviewedAt: "2026-11-24T09:00:00.000Z" });
+    const publicList = await request(app).get("/api/public/reviews");
+    expect(publicList.body.map((r: { fullName: string }) => r.fullName)).toContain("P1");
+
+    const hidden = await api(app, "patch", `/api/admin/reviews/${p1.id}`, cookie, { status: "rejected" });
+    expect(hidden.body.status).toBe("rejected");
+    expect((await request(app).get("/api/public/reviews")).body.map((r: { fullName: string }) => r.fullName)).not.toContain("P1");
+
+    await api(app, "patch", `/api/admin/reviews/${p1.id}`, cookie, { status: "pending" });
+    const messages = (await prisma.activityLog.findMany({ where: { kind: "review" }, orderBy: { createdAt: "asc" } })).map((a) => a.message);
+    expect(messages).toEqual(["Review approved: P1", "Review hidden: P1", "Review moved back to waiting: P1"]);
+    expect((await prisma.activityLog.findFirstOrThrow({ where: { kind: "review" } })).actorId).not.toBeNull();
+  });
+
+  it("deletes a review, then reports it missing", async () => {
+    await seed();
+    const p1 = await first("P1");
+
+    expect((await api(app, "delete", `/api/admin/reviews/${p1.id}`, cookie)).status).toBe(204);
+    const again = await api(app, "delete", `/api/admin/reviews/${p1.id}`, cookie);
+    expect(again.status).toBe(404);
+    expect(again.body.error.code).toBe("NOT_FOUND");
+    expect((await prisma.activityLog.findFirstOrThrow({ where: { message: "Review deleted: P1" } })).kind).toBe("review");
+  });
+
+  it("rejects an unknown status and an unknown id", async () => {
+    await seed();
+    const p1 = await first("P1");
+
+    expect((await api(app, "patch", `/api/admin/reviews/${p1.id}`, cookie, { status: "published" })).status).toBe(400);
+    const missing = await api(app, "patch", "/api/admin/reviews/6f1c1c0e-6f0e-4a55-9d58-0d9e6a0f1a11", cookie, { status: "approved" });
+    expect(missing.status).toBe(404);
+    expect(missing.body.error.message).toBe("That review doesn't exist.");
+  });
+
+  it("needs a session", async () => {
+    expect((await request(app).get("/api/admin/reviews")).status).toBe(401);
   });
 });

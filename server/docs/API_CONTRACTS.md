@@ -198,6 +198,8 @@ type AdminUser = { id: string; name: string; email: string };
 | GET | `/api/public/team` | F-05 | `{ items: TeamMember[] }` | Visible only, by `position` |
 | GET | `/api/public/testimonials` | F-06 | `{ items: Testimonial[] }` | Published only, newest first |
 | POST | `/api/public/inquiries` | F-07 | `201 { "received": true }` | See below |
+| POST | `/api/public/reviews` | — | `201 { "received": true }` | See §6.3a |
+| GET | `/api/public/reviews` | — | `PublicReview[]` | Approved only, newest first, at most 30 |
 
 ### `POST /api/public/inquiries`
 
@@ -303,6 +305,35 @@ Identical patterns. Team uses `/api/admin/team` with `{ name, role, bio, photoId
 | DELETE | `/api/admin/testimonials/:id` | — | `204` |
 
 - **Validation:** quote 20–400; author and role 1–100; `projectId` must exist (`422`).
+
+### 6.3a Reviews (visitor reviews)
+
+Visitors send a review; it stays hidden until an admin approves it.
+
+**Public**
+
+| Method | Path | Body | Success |
+|---|---|---|---|
+| POST | `/api/public/reviews` | `{ fullName, text, rating, locale?, turnstileToken?, website }` | `201 { "received": true }` |
+| GET | `/api/public/reviews` | — | `[{ id, fullName, text, rating, createdAt }]`, approved only, newest first, at most 30 |
+
+- **Validation:** `fullName` 2–100; `text` 20–1000; `rating` a whole number 1–5 (a string or decimal is `400`); `locale` `ka`\|`en`\|`ru`, optional (default `ka`).
+- **Limits:** 3 per hour and 10 per day for each address (`429` after that).
+- **Honeypot:** `website` must be empty. If it is filled in, the API returns the same `201`, but stores nothing.
+- **Spam check:** if the Turnstile check is on and fails, `403 SPAM_CHECK_FAILED`.
+- **Effects:** a `pending` `Review` and `ActivityLog("New review from <name>")`.
+
+**Admin**
+
+| Method | Path | Body / query | Success |
+|---|---|---|---|
+| GET | `/api/admin/reviews` | `?status=pending\|approved\|rejected` | `{ items: AdminReview[], counts: { all, pending, approved, rejected } }`, newest first |
+| PATCH | `/api/admin/reviews/:id` | `{ status: "approved" \| "rejected" \| "pending" }` | `200 AdminReview` |
+| DELETE | `/api/admin/reviews/:id` | — | `204` |
+
+- `AdminReview` = `{ id, fullName, text, rating, locale, status, reviewedAt: string \| null, createdAt }`.
+- `PATCH` sets `reviewedAt` to now. Activity: `Review approved: <name>`, `Review hidden: <name>` (rejected) or `Review moved back to waiting: <name>` (pending). `DELETE` records `Review deleted: <name>`.
+- **Errors:** `404 NOT_FOUND` "That review doesn't exist."; `400` for any other status value. The counts ignore the status filter.
 
 ### 6.4 Site settings (Phase 8, F-10)
 

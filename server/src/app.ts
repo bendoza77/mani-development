@@ -28,7 +28,7 @@ import { publicNavigationRoutes } from "./modules/pages/menu.js";
 import { adminPageRoutes, publicPageRoutes } from "./modules/pages/pages.routes.js";
 import { adminProjectRoutes, publicProjectRoutes } from "./modules/projects/projects.routes.js";
 import { adminNavigationRoutes } from "./modules/site/navigation.routes.js";
-import { publicReviewRoutes } from "./modules/site/reviews.routes.js";
+import { adminReviewRoutes, publicReviewRoutes } from "./modules/site/reviews.routes.js";
 import { adminServiceRoutes, publicServiceRoutes } from "./modules/site/services.routes.js";
 import { adminSettingsRoutes, publicSettingsRoutes } from "./modules/site/settings.routes.js";
 import { adminSlideRoutes, publicSlideRoutes } from "./modules/site/slides.routes.js";
@@ -148,6 +148,7 @@ export function createApp({ config, logger, db, mailer, clock = systemClock, lim
   app.use("/api/admin/services", adminServiceRoutes({ config, prisma }));
   app.use("/api/admin/team", adminTeamRoutes({ config, prisma }));
   app.use("/api/admin/testimonials", adminTestimonialRoutes({ prisma }));
+  app.use("/api/admin/reviews", adminReviewRoutes({ prisma, clock }));
   app.use("/api/admin/slides", adminSlideRoutes({ config, prisma }));
   app.use("/api/admin/navigation", adminNavigationRoutes({ prisma }));
   app.use("/api/admin/settings", adminSettingsRoutes({ config, prisma }));
