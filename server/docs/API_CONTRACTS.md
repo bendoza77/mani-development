@@ -17,7 +17,7 @@
 | Enum values | Exactly the frontend's strings: `in-progress`, `on-hold`, `completed`, `new`, `resolved`, … (the mapping from Prisma names happens in one serializer, DATABASE_DESIGN §1) |
 | Dates | Calendar dates as `YYYY-MM-DD`; timestamps as ISO-8601 UTC (`2026-11-17T15:42:00.000Z`) |
 | IDs | UUID strings. Public project URLs use `slug` |
-| Locale | Public `GET`s accept `?locale=ka\|en`; **default `ka`** (Georgian is primary, Q-02). Each text field returns the requested language, falling back to Georgian when the English value is empty |
+| Locale | Public `GET`s accept `?locale=ka\|en\|ru`; **default `ka`** (Georgian is primary, Q-02). Each text field returns the requested language, falling back to Georgian when the English value is empty; Russian falls back to English, then Georgian. Admin bodies carry a `…Ru` twin of every `…En` field |
 
 ### Lists, auth, caching, headers
 
