@@ -105,11 +105,12 @@
 
 /* Russian pages lead with faces that have Cyrillic. The Georgian faces (and their full-range
    "Fallback" faces that next/font adds) would otherwise catch Cyrillic first and draw it in a
-   system font. Newsreader has no Cyrillic, so headings use Source Serif 4; Geist covers it. */
+   system font. Newsreader has no Cyrillic, so headings use Source Serif 4; Geist covers it.
+   The Georgian faces still follow, for content that only exists in Georgian (the last fallback). */
 :root:lang(ru) {
-  --stack-display: var(--font-ru-serif), var(--font-newsreader), "Iowan Old Style", Georgia, serif;
-  --stack-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
-  --stack-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --stack-display: var(--font-ru-serif), var(--font-newsreader), var(--font-ka-serif), "Iowan Old Style", Georgia, serif;
+  --stack-sans: var(--font-geist), var(--font-ka-sans), ui-sans-serif, system-ui, sans-serif;
+  --stack-mono: var(--font-geist-mono), var(--font-ka-sans), ui-monospace, monospace;
 }
 
 /* ───────────── Base ───────────── */
@@ -245,25 +246,28 @@ p {
   }
 }
 
+/* Section names and small labels: set in the running face, sentence case, so they read as words
+   rather than as tracked-out capitals. The heading beside them carries the voice. */
 @utility t-eyebrow {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
   font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  /* Uppercasing Georgian switches to Mtavruli capitals, which are wide and hard to scan at this size. */
+  line-height: 1.4;
+  letter-spacing: 0;
   &:lang(ka) {
-    letter-spacing: 0.04em;
-    text-transform: none;
+    font-size: 0.82rem;
   }
 }
 
+/* Figures and short facts (dates, counts, captions): the running face with lining, even-width numerals. */
 @utility t-meta {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.04em;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums lining-nums;
   &:lang(ka) {
-    letter-spacing: 0;
+    font-size: 0.78rem;
   }
 }
 
