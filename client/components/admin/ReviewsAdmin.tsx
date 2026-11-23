@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/Dialog";
 import { useToast } from "@/components/ui/Toast";
 import { useApiData } from "@/hooks/useApiData";
-import { announceAdminChange, api, errorMessage, type AdminReview, type ReviewList, type ReviewStatus } from "@/lib/api";
+import { announceAdminChange, api, ApiError, errorMessage, type AdminReview, type ReviewList, type ReviewStatus } from "@/lib/api";
 import { cx, formatDate } from "@/lib/format";
 
 const LANGUAGE = { ka: "Georgian", en: "English", ru: "Russian" } as const;
@@ -49,6 +49,8 @@ export function ReviewsAdmin() {
       toast({ tone: "success", title: next === "approved" ? "Review approved" : "Review hidden", body: r.fullName });
     } catch (err) {
       toast({ tone: "error", title: "Could not change", body: errorMessage(err) });
+      // Someone else may have changed or deleted it: show the list as it is now.
+      list.reload();
     } finally {
       setBusy(null);
     }
@@ -64,6 +66,8 @@ export function ReviewsAdmin() {
       setToDelete(null);
     } catch (err) {
       toast({ tone: "error", title: "Could not delete", body: errorMessage(err) });
+      if (err instanceof ApiError && err.status === 404) setToDelete(null);
+      list.reload();
     } finally {
       setDeleting(false);
     }
@@ -71,7 +75,7 @@ export function ReviewsAdmin() {
 
   return (
     <>
-      <PageHeader title="Reviews" description="Approved reviews appear on the home page within a minute." />
+      <PageHeader title="Reviews" description="Approved reviews appear on the home page within a few minutes." />
       <Panel>
         <div className="border-b border-line p-3">
           <FilterTabs

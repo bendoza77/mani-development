@@ -10,7 +10,7 @@ import { useMediaQuery, useReducedMotion } from "@/hooks/useMediaQuery";
 import { useLocale, useTranslation } from "@/i18n/client";
 import { cx } from "@/lib/format";
 import type { PublicReview } from "@/lib/public-types";
-import { ReviewForm } from "./ReviewForm";
+import { EMPTY_REVIEW, ReviewForm, type ReviewDraft } from "./ReviewForm";
 
 const SWIPE_PX = 40;
 
@@ -26,11 +26,13 @@ export function Reviews({ items }: { items: PublicReview[] }) {
   const { t } = useTranslation("home");
   const locale = useLocale();
   const [open, setOpen] = useState(false);
+  /** Kept while the dialog is closed, so an accidental Escape or outside click doesn't lose the text. */
+  const [draft, setDraft] = useState<ReviewDraft>(EMPTY_REVIEW);
   const md = useMediaQuery("(min-width: 48rem)");
   const lg = useMediaQuery("(min-width: 64rem)");
   const visible = lg ? 3 : md ? 2 : 1;
   const count = items.length;
-  const { index, go, playing, setPlaying, pauseProps } = useAutoSlider({ count, visible });
+  const { index, go, playing, running, setPlaying, pauseProps } = useAutoSlider({ count, visible });
   const reduced = useReducedMotion();
   const swipeX = useRef<number | null>(null);
   const track = useRef<HTMLUListElement>(null);
@@ -118,7 +120,8 @@ export function Reviews({ items }: { items: PublicReview[] }) {
             {/* Hidden by CSS where everything fits, so the server render matches every screen. */}
             {count > 1 && (
               <div className={cx("mt-6 flex justify-end gap-2", count === 2 && "md:hidden", count === 3 && "lg:hidden")}>
-                <p className="sr-only" aria-live={playing ? "off" : "polite"}>
+                {/* Announced whenever the row isn't moving by itself, so a manual move is read out. */}
+                <p className="sr-only" aria-live={running ? "off" : "polite"}>
                   {t("reviews.position", { n: index + 1, total: count })}
                 </p>
                 {!reduced && (
@@ -139,7 +142,8 @@ export function Reviews({ items }: { items: PublicReview[] }) {
       </div>
 
       <Dialog open={open} onClose={() => setOpen(false)} title={t("reviews.write")}>
-        {open && <ReviewForm onClose={() => setOpen(false)} />}
+        {/* Mounted only while open, so Turnstile starts fresh each time; the draft lives here. */}
+        {open && <ReviewForm values={draft} setValues={setDraft} onSent={() => setDraft(EMPTY_REVIEW)} onClose={() => setOpen(false)} />}
       </Dialog>
     </section>
   );

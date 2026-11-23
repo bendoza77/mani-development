@@ -5,10 +5,14 @@ import { useReducedMotion } from "./useMediaQuery";
 
 /**
  * Index and timing for a row of `count` items showing `visible` at a time. Moves one item every
- * `intervalMs` and loops (0 … count - visible). Waits while the pointer is over it, focus is inside
- * it, the tab is hidden or the visitor pressed pause, and never moves by itself under reduced motion.
- * Does nothing when every item already fits. Pressing play clears the focus pause, so the play
- * button (which keeps focus after a click) doesn't hold it still.
+ * `intervalMs` and loops (0 … count - visible). Waits while a mouse is over it, keyboard focus is
+ * inside it, the tab is hidden or the visitor pressed pause, and never moves by itself under reduced
+ * motion. Does nothing when every item already fits. `running` says whether it is moving by itself
+ * right now; `playing` is only the play/pause choice.
+ *
+ * Only keyboard focus (`:focus-visible`) pauses it: browsers also focus a button on a click or tap,
+ * and that would stop the row after a click on "next" while the button still says "pause".
+ * Pressing play clears the focus pause, so a keyboard visitor's play does what it says.
  */
 export function useAutoSlider({ count, visible, intervalMs = 5000 }: { count: number; visible: number; intervalMs?: number }) {
   const reduced = useReducedMotion();
@@ -53,13 +57,21 @@ export function useAutoSlider({ count, visible, intervalMs = 5000 }: { count: nu
     onPointerLeave: (e: PointerEvent<HTMLElement>) => {
       if (e.pointerType === "mouse") setHovered(false);
     },
-    onFocus: () => setFocused(true),
+    onFocus: (e: FocusEvent<HTMLElement>) => setFocused(isFocusVisible(e.target)),
     onBlur: (e: FocusEvent<HTMLElement>) => {
       if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocused(false);
     },
   };
 
-  return { index, go, playing, setPlaying, pauseProps };
+  return { index, go, playing, running, setPlaying, pauseProps };
+}
+
+function isFocusVisible(el: Element) {
+  try {
+    return el.matches(":focus-visible");
+  } catch {
+    return true; // a browser without :focus-visible: treat every focus as keyboard focus
+  }
 }
 
 function subscribeVisibility(onChange: () => void) {

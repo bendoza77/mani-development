@@ -1,7 +1,7 @@
 "use client";
 
 import Script from "next/script";
-import { useId, useRef, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
 import { CircleCheck, Star, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Field, Input, Textarea } from "@/components/ui/Field";
@@ -12,13 +12,16 @@ import { cx } from "@/lib/format";
 
 type Key = "name" | "text" | "rating";
 type Errors = Partial<Record<Key, true>>;
-const KEYS: Key[] = ["name", "text", "rating"];
+/** Screen order, so a failed send focuses the first problem the visitor would reach. */
+const KEYS: Key[] = ["rating", "name", "text"];
 /** API field names (POST /api/public/reviews) → form fields. */
 const API_FIELDS: Record<string, Key> = { fullName: "name", text: "text", rating: "rating" };
 const TEXT_MIN = 20;
 const TEXT_MAX = 1000;
 
-type Values = { name: string; text: string; rating: number };
+export type ReviewDraft = { name: string; text: string; rating: number };
+export const EMPTY_REVIEW: ReviewDraft = { name: "", text: "", rating: 0 };
+type Values = ReviewDraft;
 type Failure = "failed" | "rateLimited" | "spam" | "verify";
 
 function validate(v: Values): Errors {
@@ -29,11 +32,24 @@ function validate(v: Values): Errors {
   return e;
 }
 
-/** The "Write a review" form (inside the dialog). New reviews wait for an admin to approve them. */
-export function ReviewForm({ onClose }: { onClose: () => void }) {
+/**
+ * The "Write a review" form (inside the dialog). New reviews wait for an admin to approve them.
+ * The typed values live in the parent, so closing the dialog by accident (Escape, a click outside)
+ * keeps the draft; `onSent` clears it once the review is sent.
+ */
+export function ReviewForm({
+  values,
+  setValues,
+  onSent,
+  onClose,
+}: {
+  values: Values;
+  setValues: Dispatch<SetStateAction<Values>>;
+  onSent: () => void;
+  onClose: () => void;
+}) {
   const { t } = useTranslation("home");
   const locale = useLocale();
-  const [values, setValues] = useState<Values>({ name: "", text: "", rating: 0 });
   const [touched, setTouched] = useState<Partial<Record<Key, boolean>>>({});
   /** Fields the server rejected; cleared when the visitor edits them. */
   const [serverErrors, setServerErrors] = useState<Errors>({});
@@ -41,8 +57,14 @@ export function ReviewForm({ onClose }: { onClose: () => void }) {
   const [website, setWebsite] = useState(""); // honeypot: people never see or fill it
   const [hover, setHover] = useState(0);
   const form = useRef<HTMLFormElement>(null);
+  const closeButton = useRef<HTMLButtonElement>(null);
   const ratingId = useId();
   const { enabled: turnstileOn, token, widgetRef, reset: resetTurnstile, onScriptLoad } = useTurnstile(locale);
+
+  // The thank-you replaces the form (and the focused send button), so move focus onto it.
+  useEffect(() => {
+    if (status === "sent") closeButton.current?.focus();
+  }, [status]);
 
   const errors = { ...validate(values), ...serverErrors };
   const show = (k: Key) => ((touched[k] || serverErrors[k]) && errors[k] ? t(`reviews.form.validation.${k}`, { length: values.text.trim().length }) : undefined);
@@ -104,6 +126,7 @@ export function ReviewForm({ onClose }: { onClose: () => void }) {
       if (error instanceof ApiError && error.status === 403) return setStatus("spam");
       return setStatus("failed");
     }
+    onSent();
     setStatus("sent");
   }
 
@@ -113,7 +136,7 @@ export function ReviewForm({ onClose }: { onClose: () => void }) {
         <CircleCheck aria-hidden className="size-9 text-ok" strokeWidth={1.4} />
         <h3 className="t-h3 mt-5">{t("reviews.form.thanksTitle")}</h3>
         <p className="mt-2 max-w-md leading-relaxed text-ink-soft">{t("reviews.form.thanksBody")}</p>
-        <Button variant="outline" className="mt-7" onClick={onClose}>
+        <Button ref={closeButton} variant="outline" className="mt-7" onClick={onClose}>
           {t("reviews.form.close")}
         </Button>
       </div>
@@ -160,6 +183,7 @@ export function ReviewForm({ onClose }: { onClose: () => void }) {
                 onChange={() => change("rating", n)}
                 onBlur={blur("rating")}
                 disabled={sending}
+                required
                 aria-label={t("reviews.stars", { count: n })}
               />
               <Star
