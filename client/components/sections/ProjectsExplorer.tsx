@@ -15,12 +15,13 @@ const DEFAULTS: Filters = { category: "all", status: "all", q: "", sort: "houses
 const SORTS = new Set<Sort>(["houses", "recent", "az"]);
 const KEY = "lintel:project-filters";
 
-export function ProjectsExplorer() {
+/** `initialProjects` is the list the server rendered with (app/[lang]/(site)/projects/page.tsx). */
+export function ProjectsExplorer({ initialProjects }: { initialProjects?: Project[] }) {
   const { t } = useTranslation("projects");
   const { t: tc } = useTranslation("common");
   const locale = useLocale();
   // Published projects from the API, already in the visitor's language (so search and A–Z work on visible text).
-  const { projects: loaded, error: loadError } = usePublicProjects();
+  const { projects: loaded, error: loadError } = usePublicProjects(initialProjects);
   const projects = useMemo(() => loaded ?? [], [loaded]);
   const [f, setF] = useState<Filters>(DEFAULTS);
   const [restored, setRestored] = useState(false);
@@ -138,6 +139,8 @@ export function ProjectsExplorer() {
       </div>
 
       <div className="shell pt-8">
+        {/* Keeps the heading order h1 → h2 → h3 (project cards). */}
+        <h2 className="sr-only">{t("explorer.label")}</h2>
         <div className="flex items-center justify-between" aria-live="polite">
           <p className="t-meta text-muted">
             {t("explorer.showing", { shown: results.length, total: projects.length })}
@@ -159,6 +162,8 @@ export function ProjectsExplorer() {
               <div key={i} className="aspect-[4/3] animate-pulse rounded-[2px] bg-paper-2" />
             ))}
           </div>
+        ) : projects.length === 0 ? (
+          <p className="mt-10 rounded-[3px] border border-dashed border-line-strong px-6 py-20 text-center text-muted">{t("explorer.none")}</p>
         ) : results.length === 0 ? (
           <div className="mt-10 flex flex-col items-center rounded-[3px] border border-dashed border-line-strong px-6 py-20 text-center">
             <p className="font-display text-2xl">{t("explorer.emptyTitle")}</p>
@@ -181,10 +186,10 @@ export function ProjectsExplorer() {
   );
 }
 
-/** Live portfolio numbers for the page intro, derived from the same store the admin edits. */
-export function ProjectsSummary() {
+/** Live portfolio numbers for the page intro, from the published projects. */
+export function ProjectsSummary({ initialProjects }: { initialProjects?: Project[] }) {
   const { t } = useTranslation("projects");
-  const projects = usePublicProjects().projects ?? [];
+  const projects = usePublicProjects(initialProjects).projects ?? [];
   const stats: [string, number][] = [
     [t("summary.cities"), new Set(projects.map((p) => p.city)).size],
     [t("summary.projects"), projects.length],

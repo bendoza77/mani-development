@@ -1,18 +1,34 @@
 import type { Metadata } from "next";
+import { ContactChannels } from "@/components/contact/ContactChannels";
+import { ContactLink } from "@/components/contact/ContactLink";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { ContactDetails } from "@/components/sections/ContactDetails";
 import { ContactForm } from "@/components/sections/ContactForm";
 import { PageIntro } from "@/components/sections/PageIntro";
 import { Trans } from "react-i18next/TransWithoutContext";
-import { getT, pageMetadata } from "@/i18n/server";
+import { getT } from "@/i18n/server";
+import { getPageSeo, getSettings } from "@/lib/public-api";
+import { contactHref } from "@/lib/public-types";
+import { contractorJsonLd } from "@/lib/seo/jsonld";
+import { routeMetadata } from "@/lib/seo/route";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return pageMetadata("contact", "/contact");
+  const { t, locale } = await getT("meta");
+  return routeMetadata({
+    path: "/contact",
+    title: t("contact.title"),
+    description: t("contact.description"),
+    seo: await getPageSeo("contact", locale),
+  });
 }
 
-/** Stylised site-plan map (static SVG, no map API or key required). */
-async function StudioMap() {
+/**
+ * Stylised site-plan map (static SVG, no map API or key required). When the settings have a Google
+ * Maps link or coordinates, the whole map opens Google Maps (no script, no API key).
+ */
+async function StudioMap({ mapHref }: { mapHref: string | null }) {
   const { t } = await getT("contact");
-  return (
+  const figure = (
     <figure className="relative overflow-hidden rounded-[3px] border border-line bg-paper-2">
       <svg viewBox="0 0 400 260" className="block h-auto w-full text-ink" role="img" aria-label={t("map.label")}>
         <defs>
@@ -42,15 +58,27 @@ async function StudioMap() {
         <text x="236" y="99" fontFamily="var(--font-mono)" fontSize="8" fill="currentColor" opacity="0.6">{t("map.district")}</text>
         <text x="40" y="232" fontFamily="var(--font-mono)" fontSize="8" fill="var(--info)" letterSpacing="2" opacity="0.8">{t("map.river")}</text>
       </svg>
-      <figcaption className="t-meta border-t border-line px-4 py-3 text-muted">{t("map.caption")}</figcaption>
+      <figcaption className="t-meta border-t border-line px-4 py-3 text-muted">
+        {t("map.caption")}
+        {mapHref && <span className="text-ink"> · {t("map.open")}</span>}
+      </figcaption>
     </figure>
+  );
+  if (!mapHref) return figure;
+  return (
+    <ContactLink channel="map" href={mapHref} className="block rounded-[3px] transition-opacity hover:opacity-90">
+      {figure}
+      <span className="sr-only">{t("channels.newTab")}</span>
+    </ContactLink>
   );
 }
 
 export default async function ContactPage() {
-  const { t, i18n } = await getT("contact");
+  const { t, i18n, locale } = await getT("contact");
+  const settings = await getSettings(locale);
   return (
     <>
+      <JsonLd data={[contractorJsonLd(settings, locale)]} />
       <PageIntro
         eyebrow={t("page.eyebrow")}
         title={<Trans t={t} i18n={i18n} i18nKey="page.title" components={{ em: <em className="text-accent" /> }} />}
@@ -60,8 +88,9 @@ export default async function ContactPage() {
         {/* Direct details come first on small screens, where calling is often quicker than a form. */}
         <aside className="space-y-8 lg:order-last lg:col-span-4 lg:col-start-9" aria-label={t("page.detailsLabel")}>
           <ContactDetails />
+          <ContactChannels />
           <div className="max-lg:hidden">
-            <StudioMap />
+            <StudioMap mapHref={contactHref("map", settings)} />
           </div>
         </aside>
         <div className="lg:col-span-7 lg:row-start-1">

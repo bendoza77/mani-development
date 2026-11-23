@@ -1,6 +1,7 @@
 import type { Logger } from "pino";
 import type { PrismaClient } from "../generated/prisma/client.js";
 import type { Clock } from "../lib/clock.js";
+import { repeatEvery } from "./schedule.js";
 
 /**
  * Deletes ended admin sessions, used or expired password-reset tokens and expired preview tokens
@@ -33,30 +34,12 @@ export function startTokenCleanup({
   sessionIdleMinutes: number;
   intervalMs?: number;
 }): () => Promise<void> {
-  let current: Promise<void> | undefined;
-  let stopped = false;
-  const run = () => {
-    if (current || stopped) return;
-    current = (async () => {
-      try {
-        const deleted = await cleanupExpiredTokens(prisma, { now: clock.now(), sessionIdleMinutes });
-        logger.debug({ deleted }, "expired tokens cleaned up");
-      } catch (error) {
-        logger.error({ err: error }, "token cleanup failed");
-      } finally {
-        current = undefined;
-      }
-    })();
-  };
-
-  run();
-  const timer = setInterval(run, intervalMs);
-  // Never keeps the process alive on its own.
-  timer.unref();
-  /** Stops the schedule and waits for a run still in progress, so nothing runs after this resolves. */
-  return async () => {
-    stopped = true;
-    clearInterval(timer);
-    await current;
-  };
+  return repeatEvery(
+    intervalMs,
+    async () => {
+      const deleted = await cleanupExpiredTokens(prisma, { now: clock.now(), sessionIdleMinutes });
+      logger.debug({ deleted }, "expired tokens cleaned up");
+    },
+    { logger, name: "token cleanup" },
+  );
 }

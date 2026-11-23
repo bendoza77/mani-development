@@ -1,4 +1,4 @@
-import { access, mkdir, writeFile } from "node:fs/promises";
+import { access, mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { Config } from "../config/env.js";
 import { AppError } from "../lib/errors.js";
@@ -21,6 +21,8 @@ export type MediaStorage = {
   isUploaded(providerKey: string): Promise<boolean>;
   /** Saves bytes sent to the local upload URL (local storage only). */
   saveLocal?(providerKey: string, bytes: Buffer): Promise<void>;
+  /** Removes the stored file. A file that is already gone counts as removed. */
+  remove(providerKey: string): Promise<void>;
 };
 
 export const LOCAL_MEDIA_PREFIX = "local/";
@@ -53,6 +55,9 @@ export function createLocalStorage(dir: string, apiPublicUrl: string): MediaStor
     async saveLocal(providerKey, bytes) {
       await mkdir(root, { recursive: true });
       await writeFile(fileOf(providerKey), bytes);
+    },
+    async remove(providerKey) {
+      await rm(fileOf(providerKey), { force: true });
     },
   };
 }
@@ -103,6 +108,13 @@ export function createCloudflareStorage(settings: { accountId: string; apiToken:
         throw new AppError(502, "UPSTREAM_UNAVAILABLE", "The image service did not respond. Please try again.");
       }
       return body.result.draft !== true;
+    },
+    async remove(providerKey) {
+      const { status, body } = await call(`${base}/v1/${encodeURIComponent(providerKey)}`, { method: "DELETE" });
+      if (status === 404) return;
+      if (status >= 400 || !body?.success) {
+        throw new AppError(502, "UPSTREAM_UNAVAILABLE", "The image service did not respond. Please try again.");
+      }
     },
   };
 }

@@ -1,6 +1,8 @@
 import dotenv from "dotenv";
 import { createApp } from "./app.js";
 import { ConfigError, loadConfig, type Config } from "./config/env.js";
+import { createMailer } from "./integrations/mailer.js";
+import { startEmailOutbox } from "./jobs/email-outbox.js";
 import { startTokenCleanup } from "./jobs/token-cleanup.js";
 import { createBackgroundTasks } from "./lib/background.js";
 import { systemClock } from "./lib/clock.js";
@@ -28,8 +30,9 @@ if (config.mailTransport === "none") {
 }
 const db = createDatabase(config.databaseUrl);
 const tasks = createBackgroundTasks(logger);
+const mailer = createMailer(config, logger);
 const server = await startServer({
-  app: createApp({ config, logger, db, tasks }),
+  app: createApp({ config, logger, db, tasks, mailer }),
   port: config.port,
   logger,
   db,
@@ -41,11 +44,12 @@ const stopTokenCleanup = startTokenCleanup({
   clock: systemClock,
   sessionIdleMinutes: config.sessionIdleMinutes,
 });
+const stopEmailOutbox = startEmailOutbox({ prisma: db.prisma, mailer, clock: systemClock, logger, config });
 
 for (const signal of ["SIGTERM", "SIGINT"] as const) {
   process.once(signal, () => {
     logger.info({ signal }, "signal received");
-    stopTokenCleanup()
+    Promise.all([stopTokenCleanup(), stopEmailOutbox()])
       .then(() => server.close())
       .then(
       () => process.exit(0),

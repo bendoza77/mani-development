@@ -6,32 +6,8 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { useLocale } from "@/i18n/client";
 import { api, ApiError, type ProjectCard, type ProjectDetail } from "./api";
+import { toProject } from "./public-types";
 import type { Project } from "./types";
-
-function toProject(p: ProjectCard | ProjectDetail): Project {
-  const detail = "description" in p ? p : undefined;
-  return {
-    id: p.id,
-    slug: p.slug,
-    title: p.title,
-    summary: p.summary,
-    description: detail?.description ?? "",
-    location: p.location,
-    city: p.city,
-    category: p.category,
-    status: p.status,
-    progress: p.progress,
-    startDate: p.startDate,
-    estimatedCompletion: p.estimatedCompletion,
-    completionDate: p.completionDate ?? undefined,
-    featured: p.featured,
-    cover: p.cover.src,
-    gallery: detail?.gallery.map((g) => g.src) ?? [],
-    specs: detail?.specs ?? [],
-    architect: detail?.architect ?? "",
-    updatedAt: p.updatedAt,
-  };
-}
 
 type ListState = { projects?: Project[]; error?: string };
 const lists = new Map<string, ListState>();
@@ -64,16 +40,22 @@ function loadList(locale: string) {
   );
 }
 
-/** Published projects, newest first as the API returns them. `projects` is undefined while loading. */
-export function usePublicProjects(): ListState {
+/**
+ * Published projects, newest first as the API returns them. `projects` is undefined while loading.
+ * Pass the list the server already rendered with (`initial`) to skip the browser request.
+ */
+export function usePublicProjects(initial?: Project[]): ListState {
   const locale = useLocale();
   const state = useSyncExternalStore(
     subscribe,
     () => lists.get(locale) ?? EMPTY,
     () => EMPTY,
   );
-  useEffect(() => loadList(locale), [locale]);
-  return state;
+  const hasInitial = initial !== undefined;
+  useEffect(() => {
+    if (!hasInitial) loadList(locale);
+  }, [locale, hasInitial]);
+  return hasInitial ? { projects: initial } : state;
 }
 
 type DetailState = { project?: Project | null; error?: string };

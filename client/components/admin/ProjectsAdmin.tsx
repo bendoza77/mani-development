@@ -11,40 +11,11 @@ import { Img } from "@/components/ui/Img";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useToast } from "@/components/ui/Toast";
 import { useApiData } from "@/hooks/useApiData";
-import { api, type AdminProject, type ProjectCategory, type ProjectInput, type ProjectStatus } from "@/lib/api";
+import { api, errorMessage, type AdminProject, type ProjectCategory, type ProjectPatch, type ProjectStatus } from "@/lib/api";
 import { CATEGORY_LABEL, STATUS_LABEL, cx, formatDate } from "@/lib/format";
 
 type SortKey = "title" | "status" | "progress" | "updatedAt";
 const STATUSES = Object.keys(STATUS_LABEL) as ProjectStatus[];
-
-/** The save body for an existing project (lists and quick actions send the whole record back). */
-export function projectToInput(p: AdminProject): ProjectInput {
-  return {
-    slug: p.slug,
-    titleKa: p.titleKa,
-    titleEn: p.titleEn ?? null,
-    summaryKa: p.summaryKa,
-    summaryEn: p.summaryEn ?? null,
-    descriptionKa: p.descriptionKa,
-    descriptionEn: p.descriptionEn ?? null,
-    locationKa: p.locationKa,
-    locationEn: p.locationEn ?? null,
-    cityKa: p.cityKa,
-    cityEn: p.cityEn ?? null,
-    category: p.category,
-    status: p.status,
-    progress: p.progress,
-    startDate: p.startDate,
-    estimatedCompletion: p.estimatedCompletion,
-    completionDate: p.completionDate,
-    featured: p.featured,
-    architect: p.architect,
-    specs: p.specs.map(({ labelKa, labelEn, valueKa, valueEn }) => ({ labelKa, labelEn: labelEn ?? null, valueKa, valueEn: valueEn ?? null })),
-    isPublished: p.isPublished,
-    coverId: p.cover.id,
-    galleryIds: p.gallery.map((g) => g.id),
-  };
-}
 
 export function ProjectsAdmin() {
   const { data, error: loadError, reload, update } = useApiData<{ items: AdminProject[] }>("/api/admin/projects");
@@ -90,23 +61,18 @@ export function ProjectsAdmin() {
 
   const toggleSort = (key: SortKey) => setSort((s) => ({ key, dir: s.key === key && s.dir === "desc" ? "asc" : "desc" }));
 
-  async function save(p: AdminProject, patch: Partial<ProjectInput>, success: string) {
+  async function save(p: AdminProject, patch: ProjectPatch, success: string) {
     try {
-      const updated = await api<AdminProject>(`/api/admin/projects/${p.id}`, { method: "PUT", body: { ...projectToInput(p), ...patch } });
+      const updated = await api<AdminProject>(`/api/admin/projects/${p.id}`, { method: "PATCH", body: patch });
       setProjects((items) => items.map((x) => (x.id === p.id ? updated : x)));
       toast({ tone: "success", title: success, body: p.titleKa });
     } catch (error) {
-      toast({ tone: "error", title: "Could not save", body: error instanceof Error ? error.message : p.titleKa });
+      toast({ tone: "error", title: "Could not save", body: errorMessage(error, p.titleKa) });
     }
   }
 
-  const changeStatus = (p: AdminProject, next: ProjectStatus) => {
-    if (next === "completed" && !p.completionDate) {
-      toast({ tone: "error", title: "Completion date needed", body: "Open the project and set a completion date first." });
-      return;
-    }
-    void save(p, { status: next, progress: next === "completed" ? 100 : p.progress }, `Status: ${STATUS_LABEL[next]}`);
-  };
+  // Marking a project completed sets it to 100% and, if missing, today's completion date (server side).
+  const changeStatus = (p: AdminProject, next: ProjectStatus) => void save(p, { status: next }, `Status: ${STATUS_LABEL[next]}`);
 
   const toggleFeatured = (p: AdminProject) => void save(p, { featured: !p.featured }, p.featured ? "Removed from homepage" : "Featured on homepage");
   const togglePublished = (p: AdminProject) => void save(p, { isPublished: !p.isPublished }, p.isPublished ? "Unpublished" : "Published");

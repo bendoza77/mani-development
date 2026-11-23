@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   Bell,
   Briefcase,
@@ -10,9 +10,12 @@ import {
   ChevronRight,
   ExternalLink,
   FileText,
+  GalleryHorizontalEnd,
   Image as ImageIcon,
   Inbox,
+  KeyRound,
   LayoutDashboard,
+  ListTree,
   LogOut,
   Menu,
   MessageSquareQuote,
@@ -20,33 +23,37 @@ import {
   Moon,
   PanelLeftClose,
   PanelLeftOpen,
-  RotateCcw,
   Search,
   Settings,
+  Signpost,
   Sun,
   Users,
   X,
 } from "lucide-react";
 import { Logo, LogoMark } from "@/components/brand/Logo";
-import { ConfirmDialog } from "@/components/ui/Dialog";
 import { Popover } from "@/components/ui/Popover";
 import { useToast } from "@/components/ui/Toast";
-import { dismissNotification, markNotifications, resetDemoData, updateSettings, useDB } from "@/lib/store";
-import { signOut, useSession } from "@/lib/session";
-import { cx, timeAgo } from "@/lib/format";
+import { useAdminPoll } from "@/hooks/useAdminPoll";
+import { signOut, useAdminSession } from "@/hooks/useAdminSession";
+import { useDebounced } from "@/hooks/useDebounced";
 import { useNow } from "@/hooks/useNow";
 import { useStoredPref } from "@/hooks/useStoredPref";
-import type { ThemePreference } from "@/lib/types";
+import { useApplyTheme, useThemePref, type ThemePreference } from "@/hooks/useThemePref";
+import { api, errorMessage, type InquiryList, type NotificationList, type SearchResult } from "@/lib/api";
+import { cx, timeAgo } from "@/lib/format";
 
 const NAV = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard, exact: true },
   { href: "/admin/projects", label: "Projects", icon: Building2 },
   { href: "/admin/pages", label: "Pages", icon: FileText },
+  { href: "/admin/slider", label: "Homepage slider", icon: GalleryHorizontalEnd },
+  { href: "/admin/navigation", label: "Menus", icon: ListTree },
   { href: "/admin/services", label: "Services", icon: Briefcase },
   { href: "/admin/inquiries", label: "Inquiries", icon: Inbox, badge: "inquiries" as const },
   { href: "/admin/testimonials", label: "Testimonials", icon: MessageSquareQuote },
   { href: "/admin/team", label: "Team", icon: Users },
   { href: "/admin/media", label: "Media", icon: ImageIcon },
+  { href: "/admin/redirects", label: "Redirects", icon: Signpost },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
@@ -54,28 +61,39 @@ const SEGMENT_LABEL: Record<string, string> = {
   admin: "Admin",
   projects: "Projects",
   pages: "Pages",
+  slider: "Homepage slider",
+  navigation: "Menus",
   services: "Services",
   inquiries: "Inquiries",
   testimonials: "Testimonials",
   team: "Team",
   media: "Media",
+  redirects: "Redirects",
   settings: "Settings",
   new: "New",
   edit: "Edit",
 };
 
 export function AdminShell({ children }: { children: ReactNode }) {
-  const session = useSession();
-  const router = useRouter();
+  const session = useAdminSession();
   const pathname = usePathname();
   const [sidebarPref, setSidebarPref] = useStoredPref("lintel:sidebar", "open");
   const collapsed = sidebarPref === "collapsed";
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawer = useRef<HTMLDialogElement>(null);
+  useApplyTheme();
 
+  // Signed out (or the session ended on the server): a full reload onto the sign-in page, so no
+  // admin data stays in memory. The current address comes back after signing in.
   useEffect(() => {
-    if (session === null) router.replace("/admin/login");
-  }, [session, router]);
+    if (session !== null) return;
+    const here = window.location.pathname + window.location.search;
+    window.location.replace(`/admin/login?next=${encodeURIComponent(here)}`);
+  }, [session]);
+
+  const signedIn = !!session;
+  const inbox = useAdminPoll<InquiryList>(signedIn ? "/api/admin/inquiries?status=new&pageSize=1" : null, { refreshKey: pathname });
+  const newInquiries = inbox.data?.counts.new ?? 0;
 
   const toggleCollapsed = () => setSidebarPref(collapsed ? "open" : "collapsed");
 
@@ -93,7 +111,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   }
 
   // The panel always renders (so route segments render on the server and prefetch normally);
-  // it stays hidden and inert until the simulated session is known.
+  // it stays hidden and inert until the server has confirmed the session.
   const gated = !session;
 
   return (
@@ -102,7 +120,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
         <div className="grid min-h-dvh place-items-center" aria-busy="true">
           <div className="flex flex-col items-center gap-4 text-muted">
             <LogoMark className="size-10 animate-pulse text-ink" />
-            <p className="t-meta">{session === null ? "Redirecting to sign in…" : "Loading studio…"}</p>
+            <p className="t-meta">{session === null ? "Redirecting to sign in…" : "Checking your session…"}</p>
           </div>
         </div>
       )}
@@ -114,7 +132,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           )}
           aria-label="Admin navigation"
         >
-          <SidebarContent collapsed={collapsed} pathname={pathname} />
+          <SidebarContent collapsed={collapsed} pathname={pathname} newInquiries={newInquiries} />
           <button
             type="button"
             onClick={toggleCollapsed}
@@ -147,12 +165,18 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 <X aria-hidden className="size-5" />
               </button>
             </div>
-            <SidebarContent collapsed={false} pathname={pathname} />
+            <SidebarContent collapsed={false} pathname={pathname} newInquiries={newInquiries} />
           </div>
         </dialog>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <Topbar onMenu={() => setDrawerOpen(true)} pathname={pathname} email={session?.email ?? ""} name={session?.name ?? ""} />
+          <Topbar
+            onMenu={() => setDrawerOpen(true)}
+            pathname={pathname}
+            email={session?.email ?? ""}
+            name={session?.name ?? ""}
+            signedIn={signedIn}
+          />
           <main id="admin-main" className="mx-auto w-full max-w-[90rem] flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
             {children}
           </main>
@@ -162,8 +186,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   );
 }
 
-function SidebarContent({ collapsed, pathname }: { collapsed: boolean; pathname: string }) {
-  const newInquiries = useDB((d) => d.inquiries).filter((i) => i.status === "new").length;
+function SidebarContent({ collapsed, pathname, newInquiries }: { collapsed: boolean; pathname: string; newInquiries: number }) {
   return (
     <>
       <div className={cx("flex h-16 items-center border-b border-line", collapsed ? "justify-center" : "px-5")}>
@@ -174,7 +197,7 @@ function SidebarContent({ collapsed, pathname }: { collapsed: boolean; pathname:
       <nav className="flex-1 overflow-y-auto p-3">
         <ul className="space-y-0.5">
           {NAV.map((item) => {
-            const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+            const active = item.exact ? pathname === item.href : pathname === item.href || pathname.startsWith(`${item.href}/`);
             const badge = item.badge === "inquiries" && newInquiries > 0 ? newInquiries : null;
             return (
               <li key={item.href}>
@@ -193,8 +216,7 @@ function SidebarContent({ collapsed, pathname }: { collapsed: boolean; pathname:
                   {badge !== null && (
                     <span
                       className={cx(
-                        "grid min-w-5 place-items-center rounded-full px-1.5 text-[0.7rem] font-semibold tabular-nums",
-                        active ? "bg-accent text-accent-ink" : "bg-accent text-accent-ink",
+                        "grid min-w-5 place-items-center rounded-full bg-accent px-1.5 text-[0.7rem] font-semibold text-accent-ink tabular-nums",
                         collapsed && "absolute top-1 right-1 h-4 min-w-4 px-1 text-[0.6rem]",
                       )}
                     >
@@ -221,22 +243,18 @@ function SidebarContent({ collapsed, pathname }: { collapsed: boolean; pathname:
           <ExternalLink aria-hidden className="size-4.5 shrink-0" />
           {collapsed ? <span className="sr-only">View website (new tab)</span> : "View website"}
         </Link>
-        {!collapsed && (
-          <p className="mt-2 rounded-[3px] bg-warn-soft px-3 py-2 text-[0.72rem] leading-snug text-warn">Projects and pages are live. Other sections are still demo data in this browser.</p>
-        )}
       </div>
     </>
   );
 }
 
 function Breadcrumbs({ pathname }: { pathname: string }) {
-  const projects = useDB((d) => d.projects);
   const parts = pathname.split("/").filter(Boolean);
-  const crumbs = parts.map((seg, i) => {
-    const href = "/" + parts.slice(0, i + 1).join("/");
-    const label = SEGMENT_LABEL[seg] ?? projects.find((p) => p.id === seg)?.title ?? "Item";
-    return { href, label, linkable: seg !== "edit" && !((parts[i - 1] === "projects" || parts[i - 1] === "pages") && parts[i + 1] === "edit") };
-  });
+  // Record ids (in edit addresses) have no label of their own and are left out.
+  const crumbs = parts
+    .map((seg, i) => ({ seg, href: "/" + parts.slice(0, i + 1).join("/"), label: SEGMENT_LABEL[seg] }))
+    .filter((c): c is { seg: string; href: string; label: string } => !!c.label)
+    .map((c) => ({ ...c, linkable: c.seg !== "edit" && c.seg !== "new" }));
   return (
     <nav aria-label="Breadcrumb" className="min-w-0">
       <ol className="flex items-center gap-1.5 text-[0.85rem]">
@@ -262,7 +280,7 @@ function Breadcrumbs({ pathname }: { pathname: string }) {
   );
 }
 
-function Topbar({ onMenu, pathname, email, name }: { onMenu: () => void; pathname: string; email: string; name: string }) {
+function Topbar({ onMenu, pathname, email, name, signedIn }: { onMenu: () => void; pathname: string; email: string; name: string; signedIn: boolean }) {
   const [mobileSearch, setMobileSearch] = useState(false);
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-paper/95 backdrop-blur-md">
@@ -290,7 +308,7 @@ function Topbar({ onMenu, pathname, email, name }: { onMenu: () => void; pathnam
         >
           <Search aria-hidden className="size-4.5" />
         </button>
-        <Notifications />
+        <Notifications signedIn={signedIn} pathname={pathname} />
         <ProfileMenu email={email} name={name} />
       </div>
       {mobileSearch && (
@@ -302,18 +320,16 @@ function Topbar({ onMenu, pathname, email, name }: { onMenu: () => void; pathnam
   );
 }
 
-type Result = { id: string; label: string; meta: string; href: string; group: string };
+const RESULT_GROUP: Record<SearchResult["type"], string> = { project: "Project", inquiry: "Inquiry", service: "Service", team: "Team" };
 
 function GlobalSearch({ autoFocus, onNavigate }: { autoFocus?: boolean; onNavigate?: () => void }) {
   const router = useRouter();
-  const projects = useDB((d) => d.projects);
-  const inquiries = useDB((d) => d.inquiries);
-  const team = useDB((d) => d.team);
-  const services = useDB((d) => d.services);
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
+  const [found, setFound] = useState<{ q: string; items: SearchResult[]; error?: string } | null>(null);
   const input = useRef<HTMLInputElement>(null);
+  const term = useDebounced(q.trim(), 250);
 
   // Ctrl/⌘ + K focuses search.
   useEffect(() => {
@@ -329,23 +345,22 @@ function GlobalSearch({ autoFocus, onNavigate }: { autoFocus?: boolean; onNaviga
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const results = useMemo<Result[]>(() => {
-    const s = q.trim().toLowerCase();
-    if (s.length < 2) return [];
-    const has = (...v: string[]) => v.some((x) => x.toLowerCase().includes(s));
-    return [
-      ...projects
-        .filter((p) => has(p.title, p.location))
-        .map((p) => ({ id: p.id, label: p.title, meta: p.location, href: `/admin/projects/${p.id}/edit`, group: "Project" })),
-      ...inquiries
-        .filter((i) => has(i.name, i.email, i.subject))
-        .map((i) => ({ id: i.id, label: i.name, meta: i.subject, href: `/admin/inquiries?id=${i.id}`, group: "Inquiry" })),
-      ...team.filter((m) => has(m.name, m.role)).map((m) => ({ id: m.id, label: m.name, meta: m.role, href: "/admin/team", group: "Team" })),
-      ...services.filter((x) => has(x.title)).map((x) => ({ id: x.id, label: x.title, meta: "Service", href: "/admin/services", group: "Service" })),
-    ].slice(0, 8);
-  }, [q, projects, inquiries, team, services]);
+  useEffect(() => {
+    if (term.length < 2) return;
+    const ctrl = new AbortController();
+    api<{ items: SearchResult[] }>(`/api/admin/search?q=${encodeURIComponent(term)}`, { signal: ctrl.signal }).then(
+      ({ items }) => setFound({ q: term, items }),
+      (error: unknown) => {
+        if (!ctrl.signal.aborted) setFound({ q: term, items: [], error: errorMessage(error, "Search failed.") });
+      },
+    );
+    return () => ctrl.abort();
+  }, [term]);
 
-  const go = (r: Result) => {
+  const current = found && found.q === term && term === q.trim() ? found : null;
+  const results = current?.items ?? [];
+
+  const go = (r: SearchResult) => {
     router.push(r.href);
     setOpen(false);
     setQ("");
@@ -361,7 +376,7 @@ function GlobalSearch({ autoFocus, onNavigate }: { autoFocus?: boolean; onNaviga
         role="combobox"
         aria-expanded={open && results.length > 0}
         aria-controls="admin-search-results"
-        aria-activedescendant={open && results[active] ? `sr-${results[active].id}` : undefined}
+        aria-activedescendant={open && results[active] ? `sr-${results[active].type}-${results[active].id}` : undefined}
         aria-label="Search projects, inquiries, team and services"
         placeholder="Search…"
         autoFocus={autoFocus}
@@ -399,13 +414,17 @@ function GlobalSearch({ autoFocus, onNavigate }: { autoFocus?: boolean; onNaviga
           aria-label="Search results"
           className="absolute top-[calc(100%+0.4rem)] right-0 left-0 z-50 max-h-80 overflow-y-auto rounded-md border border-line bg-card py-1.5 shadow-card"
         >
-          {results.length === 0 ? (
+          {!current ? (
+            <li className="px-3.5 py-3 text-[0.85rem] text-muted">Searching…</li>
+          ) : current.error ? (
+            <li className="px-3.5 py-3 text-[0.85rem] text-danger">{current.error}</li>
+          ) : results.length === 0 ? (
             <li className="px-3.5 py-3 text-[0.85rem] text-muted">No matches for &ldquo;{q}&rdquo;</li>
           ) : (
             results.map((r, i) => (
               <li
-                key={`${r.group}-${r.id}`}
-                id={`sr-${r.id}`}
+                key={`${r.type}-${r.id}`}
+                id={`sr-${r.type}-${r.id}`}
                 role="option"
                 aria-selected={i === active}
                 onMouseDown={(e) => {
@@ -417,9 +436,9 @@ function GlobalSearch({ autoFocus, onNavigate }: { autoFocus?: boolean; onNaviga
               >
                 <span className="min-w-0">
                   <span className="block truncate text-[0.88rem]">{r.label}</span>
-                  <span className="block truncate text-[0.78rem] text-muted">{r.meta}</span>
+                  {r.meta && <span className="block truncate text-[0.78rem] text-muted">{r.meta}</span>}
                 </span>
-                <span className="t-meta shrink-0 text-muted">{r.group}</span>
+                <span className="t-meta shrink-0 text-muted">{RESULT_GROUP[r.type] ?? r.type}</span>
               </li>
             ))
           )}
@@ -429,11 +448,45 @@ function GlobalSearch({ autoFocus, onNavigate }: { autoFocus?: boolean; onNaviga
   );
 }
 
-function Notifications() {
+function Notifications({ signedIn, pathname }: { signedIn: boolean; pathname: string }) {
   const router = useRouter();
-  const items = useDB((d) => d.notifications);
-  const unread = items.filter((n) => !n.read).length;
+  const toast = useToast();
+  const { data, setData, refresh } = useAdminPoll<NotificationList>(signedIn ? "/api/admin/notifications" : null, { refreshKey: pathname });
+  const items = data?.items ?? [];
+  const unread = data?.unread ?? 0;
   const now = useNow();
+
+  async function markRead(ids: string[] | "all") {
+    setData((d) =>
+      d
+        ? {
+            unread: ids === "all" ? 0 : Math.max(0, d.unread - d.items.filter((n) => ids.includes(n.id) && !n.read).length),
+            items: d.items.map((n) => (ids === "all" || ids.includes(n.id) ? { ...n, read: true } : n)),
+          }
+        : d,
+    );
+    try {
+      await api("/api/admin/notifications/read", { method: "POST", body: ids === "all" ? { all: true } : { ids } });
+    } catch (error) {
+      toast({ tone: "error", title: "Could not update notifications", body: errorMessage(error) });
+      refresh();
+    }
+  }
+
+  async function dismiss(id: string) {
+    setData((d) => {
+      if (!d) return d;
+      const gone = d.items.find((n) => n.id === id);
+      return { unread: gone && !gone.read ? Math.max(0, d.unread - 1) : d.unread, items: d.items.filter((n) => n.id !== id) };
+    });
+    try {
+      await api(`/api/admin/notifications/${id}`, { method: "DELETE" });
+    } catch (error) {
+      toast({ tone: "error", title: "Could not remove notification", body: errorMessage(error) });
+      refresh();
+    }
+  }
+
   return (
     <Popover
       label="Notifications"
@@ -455,12 +508,14 @@ function Notifications() {
           <div className="flex items-center justify-between border-b border-line px-4 py-3">
             <p className="text-[0.9rem] font-semibold">Notifications</p>
             {unread > 0 && (
-              <button type="button" onClick={() => markNotifications("all")} className="text-[0.8rem] text-muted hover:text-ink">
+              <button type="button" onClick={() => void markRead("all")} className="text-[0.8rem] text-muted hover:text-ink">
                 Mark all read
               </button>
             )}
           </div>
-          {items.length === 0 ? (
+          {!data ? (
+            <p className="px-4 py-8 text-center text-[0.85rem] text-muted">Loading…</p>
+          ) : items.length === 0 ? (
             <p className="px-4 py-8 text-center text-[0.85rem] text-muted">You&rsquo;re all caught up.</p>
           ) : (
             <ul className="max-h-80 overflow-y-auto">
@@ -471,7 +526,7 @@ function Notifications() {
                     type="button"
                     className="min-w-0 flex-1 text-left"
                     onClick={() => {
-                      markNotifications([n.id]);
+                      if (!n.read) void markRead([n.id]);
                       close();
                       router.push(n.href);
                     }}
@@ -485,9 +540,9 @@ function Notifications() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => dismissNotification(n.id)}
+                    onClick={() => void dismiss(n.id)}
                     className="grid size-7 place-items-center rounded-[3px] text-muted opacity-60 hover:bg-paper-2 hover:text-ink hover:opacity-100"
-                    aria-label={`Dismiss: ${n.body}`}
+                    aria-label={`Remove: ${n.body}`}
                   >
                     <X aria-hidden className="size-3.5" />
                   </button>
@@ -511,93 +566,75 @@ function initials(name: string) {
 }
 
 function ProfileMenu({ email, name }: { email: string; name: string }) {
-  const theme = useDB((d) => d.settings.theme);
-  const router = useRouter();
-  const toast = useToast();
-  const [confirmReset, setConfirmReset] = useState(false);
+  const [theme, setTheme] = useThemePref();
+  const [leaving, setLeaving] = useState(false);
   const themes: { value: ThemePreference; label: string; icon: typeof Sun }[] = [
     { value: "light", label: "Light", icon: Sun },
     { value: "dark", label: "Dark", icon: Moon },
     { value: "system", label: "System", icon: Monitor },
   ];
   return (
-    <>
-      <Popover
-        label="Account"
-        className="w-64"
-        trigger={(p) => (
-          <button
-            {...p}
-            type="button"
-            className="ml-1 grid size-9 place-items-center rounded-full bg-ink text-[0.78rem] font-semibold text-paper"
-            aria-label="Account menu"
-          >
-            {initials(name)}
-          </button>
-        )}
-      >
-        {(close) => (
-          <div className="py-1.5">
-            <div className="border-b border-line px-4 pt-2 pb-3">
-              <p className="text-[0.88rem] font-medium">{name}</p>
-              <p className="truncate text-[0.8rem] text-muted">{email}</p>
-            </div>
-            <div className="border-b border-line px-4 py-3">
-              <p className="t-meta mb-2 text-muted">Theme</p>
-              <div className="grid grid-cols-3 gap-1 rounded-[3px] bg-paper-2 p-1" role="radiogroup" aria-label="Theme">
-                {themes.map((t) => (
-                  <button
-                    key={t.value}
-                    type="button"
-                    role="radio"
-                    aria-checked={theme === t.value}
-                    onClick={() => updateSettings({ theme: t.value }, `Theme set to ${t.label.toLowerCase()}`)}
-                    className={cx(
-                      "flex h-8 items-center justify-center gap-1 rounded-[2px] text-[0.75rem]",
-                      theme === t.value ? "bg-card shadow-sm" : "text-muted hover:text-ink",
-                    )}
-                  >
-                    <t.icon aria-hidden className="size-3.5" />
-                    {t.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                close();
-                setConfirmReset(true);
-              }}
-              className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-[0.88rem] hover:bg-paper-2"
-            >
-              <RotateCcw aria-hidden className="size-4 text-muted" /> Reset demo data
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                close();
-                void signOut().finally(() => router.replace("/admin/login"));
-              }}
-              className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-[0.88rem] hover:bg-paper-2"
-            >
-              <LogOut aria-hidden className="size-4 text-muted" /> Sign out
-            </button>
+    <Popover
+      label="Account"
+      className="w-64"
+      trigger={(p) => (
+        <button
+          {...p}
+          type="button"
+          className="ml-1 grid size-9 place-items-center rounded-full bg-ink text-[0.78rem] font-semibold text-paper"
+          aria-label="Account menu"
+        >
+          {initials(name)}
+        </button>
+      )}
+    >
+      {(close) => (
+        <div className="py-1.5">
+          <div className="border-b border-line px-4 pt-2 pb-3">
+            <p className="text-[0.88rem] font-medium">{name}</p>
+            <p className="truncate text-[0.8rem] text-muted">{email}</p>
           </div>
-        )}
-      </Popover>
-      <ConfirmDialog
-        open={confirmReset}
-        onClose={() => setConfirmReset(false)}
-        title="Reset all demo data?"
-        description="Projects, services, inquiries, team, media and settings will return to their original sample content. Your edits in this browser will be lost."
-        confirmLabel="Reset data"
-        onConfirm={() => {
-          resetDemoData();
-          setConfirmReset(false);
-          toast({ tone: "success", title: "Demo data reset", body: "Sample content restored." });
-        }}
-      />
-    </>
+          <div className="border-b border-line px-4 py-3">
+            <p className="t-meta mb-2 text-muted">Theme (this browser)</p>
+            <div className="grid grid-cols-3 gap-1 rounded-[3px] bg-paper-2 p-1" role="radiogroup" aria-label="Theme">
+              {themes.map((t) => (
+                <button
+                  key={t.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={theme === t.value}
+                  onClick={() => setTheme(t.value)}
+                  className={cx(
+                    "flex h-8 items-center justify-center gap-1 rounded-[2px] text-[0.75rem]",
+                    theme === t.value ? "bg-card shadow-sm" : "text-muted hover:text-ink",
+                  )}
+                >
+                  <t.icon aria-hidden className="size-3.5" />
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <Link
+            href="/admin/settings#password"
+            onClick={close}
+            className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-[0.88rem] hover:bg-paper-2"
+          >
+            <KeyRound aria-hidden className="size-4 text-muted" /> Change password
+          </Link>
+          <button
+            type="button"
+            disabled={leaving}
+            onClick={() => {
+              setLeaving(true);
+              void signOut();
+            }}
+            className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-[0.88rem] hover:bg-paper-2 disabled:opacity-60"
+          >
+            <LogOut aria-hidden className="size-4 text-muted" /> {leaving ? "Signing out…" : "Sign out"}
+          </button>
+        </div>
+      )}
+    </Popover>
   );
 }

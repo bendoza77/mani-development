@@ -613,3 +613,33 @@ model Redirect {
 
   @@map("redirects")
 }
+
+// ─── Email outbox (§3.6) ──────────────────────────────────────────────────
+
+enum EmailStatus {
+  pending
+  sent
+  failed
+
+  @@map("email_status")
+}
+
+/// Inquiry emails waiting to be sent, retried with backoff until delivered (5 attempts).
+/// Password-reset emails never go here: the payload would hold a usable reset link.
+model EmailMessage {
+  id            String      @id @default(uuid(7)) @db.Uuid
+  recipient     String      @db.VarChar(254)
+  template      String      @db.VarChar(40)
+  locale        String      @default("ka") @db.VarChar(2)
+  payload       Json
+  status        EmailStatus @default(pending)
+  attempts      Int         @default(0) @db.SmallInt
+  nextAttemptAt DateTime    @default(now()) @map("next_attempt_at") @db.Timestamptz(3)
+  lastError     String?     @map("last_error") @db.VarChar(500)
+  sentAt        DateTime?   @map("sent_at") @db.Timestamptz(3)
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([status, nextAttemptAt])
+  @@map("email_messages")
+}

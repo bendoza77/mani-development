@@ -3,12 +3,11 @@
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import type { Locale } from "./config";
-import { createContentLocalizer, type ContentLocalizer } from "./content";
 import { createFormatters } from "./format";
 import { createI18n } from "./instance";
-import type { ContentOverlay, UIResources } from "./resources";
+import type { UIResources } from "./resources";
 
-type LocaleContextValue = { locale: Locale; content: ContentLocalizer };
+type LocaleContextValue = { locale: Locale };
 
 const LocaleContext = createContext<LocaleContextValue | null>(null);
 
@@ -20,16 +19,14 @@ const LocaleContext = createContext<LocaleContextValue | null>(null);
 export function I18nProvider({
   locale,
   resources,
-  overlay,
   children,
 }: {
   locale: Locale;
   resources: UIResources;
-  overlay: ContentOverlay;
   children: ReactNode;
 }) {
   const i18n = useMemo(() => createI18n(locale, resources), [locale, resources]);
-  const value = useMemo(() => ({ locale, content: createContentLocalizer(overlay) }), [locale, overlay]);
+  const value = useMemo(() => ({ locale }), [locale]);
   return (
     <I18nextProvider i18n={i18n}>
       <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>
@@ -45,11 +42,6 @@ function useLocaleContext() {
 
 export function useLocale(): Locale {
   return useLocaleContext().locale;
-}
-
-/** Localizers for records from the demo database (see `i18n/content`). */
-export function useContent(): ContentLocalizer {
-  return useLocaleContext().content;
 }
 
 export function useFormatters() {

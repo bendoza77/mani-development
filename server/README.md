@@ -54,7 +54,7 @@ Details: [docs/SECURITY_PLAN.md](docs/SECURITY_PLAN.md) §2–5 and [docs/API_CO
 
 - **Sessions** live in the database; the browser holds only a random token in an `HttpOnly` cookie (`__Host-sid`, or `sid` on plain-http local development). A session ends after 12 hours unused or 7 days in any case.
 - **Wrong passwords:** 10 in a row lock the account for 15 minutes. The answer is always the same "email or password is incorrect", so nobody can tell which part was wrong or whether the account exists.
-- **Forgotten password:** `POST /api/auth/password-reset/request` emails a link valid for 30 minutes, once, to the address stored on the account. Locally, set `MAIL_TRANSPORT=console` and the email (with the link) is printed in the `npm run dev` terminal. Real email delivery is connected in Phase 10.
+- **Forgotten password:** `POST /api/auth/password-reset/request` emails a link valid for 30 minutes, once, to the address stored on the account. Locally, set `MAIL_TRANSPORT=console` and the email (with the link) is printed in the `npm run dev` terminal. Real sending uses Gmail SMTP: `MAIL_TRANSPORT=smtp` with `SMTP_USER` and `SMTP_APP_PASSWORD` (see `.env.example` and `docs/RUNBOOK.md`). Inquiry emails go through a database queue (`email_messages`) and are retried after 1, 5, 30 and 120 minutes.
 - **Unsafe requests** (POST, PUT, PATCH, DELETE) to `/api/auth` and `/api/admin` must carry an `Origin` header listed in `CORS_ORIGINS`.
 - **In production** (Render shell), run the compiled scripts instead: `node dist/scripts/admin-create.js` and `node dist/scripts/admin-set-password.js`.
 - Expired sessions and reset links are deleted by a job that runs at startup and then hourly.

@@ -11,6 +11,7 @@ import { publicPathOf } from "@/components/admin/PagesAdmin";
 import { SECTION_TYPES, sectionFields, fromBlock, newSection, sectionLabel, toBlockInput, validateSection, type PickTarget, type Section, type SectionType } from "@/components/admin/PageSections";
 import { SortableItem, SortableList } from "@/components/admin/SortableList";
 import { PageColorsPanel, SectionStylePanel } from "@/components/admin/StyleControls";
+import { SeoPanel, blankSeo, seoDraftFrom, seoInputFrom, validateSeo, type SeoDraft } from "@/components/admin/SeoPanel";
 import { IconButton, PageHeader } from "@/components/admin/ui";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog, Dialog } from "@/components/ui/Dialog";
@@ -28,10 +29,10 @@ type MenuDraft = {
   footer: { show: boolean; position: string };
 };
 
-type Draft = { slug: string; titleKa: string; titleEn: string; introKa: string; introEn: string; isPublished: boolean; sections: Section[]; menu: MenuDraft; style: PageStyle };
+type Draft = { slug: string; titleKa: string; titleEn: string; introKa: string; introEn: string; isPublished: boolean; sections: Section[]; menu: MenuDraft; style: PageStyle; seo: SeoDraft };
 
 const blankMenu = (): MenuDraft => ({ labelKa: "", labelEn: "", header: { show: false, position: "" }, footer: { show: false, position: "" } });
-const blank = (): Draft => ({ slug: "", titleKa: "", titleEn: "", introKa: "", introEn: "", isPublished: false, sections: [], menu: blankMenu(), style: { ...DEFAULT_PAGE_STYLE } });
+const blank = (): Draft => ({ slug: "", titleKa: "", titleEn: "", introKa: "", introEn: "", isPublished: false, sections: [], menu: blankMenu(), style: { ...DEFAULT_PAGE_STYLE }, seo: blankSeo() });
 
 function fromPage(p: AdminPage): Draft {
   const m = p.menu;
@@ -44,6 +45,7 @@ function fromPage(p: AdminPage): Draft {
     isPublished: p.isPublished,
     sections: p.blocks.map(fromBlock),
     style: cleanPageStyle(p.style),
+    seo: seoDraftFrom(p.seo),
     menu: m
       ? {
           labelKa: m.labelKa ?? "",
@@ -68,6 +70,7 @@ function toInput(d: Draft): PageInput {
     isPublished: d.isPublished,
     blocks: d.sections.map(toBlockInput),
     style: d.style,
+    seo: seoInputFrom(d.seo),
     menu: {
       labelKa: orNull(d.menu.labelKa),
       labelEn: orNull(d.menu.labelEn),
@@ -86,6 +89,7 @@ function validate(d: Draft, isSystem: boolean): Record<string, string> {
     const p = d.menu[where].position.trim();
     if (d.menu[where].show && p && !/^[1-9]\d?$/.test(p)) e[`menu.${where}.position`] = "Use a number from 1 to 12, or leave empty.";
   }
+  Object.assign(e, validateSeo(d.seo));
   return e;
 }
 
@@ -225,7 +229,7 @@ export function PageForm({ pageId }: { pageId?: string }) {
   const cancel = () => (dirty ? setConfirmLeave(true) : router.push("/admin/pages"));
   const publicPath = adopted ? publicPathOf({ ...adopted, slug: draft.slug }) : `/${draft.slug || "…"}`;
   const knownTop = new Set(["slug", "titleKa", "titleEn", "introKa", "introEn"]);
-  const generalErrors = Object.entries(serverErrors).filter(([k]) => !knownTop.has(k) && !k.startsWith("blocks.") && !k.startsWith("menu"));
+  const generalErrors = Object.entries(serverErrors).filter(([k]) => !knownTop.has(k) && !k.startsWith("blocks.") && !k.startsWith("menu") && !k.startsWith("seo."));
 
   return (
     <form onSubmit={submit} noValidate>
@@ -357,6 +361,18 @@ export function PageForm({ pageId }: { pageId?: string }) {
               </Button>
             )}
           </section>
+
+          <SeoPanel
+            value={draft.seo}
+            onChange={(patch) => {
+              setDraft((d) => ({ ...d, seo: { ...d.seo, ...patch } }));
+              setServerErrors((prev) => Object.fromEntries(Object.entries(prev).filter(([k]) => !k.startsWith("seo."))));
+            }}
+            error={err}
+            fallbackTitle={draft.titleKa}
+            fallbackDescription={draft.introKa}
+            path={isSystem && adopted ? publicPathOf(adopted) : `/${draft.slug || "…"}`}
+          />
         </div>
 
         <aside className="space-y-4 xl:sticky xl:top-24 xl:max-h-[calc(100dvh-7rem)] xl:self-start xl:overflow-y-auto">

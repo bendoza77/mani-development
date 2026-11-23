@@ -18,7 +18,6 @@ import kaHouse from "./locales/ka/house.json";
 import kaMeta from "./locales/ka/meta.json";
 import kaProjects from "./locales/ka/projects.json";
 import kaServices from "./locales/ka/services.json";
-import kaContent from "./content/ka.json";
 import type { Locale } from "./config";
 
 /** English is the source language: its shape defines every key the UI may use. */
@@ -55,25 +54,3 @@ const ka: UIResources = {
 };
 
 export const UI_RESOURCES: Record<Locale, UIResources> = { en, ka };
-
-/**
- * Translations of the seeded demo content (projects, services, testimonials, team, settings),
- * keyed by record id. English needs none: the seed itself is English.
- */
-export type ContentOverlay = {
-  settings?: Partial<Record<"tagline" | "address" | "hours", string>>;
-  projects?: Record<
-    string,
-    Partial<Record<"title" | "summary" | "description" | "location" | "city", string>> & {
-      specs?: { label: string; value: string }[];
-    }
-  >;
-  services?: Record<string, Partial<Record<"title" | "summary" | "description", string>> & { features?: string[] }>;
-  testimonials?: Record<string, Partial<Record<"quote" | "author" | "role", string>>>;
-  team?: Record<string, Partial<Record<"name" | "role" | "bio", string>>>;
-};
-
-export const CONTENT_OVERLAYS: Record<Locale, ContentOverlay> = {
-  en: {},
-  ka: kaContent satisfies ContentOverlay,
-};

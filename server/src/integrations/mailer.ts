@@ -1,17 +1,20 @@
 import type { Logger } from "pino";
+import type { Config } from "../config/env.js";
+import { createSmtpMailer } from "./smtp-mailer.js";
 
 /**
- * Sending email. Phase 4 has no real transport yet: development prints emails to the terminal,
- * other environments log that an email would have been sent. Gmail SMTP arrives in Phase 10
- * (docs/INTEGRATIONS.md §3). Emails are plain text, so no HTML escaping is needed.
+ * Sending email: Gmail SMTP in staging and production (smtp-mailer.ts), printed to the terminal
+ * in development, or only logged when no transport is set (docs/INTEGRATIONS.md §3).
+ * Emails are plain text, so no HTML escaping is needed.
  */
-export type EmailMessage = { to: string; subject: string; text: string };
+/** `replyTo` lets the company answer an inquiry straight to the visitor. */
+export type EmailMessage = { to: string; subject: string; text: string; replyTo?: string };
 
 export type Mailer = { send(message: EmailMessage): Promise<void> };
 
 /** A CR or LF in a header value would let someone add headers such as Bcc (SECURITY_PLAN §6). */
-function assertSafeHeaders({ to, subject }: EmailMessage) {
-  if (/[\r\n]/.test(to) || /[\r\n]/.test(subject)) {
+function assertSafeHeaders({ to, subject, replyTo }: EmailMessage) {
+  if ([to, subject, replyTo ?? ""].some((value) => /[\r\n]/.test(value))) {
     throw new Error("Email header contains a line break");
   }
 }
@@ -59,6 +62,8 @@ export function createFakeMailer(): FakeMailer {
   };
 }
 
-export function createMailer(transport: "none" | "console", logger: Logger): Mailer {
-  return transport === "console" ? createConsoleMailer() : createDisabledMailer(logger);
+/** The transport named by MAIL_TRANSPORT (docs/INTEGRATIONS.md §3). */
+export function createMailer(config: Pick<Config, "mailTransport" | "smtp">, logger: Logger): Mailer {
+  if (config.mailTransport === "smtp" && config.smtp) return createSmtpMailer(config.smtp);
+  return config.mailTransport === "console" ? createConsoleMailer() : createDisabledMailer(logger);
 }

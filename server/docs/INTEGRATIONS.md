@@ -157,7 +157,7 @@ Admin browser                 Express API (Render)                 Cloudflare Im
 
 - **Library:** `nodemailer` over SMTP to `smtp.gmail.com:465` (TLS). Its current version is checked when Phase 10 starts.
 - **Authentication (PROPOSED):**
-  - **App password** on the sending account (2-Step Verification on). It's simplest: one secret, `SMTP_PASSWORD`.
+  - **App password** on the sending account (2-Step Verification on). It's simplest: one secret, `SMTP_APP_PASSWORD`.
   - Because Google revokes app passwords when the account password changes, the runbook includes "after changing the sending account's password, create a new app password and update Render".
   - **OAuth2 (XOAUTH2)** is the fallback if your Workspace policy disallows app passwords.
 - **Sender:** one of the two existing mailboxes (`info@` or `dev@manidevelopment.ge`), chosen in Q-29. The account needs 2-Step Verification and an app password. **The mailbox's normal password is never stored anywhere in the server.**
@@ -179,7 +179,7 @@ Admin browser                 Express API (Render)                 Cloudflare Im
   - These DNS records go wherever the domain's DNS is hosted (Amazon Route 53 nameservers; who has access is Q-28).
   - **Checked 2026-11-20 (§7):** the SPF record for Google already exists; DKIM and DMARC records do not. Phase 10 adds those two.
 
-**Env:** `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `EMAIL_FROM`, `INQUIRY_NOTIFY_TO`.
+**Env (as built, 2026-11-21):** `MAIL_TRANSPORT=smtp`, `SMTP_USER`, `SMTP_APP_PASSWORD`, optional `SMTP_HOST` (default `smtp.gmail.com`), `SMTP_PORT` (default `465`), `MAIL_FROM` (default `MANI DEVELOPMENT <SMTP_USER>`). TLS is always on (no `SMTP_SECURE` switch, so no plaintext fallback). The inquiry notification goes to the email in Admin → Settings, so it can change without a redeploy (replaces the planned `INQUIRY_NOTIFY_TO`).
 
 ### 3.4 Alternatives (recorded only; superseded by your choice)
 
@@ -330,7 +330,7 @@ All variables are validated at startup with Zod. **The process exits with a clea
 | `CLOUDFLARE_STREAM_API_TOKEN`, `CLOUDFLARE_STREAM_CUSTOMER_CODE` | 5 | if Q-25 = yes | token scoped to Stream Edit only; the customer code is public (it is part of player addresses) |
 | `PREVIEW_TOKEN_TTL_SECONDS` | 6 | no | default 300 |
 | `TURNSTILE_SECRET_KEY` | 9 | if Q-09 = yes | |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `EMAIL_FROM`, `INQUIRY_NOTIFY_TO` | 10 | yes when `MAIL_TRANSPORT=smtp` | `smtp.gmail.com`, `465`, `true`, sending account, **app password (secret: enter in Render only)**, From address, notification recipient |
+| `SMTP_USER`, `SMTP_APP_PASSWORD` (required when `MAIL_TRANSPORT=smtp`); `SMTP_HOST`, `SMTP_PORT`, `MAIL_FROM` (optional) | 10 | when `MAIL_TRANSPORT=smtp` | sending account, **app password (secret: enter in Render only)**; defaults `smtp.gmail.com`, `465`, `MANI DEVELOPMENT <SMTP_USER>`. Notification recipient = Settings email |
 | `EMAIL_ENABLED` | 10 | no (default `true` in production) | kill switch: `false` keeps queuing but stops sending (Phase 10 rollback) |
 | `FRONTEND_REVALIDATE_URL`, `REVALIDATE_SECRET` | 11 | yes (from Phase 11) | |
 | `INTERNAL_API_KEY` | 11 | yes (from Phase 11) | 32+ random bytes; sent by the Next.js server on public reads to bypass the per-IP limiter (SECURITY_PLAN §9), to read drafts in preview and to verify preview tokens |

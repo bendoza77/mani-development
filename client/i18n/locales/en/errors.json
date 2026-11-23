@@ -9,8 +9,13 @@
   "error": {
     "eyebrow": "Something went wrong",
     "title": "We hit an unexpected problem loading this page.",
-    "body": "Try again. If you edited demo data in the admin panel, resetting it from Settings will restore the defaults.",
+    "body": "Please try again. If the problem continues, come back in a few minutes.",
     "retry": "Try again",
     "home": "Back to home"
+  },
+  "unavailable": {
+    "eyebrow": "Temporarily unavailable",
+    "title": "This content can’t be loaded right now.",
+    "body": "Our content server isn’t answering. Please try again in a few minutes."
   }
 }

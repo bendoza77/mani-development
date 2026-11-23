@@ -6,6 +6,7 @@ import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { ArrowDown, ArrowUp, ImagePlus, Plus, Trash2, X } from "lucide-react";
 import { BiField } from "@/components/admin/BiField";
 import { ImagePicker } from "@/components/admin/ImagePicker";
+import { SeoPanel, blankSeo, seoDraftFrom, seoInputFrom, validateSeo, type SeoDraft } from "@/components/admin/SeoPanel";
 import { IconButton, PageHeader } from "@/components/admin/ui";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/Dialog";
@@ -42,6 +43,7 @@ type Draft = {
   cover: ApiImage | null;
   gallery: ApiImage[];
   specs: SpecRow[];
+  seo: SeoDraft;
 };
 
 type Errors = Record<string, string>;
@@ -73,6 +75,7 @@ const blank = (): Draft => ({
   cover: null,
   gallery: [],
   specs: [],
+  seo: blankSeo(),
 });
 
 function fromProject(p: AdminProject): Draft {
@@ -100,6 +103,7 @@ function fromProject(p: AdminProject): Draft {
     cover: p.cover,
     gallery: p.gallery,
     specs: p.specs.map((s) => ({ key: specKey(), labelKa: s.labelKa, labelEn: s.labelEn ?? "", valueKa: s.valueKa, valueEn: s.valueEn ?? "" })),
+    seo: seoDraftFrom(p.seo),
   };
 }
 
@@ -132,6 +136,7 @@ function toInput(d: Draft): ProjectInput {
     specs: d.specs
       .filter((s) => s.labelKa.trim() || s.valueKa.trim())
       .map((s) => ({ labelKa: s.labelKa.trim(), labelEn: orNull(s.labelEn), valueKa: s.valueKa.trim(), valueEn: orNull(s.valueEn) })),
+    seo: seoInputFrom(d.seo),
   };
 }
 
@@ -154,6 +159,7 @@ function validate(d: Draft): Errors {
     if ((s.labelKa.trim() || s.valueKa.trim()) && !s.labelKa.trim()) e[`specs.${i}.labelKa`] = "Label is required.";
     if ((s.labelKa.trim() || s.valueKa.trim()) && !s.valueKa.trim()) e[`specs.${i}.valueKa`] = "Value is required.";
   });
+  Object.assign(e, validateSeo(d.seo));
   return e;
 }
 
@@ -262,7 +268,7 @@ export function ProjectForm({ projectId }: { projectId?: string }) {
   }
 
   const cancel = () => (dirty ? setConfirmLeave(true) : router.push("/admin/projects"));
-  const otherServerErrors = Object.entries(serverErrors).filter(([k]) => !KNOWN_FIELDS.has(k) && !k.startsWith("specs."));
+  const otherServerErrors = Object.entries(serverErrors).filter(([k]) => !KNOWN_FIELDS.has(k) && !k.startsWith("specs.") && !k.startsWith("seo."));
 
   return (
     <form onSubmit={submit} noValidate>
@@ -469,6 +475,19 @@ export function ProjectForm({ projectId }: { projectId?: string }) {
               </Button>
             </div>
           </Section>
+
+          <SeoPanel
+            value={draft.seo}
+            onChange={(patch) => {
+              set("seo", { ...draft.seo, ...patch });
+              const keys = Object.keys(patch).map((k) => `seo.${k}`);
+              if (keys.some((k) => serverErrors[k])) setServerErrors((prev) => Object.fromEntries(Object.entries(prev).filter(([k]) => !keys.includes(k))));
+            }}
+            error={err}
+            fallbackTitle={draft.titleKa}
+            fallbackDescription={draft.summaryKa}
+            path={`/projects/${draft.slug || "…"}`}
+          />
         </div>
 
         <aside className="space-y-4 xl:sticky xl:top-24 xl:self-start">

@@ -4,14 +4,16 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
+import { ContactLink } from "@/components/contact/ContactLink";
 import { ButtonLink } from "@/components/ui/Button";
 import { useTranslation } from "@/i18n/client";
 import { splitLocale } from "@/i18n/config";
 import { LanguageSwitcher } from "@/i18n/LanguageSwitcher";
 import { LocaleLink as Link } from "@/i18n/LocaleLink";
-import { useDB } from "@/lib/store";
 import { cx } from "@/lib/format";
-import { isExternal, useNavigation, type NavLink } from "@/lib/navigation";
+import { isExternal, useNavigation, type Menus, type NavLink } from "@/lib/navigation";
+import { contactHref } from "@/lib/public-types";
+import { useSiteSettings } from "./SiteSettings";
 
 /** A menu link: site paths keep the visitor's language; outside addresses open as plain links. */
 export function MenuLink({ link, className, onClick, current }: { link: NavLink; className?: string; onClick?: () => void; current?: boolean }) {
@@ -35,10 +37,10 @@ export function MenuLink({ link, className, onClick, current }: { link: NavLink;
   );
 }
 
-export function SiteHeader() {
+export function SiteHeader({ menus }: { menus?: Menus | null }) {
   const { t } = useTranslation("common");
   // The top menu is edited per page in the admin (Pages → Menu). Contact is the call-to-action button.
-  const { header } = useNavigation();
+  const { header } = useNavigation(menus);
   // The mobile menu lists every destination: home, the top menu, and contact.
   const mobileLinks: NavLink[] = [
     { href: "/", label: t("nav.home"), newTab: false },
@@ -49,7 +51,9 @@ export function SiteHeader() {
   const pathname = splitLocale(rawPathname).path;
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const settings = useDB((d) => d.settings);
+  const settings = useSiteSettings();
+  const mail = contactHref("email", settings);
+  const tel = contactHref("phone", settings);
   const dialog = useRef<HTMLDialogElement>(null);
 
   // The header stays fixed at the top. Once the page scrolls it gets a solid background so
@@ -201,10 +205,16 @@ export function SiteHeader() {
           </nav>
           <div className="shell grid shrink-0 gap-1 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] text-sm text-night-muted">
             <LanguageSwitcher variant="full" className="mb-5" />
-            <a href={`mailto:${settings.email}`} className="text-night-ink">
-              {settings.email}
-            </a>
-            <a href={`tel:${settings.phone.replace(/\s/g, "")}`}>{settings.phone}</a>
+            {mail && (
+              <ContactLink channel="email" href={mail} className="text-night-ink">
+                {settings.email}
+              </ContactLink>
+            )}
+            {tel && (
+              <ContactLink channel="phone" href={tel}>
+                {settings.phone}
+              </ContactLink>
+            )}
           </div>
         </div>
       </dialog>

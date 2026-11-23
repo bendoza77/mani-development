@@ -1,54 +1,101 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useNow } from "@/hooks/useNow";
-import { ArrowLeft, Inbox, Mail, Phone, Search, Trash2 } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Inbox, Mail, Phone, Search, Trash2 } from "lucide-react";
 import { EmptyState, FilterTabs, PageHeader } from "@/components/admin/ui";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/Dialog";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useToast } from "@/components/ui/Toast";
-import { inquiriesDB, nowISO, uid, useDB } from "@/lib/store";
+import { useApiData } from "@/hooks/useApiData";
+import { useDebounced } from "@/hooks/useDebounced";
+import { announceAdminChange, api, errorMessage, type InquiryDetail as Detail, type InquiryList, type InquiryNote, type InquiryStatus } from "@/lib/api";
 import { INQUIRY_STATUS_LABEL, cx, formatDate, timeAgo } from "@/lib/format";
-import type { Inquiry, InquiryStatus } from "@/lib/types";
 
 const STATUSES = Object.keys(INQUIRY_STATUS_LABEL) as InquiryStatus[];
+const PAGE_SIZE = 20;
 
 export function InquiriesAdmin() {
-  const inquiries = useDB((d) => d.inquiries);
   const params = useSearchParams();
   const router = useRouter();
   const toast = useToast();
   const selectedId = params.get("id");
   const statusParam = params.get("status") as InquiryStatus | null;
-  const [status, setStatus] = useState<InquiryStatus | "all">(statusParam && STATUSES.includes(statusParam) ? statusParam : "all");
+  const status: InquiryStatus | "all" = statusParam && STATUSES.includes(statusParam) ? statusParam : "all";
   const [q, setQ] = useState("");
-  const [toDelete, setToDelete] = useState<Inquiry | null>(null);
+  const [page, setPage] = useState(1);
+  const [toDelete, setToDelete] = useState<Detail | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const now = useNow();
+  const term = useDebounced(q.trim(), 300);
 
-  const rows = useMemo(() => {
-    const s = q.trim().toLowerCase();
-    return [...inquiries]
-      .filter((i) => (status === "all" || i.status === status) && (!s || `${i.name} ${i.email} ${i.subject} ${i.message}`.toLowerCase().includes(s)))
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  }, [inquiries, q, status]);
+  const query = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE) });
+  if (status !== "all") query.set("status", status);
+  if (term) query.set("q", term);
+  const list = useApiData<InquiryList>(`/api/admin/inquiries?${query}`);
+  const detail = useApiData<Detail>(selectedId ? `/api/admin/inquiries/${selectedId}` : null);
 
-  const counts = useMemo(() => {
-    const c: Record<string, number> = { all: inquiries.length };
-    for (const i of inquiries) c[i.status] = (c[i.status] ?? 0) + 1;
-    return c;
-  }, [inquiries]);
+  // The list keeps showing while the next page or filter loads.
+  const [shown, setShown] = useState<InquiryList | null>(null);
+  if (list.data && list.data !== shown) setShown(list.data);
+  const data = list.data ?? shown;
+  const rows = data?.items ?? [];
+  const counts = data?.counts;
+  const pages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
 
-  const selected = inquiries.find((i) => i.id === selectedId) ?? null;
-  const select = (id: string | null) => router.replace(id ? `/admin/inquiries?id=${id}` : "/admin/inquiries", { scroll: false });
+  const url = (next: { id?: string | null; status?: InquiryStatus | "all" }) => {
+    const s = next.status ?? status;
+    const id = next.id === undefined ? selectedId : next.id;
+    const p = new URLSearchParams();
+    if (s !== "all") p.set("status", s);
+    if (id) p.set("id", id);
+    const qs = p.toString();
+    return qs ? `/admin/inquiries?${qs}` : "/admin/inquiries";
+  };
+  const select = (id: string | null) => router.replace(url({ id }), { scroll: false });
+  const setStatus = (s: InquiryStatus | "all") => {
+    setPage(1);
+    router.replace(url({ status: s }), { scroll: false });
+  };
+
+  const selected = detail.data && detail.data.id === selectedId ? detail.data : null;
+
+  async function changeStatus(i: Detail, next: InquiryStatus) {
+    try {
+      const updated = await api<Detail>(`/api/admin/inquiries/${i.id}`, { method: "PATCH", body: { status: next } });
+      detail.update(() => updated);
+      list.reload();
+      announceAdminChange();
+      toast({ tone: "success", title: "Status updated", body: `${i.name}: ${INQUIRY_STATUS_LABEL[next]}` });
+    } catch (error) {
+      toast({ tone: "error", title: "Could not update status", body: errorMessage(error) });
+    }
+  }
+
+  async function remove(i: Detail) {
+    setDeleting(true);
+    try {
+      await api(`/api/admin/inquiries/${i.id}`, { method: "DELETE" });
+      toast({ tone: "success", title: "Inquiry deleted" });
+      setToDelete(null);
+      select(null);
+      list.reload();
+      announceAdminChange();
+    } catch (error) {
+      toast({ tone: "error", title: "Could not delete", body: errorMessage(error) });
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   return (
     <>
-      <PageHeader title="Inquiries" description="Messages sent through the website contact form (stored locally in this browser)." />
+      <PageHeader title="Inquiries" description="Messages sent through the website contact form." />
       <div className="grid overflow-hidden rounded-md border border-line bg-card lg:h-[calc(100dvh-14rem)] lg:min-h-[32rem] lg:grid-cols-[minmax(20rem,26rem)_1fr]">
         {/* List */}
-        <div className={cx("flex min-h-0 flex-col border-line lg:border-r", selected && "max-lg:hidden")}>
+        <div className={cx("flex min-h-0 flex-col border-line lg:border-r", selectedId && "max-lg:hidden")}>
           <div className="space-y-2 border-b border-line p-3">
             <label className="relative block">
               <span className="sr-only">Search inquiries</span>
@@ -56,8 +103,11 @@ export function InquiriesAdmin() {
               <input
                 type="search"
                 value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="Search name, email, subject"
+                onChange={(e) => {
+                  setQ(e.target.value);
+                  setPage(1);
+                }}
+                placeholder="Search name, email, subject, message"
                 className="h-9 w-full rounded-[3px] border border-line-strong bg-card pr-3 pl-9 text-[0.85rem] focus:border-ink focus:outline-none"
               />
             </label>
@@ -65,52 +115,87 @@ export function InquiriesAdmin() {
               label="Filter by status"
               value={status}
               onChange={setStatus}
-              options={[{ value: "all", label: "All", count: counts.all }, ...STATUSES.map((s) => ({ value: s, label: INQUIRY_STATUS_LABEL[s], count: counts[s] ?? 0 }))]}
+              options={[{ value: "all", label: "All", count: counts?.all }, ...STATUSES.map((s) => ({ value: s, label: INQUIRY_STATUS_LABEL[s], count: counts?.[s] }))]}
             />
           </div>
-          {rows.length === 0 ? (
-            <EmptyState icon={Inbox} title={inquiries.length ? "No matching inquiries" : "Inbox empty"} body={inquiries.length ? "Adjust the search or status filter." : "Messages from the contact form will appear here."} />
+          {list.error && !data ? (
+            <div className="px-6 py-14 text-center">
+              <p className="text-[0.9rem] text-danger">{list.error.message}</p>
+              <Button variant="outline" size="sm" className="mt-4" onClick={list.reload}>
+                Try again
+              </Button>
+            </div>
+          ) : !data ? (
+            <div className="h-64 animate-pulse bg-paper-2/50" aria-busy="true" />
+          ) : rows.length === 0 ? (
+            <EmptyState
+              icon={Inbox}
+              title={term || status !== "all" ? "No matching inquiries" : "Inbox empty"}
+              body={term || status !== "all" ? "Adjust the search or status filter." : "Messages from the contact form will appear here."}
+            />
           ) : (
-            <ul className="min-h-0 flex-1 overflow-y-auto" aria-label="Inquiries">
-              {rows.map((i) => (
-                <li key={i.id}>
-                  <button
-                    type="button"
-                    onClick={() => select(i.id)}
-                    aria-current={i.id === selectedId ? "true" : undefined}
-                    className={cx("block w-full border-b border-line px-4 py-3.5 text-left transition-colors", i.id === selectedId ? "bg-paper-2" : "hover:bg-paper/60")}
-                  >
-                    <span className="flex items-center justify-between gap-2">
-                      <span className={cx("truncate text-[0.9rem]", i.status === "new" ? "font-semibold" : "font-medium")}>
-                        {i.status === "new" && <span aria-hidden className="mr-2 inline-block size-1.5 rounded-full bg-accent align-middle" />}
-                        {i.name}
+            <>
+              <ul className={cx("min-h-0 flex-1 overflow-y-auto", list.loading && "opacity-60")} aria-label="Inquiries" aria-busy={list.loading}>
+                {rows.map((i) => (
+                  <li key={i.id}>
+                    <button
+                      type="button"
+                      onClick={() => select(i.id)}
+                      aria-current={i.id === selectedId ? "true" : undefined}
+                      className={cx("block w-full border-b border-line px-4 py-3.5 text-left transition-colors", i.id === selectedId ? "bg-paper-2" : "hover:bg-paper/60")}
+                    >
+                      <span className="flex items-center justify-between gap-2">
+                        <span className={cx("truncate text-[0.9rem]", i.status === "new" ? "font-semibold" : "font-medium")}>
+                          {i.status === "new" && <span aria-hidden className="mr-2 inline-block size-1.5 rounded-full bg-accent align-middle" />}
+                          {i.name}
+                        </span>
+                        <span className="t-meta shrink-0 text-muted">{now ? timeAgo(i.createdAt, now) : ""}</span>
                       </span>
-                      <span className="t-meta shrink-0 text-muted">{now ? timeAgo(i.createdAt, now) : ""}</span>
-                    </span>
-                    <span className="mt-0.5 block truncate text-[0.85rem]">{i.subject}</span>
-                    <span className="mt-0.5 block truncate text-[0.8rem] text-muted">{i.message}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+                      <span className="mt-0.5 block truncate text-[0.85rem]">{i.subject}</span>
+                      <span className="mt-0.5 block truncate text-[0.8rem] text-muted">{i.message}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              {pages > 1 && (
+                <nav aria-label="Pages" className="flex items-center justify-between gap-2 border-t border-line px-3 py-2 text-[0.82rem]">
+                  <Button variant="ghost" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+                    <ChevronLeft aria-hidden className="size-4" /> Newer
+                  </Button>
+                  <span className="text-muted tabular-nums">
+                    Page {page} of {pages}
+                  </span>
+                  <Button variant="ghost" size="sm" disabled={page >= pages} onClick={() => setPage((p) => p + 1)}>
+                    Older <ChevronRight aria-hidden className="size-4" />
+                  </Button>
+                </nav>
+              )}
+            </>
           )}
         </div>
 
         {/* Detail */}
-        <div className={cx("min-h-0 overflow-y-auto", !selected && "max-lg:hidden")}>
-          {selected ? (
+        <div className={cx("min-h-0 overflow-y-auto", !selectedId && "max-lg:hidden")}>
+          {!selectedId ? (
+            <EmptyState icon={Mail} title="Select an inquiry" body="Choose a message from the list to read it, update its status and add internal notes." />
+          ) : detail.error ? (
+            <div className="p-5 sm:p-7">
+              <button type="button" onClick={() => select(null)} className="-ml-1 mb-4 inline-flex items-center gap-1.5 text-[0.85rem] text-muted hover:text-ink lg:hidden">
+                <ArrowLeft aria-hidden className="size-4" /> All inquiries
+              </button>
+              <p className="text-[0.9rem] text-danger">{detail.error.status === 404 ? "This inquiry no longer exists." : detail.error.message}</p>
+            </div>
+          ) : !selected ? (
+            <div className="m-6 h-64 animate-pulse rounded bg-paper-2/50" aria-busy="true" />
+          ) : (
             <InquiryDetail
               key={selected.id}
               inquiry={selected}
               onBack={() => select(null)}
               onDelete={() => setToDelete(selected)}
-              onStatus={(s) => {
-                inquiriesDB.update(selected.id, { status: s }, `Inquiry from ${selected.name} marked ${INQUIRY_STATUS_LABEL[s].toLowerCase()}`);
-                toast({ tone: "success", title: "Status updated", body: `${selected.name}: ${INQUIRY_STATUS_LABEL[s]}` });
-              }}
+              onStatus={(s) => void changeStatus(selected, s)}
+              onNotes={(notes) => detail.update((d) => ({ ...d, notes }))}
             />
-          ) : (
-            <EmptyState icon={Mail} title="Select an inquiry" body="Choose a message from the list to read it, update its status and add internal notes." />
           )}
         </div>
       </div>
@@ -121,32 +206,63 @@ export function InquiriesAdmin() {
         title="Delete this inquiry?"
         description={`The message from ${toDelete?.name ?? ""} and its notes will be permanently removed.`}
         confirmLabel="Delete inquiry"
-        onConfirm={() => {
-          if (!toDelete) return;
-          inquiriesDB.remove(toDelete.id, `Inquiry from ${toDelete.name} deleted`);
-          toast({ tone: "success", title: "Inquiry deleted" });
-          setToDelete(null);
-          select(null);
-        }}
+        loading={deleting}
+        onConfirm={() => toDelete && void remove(toDelete)}
       />
     </>
   );
 }
 
-function InquiryDetail({ inquiry: i, onBack, onDelete, onStatus }: { inquiry: Inquiry; onBack: () => void; onDelete: () => void; onStatus: (s: InquiryStatus) => void }) {
+function InquiryDetail({
+  inquiry: i,
+  onBack,
+  onDelete,
+  onStatus,
+  onNotes,
+}: {
+  inquiry: Detail;
+  onBack: () => void;
+  onDelete: () => void;
+  onStatus: (s: InquiryStatus) => void;
+  onNotes: (notes: InquiryNote[]) => void;
+}) {
+  const toast = useToast();
   const [note, setNote] = useState("");
   const [noteError, setNoteError] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
 
-  const addNote = (e: FormEvent) => {
+  async function addNote(e: FormEvent) {
     e.preventDefault();
-    if (!note.trim()) {
+    const text = note.trim();
+    if (!text) {
       setNoteError("Write something before adding a note.");
       return;
     }
-    inquiriesDB.update(i.id, { notes: [...i.notes, { id: uid("n"), text: note.trim(), createdAt: nowISO() }] }, `Note added to ${i.name}'s inquiry`);
-    setNote("");
-    setNoteError(null);
-  };
+    if (text.length > 2000) {
+      setNoteError("Keep notes under 2000 characters.");
+      return;
+    }
+    setAdding(true);
+    try {
+      const created = await api<InquiryNote>(`/api/admin/inquiries/${i.id}/notes`, { method: "POST", body: { text } });
+      onNotes([...i.notes, created]);
+      setNote("");
+      setNoteError(null);
+    } catch (error) {
+      setNoteError(errorMessage(error));
+    } finally {
+      setAdding(false);
+    }
+  }
+
+  async function removeNote(n: InquiryNote) {
+    try {
+      await api(`/api/admin/inquiries/${i.id}/notes/${n.id}`, { method: "DELETE" });
+      onNotes(i.notes.filter((x) => x.id !== n.id));
+    } catch (error) {
+      toast({ tone: "error", title: "Could not remove note", body: errorMessage(error) });
+    }
+  }
 
   return (
     <article className="p-5 sm:p-7">
@@ -226,12 +342,7 @@ function InquiryDetail({ inquiry: i, onBack, onDelete, onStatus }: { inquiry: In
               <li key={n.id} className="group rounded-[3px] bg-warn-soft/60 px-4 py-3 text-[0.88rem]">
                 <div className="flex items-start justify-between gap-3">
                   <p className="whitespace-pre-line">{n.text}</p>
-                  <button
-                    type="button"
-                    onClick={() => inquiriesDB.update(i.id, { notes: i.notes.filter((x) => x.id !== n.id) })}
-                    className="shrink-0 text-[0.75rem] text-muted hover:text-danger"
-                    aria-label="Delete note"
-                  >
+                  <button type="button" onClick={() => void removeNote(n)} className="shrink-0 text-[0.75rem] text-muted hover:text-danger" aria-label="Delete note">
                     Remove
                   </button>
                 </div>
@@ -262,7 +373,7 @@ function InquiryDetail({ inquiry: i, onBack, onDelete, onStatus }: { inquiry: In
               {noteError}
             </p>
           )}
-          <Button type="submit" size="sm" variant="outline" className="mt-2">
+          <Button type="submit" size="sm" variant="outline" className="mt-2" loading={adding}>
             Add note
           </Button>
         </form>

@@ -143,6 +143,11 @@ img {
   max-width: 100%;
 }
 
+/* Running text never ends a paragraph on a single stranded word. */
+p {
+  text-wrap: pretty;
+}
+
 /* ───────────── Layout & type utilities ───────────── */
 @utility shell {
   width: min(100% - 2 * var(--gutter), 88rem);

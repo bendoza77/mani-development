@@ -2,8 +2,26 @@
 
 **Project:** MANI DEVELOPMENT corporate website with a simple CMS (`client/`, Next.js 16) and a new backend in `server/`
 **Domain:** `manidevelopment.ge`
-**Status:** PLANNING ONLY. No application code has been written. Phase 1 starts only after your explicit approval.
-**Last updated:** 2026-11-20 (second revision, for the client requirements) · **Based on commit:** `5d41491`
+**Status:** IN PROGRESS. See "Progress" below.
+**Last updated:** 2026-11-21 (progress table added) · **Plan written against commit:** `5d41491`
+
+### Progress (2026-11-21)
+
+| Phase | State | Notes |
+|---|---|---|
+| 1 Foundation, 2 Schema, 4 Auth | Done | Commits `133bf54`, `445e024`, `20d9cc7` |
+| 3 Staging | Waiting | Needs Render + Vercel accounts. `render.yaml` and `docs/RUNBOOK.md` are ready |
+| 5 Media | Done locally | Local storage + Cloudflare Images adapter. Library edit, "used by", delete (blocked while in use). Cloudflare behaviour NOT VERIFIED against the live API; video (Stream), sweep and reconcile script not built |
+| 6 CMS core | Mostly done | Pages, 7 block types, rich text, per-page menu, page/section styles, redirects on slug change, `resolve`, sitemap feed. Not built: preview tokens, embeds/video blocks, SEO override fields in the editors |
+| 7 Projects | Done | Inline PATCH, admin filters and project blocks not built |
+| 8 Site content | Done | Services, team, testimonials, slides, menu items, settings |
+| 9 Inquiries | Done | Contact form, inbox, notes, notifications, activity, dashboard, search, email outbox with retries. Turnstile optional (`TURNSTILE_SECRET_KEY`) |
+| 10 Email | Code done | Gmail SMTP adapter (`MAIL_TRANSPORT=smtp`). Live check, DKIM and DMARC need the app password and DNS access |
+| 11 Public website | Done locally | All sections read the API (server-rendered, 60 s cache); slider; contact form + channels; `proxy.ts` real 404s/308s. Builds with the API unreachable. 308 live and form submit NOT VERIFIED in a browser |
+| 12 Admin panel | Done locally | Every screen on the API; new slider, menus, redirects, forgot/reset password, SEO panel; demo store deleted. Not yet clicked through in a browser |
+| 13 SEO | Done locally | Metadata, canonical, hreflang + x-default, sitemap.xml, robots.txt, JSON-LD. Rich Results Test needs a public URL |
+| 14 Analytics | Code done | Consent banner + Tag Manager only after consent and only when a container ID is set. GA4 setup needs the accounts. CSP and Lighthouse targets not done |
+| 15 Hardening, 16 Launch | Not started | Need staging first |
 
 This file keeps its original name, but since the second revision it covers the whole project: backend, CMS, public site integration, SEO, analytics and performance.
 

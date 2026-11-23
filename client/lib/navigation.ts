@@ -1,14 +1,15 @@
 "use client";
 
 // Site menus from the API (GET /api/public/navigation), managed per page in the admin.
-// Until the answer arrives, or if the API can't be reached, the built-in links are shown,
-// so the site never has an empty menu.
+// The site layout reads them on the server (lib/public-api.ts) and passes them in, so the links
+// are in the first HTML. Without that (or if the API can't be reached) the menus are loaded in the
+// browser, and the built-in links are shown meanwhile, so the site never has an empty menu.
 import { useEffect, useMemo, useSyncExternalStore } from "react";
 import { useLocale, useTranslation } from "@/i18n/client";
 import { api } from "./api";
+import { isSafeLink, type Menus, type NavLink } from "./public-types";
 
-export type NavLink = { label: string; href: string; newTab: boolean };
-type Menus = { header: NavLink[]; footer: NavLink[] };
+export type { Menus, NavLink };
 
 /** Built-in links (labels are keys in common:nav), as the site had them before the menu was editable. */
 const FALLBACK_HEADER = [
@@ -29,10 +30,7 @@ function subscribe(listener: () => void) {
   };
 }
 
-/** Only the link kinds the site can show safely: on-site paths and https addresses. */
-function isUsable(link: NavLink): boolean {
-  return (link.href.startsWith("/") && !link.href.startsWith("//")) || /^https:\/\//i.test(link.href);
-}
+const isUsable = (link: NavLink) => isSafeLink(link.href);
 
 function load(locale: string) {
   if (requested.has(locale)) return;
@@ -49,8 +47,8 @@ function load(locale: string) {
 
 export const isExternal = (href: string) => /^https?:\/\//i.test(href);
 
-/** Header and footer links for the visitor's language. */
-export function useNavigation(): Menus {
+/** Header and footer links for the visitor's language; `initial` comes from the server render. */
+export function useNavigation(initial?: Menus | null): Menus {
   const locale = useLocale();
   const { t } = useTranslation("common");
   const loaded = useSyncExternalStore(
@@ -58,7 +56,10 @@ export function useNavigation(): Menus {
     () => menus.get(locale),
     () => undefined,
   );
-  useEffect(() => load(locale), [locale]);
+  const hasInitial = !!initial;
+  useEffect(() => {
+    if (!hasInitial) load(locale);
+  }, [locale, hasInitial]);
 
   const fallback = useMemo<Menus>(
     () => ({
@@ -67,5 +68,5 @@ export function useNavigation(): Menus {
     }),
     [t],
   );
-  return loaded ?? fallback;
+  return initial ?? loaded ?? fallback;
 }

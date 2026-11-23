@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowUpRight } from "lucide-react";
-import { useContent, useFormatters, useTranslation } from "@/i18n/client";
+import { useFormatters, useTranslation } from "@/i18n/client";
 import { LocaleLink as Link } from "@/i18n/LocaleLink";
 import { Img } from "@/components/ui/Img";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -19,11 +19,10 @@ type Props = {
   asPreview?: boolean;
 };
 
-export function ProjectCard({ project, sizes, aspect = "aspect-[4/3]", index, className, asPreview }: Props) {
+export function ProjectCard({ project: p, sizes, aspect = "aspect-[4/3]", index, className, asPreview }: Props) {
   const { t } = useTranslation("common");
   const { t: tp } = useTranslation("projects");
   const fmt = useFormatters();
-  const p = useContent().project(project);
   const year = p.status === "completed" ? fmt.year(p.completionDate) : fmt.estimatedYear(p.estimatedCompletion);
   const body = (
     <>

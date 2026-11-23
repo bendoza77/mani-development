@@ -16,6 +16,9 @@ export type RateLimits = {
   resetConfirm: Limit;
   /** Everything else under /api/auth and /api/admin, per IP. */
   admin: Limit;
+  /** Contact-form submissions per IP: per hour and per day (SECURITY_PLAN §9). */
+  inquiry: Limit;
+  inquiryDaily: Limit;
 };
 
 const MINUTE = 60_000;
@@ -26,6 +29,8 @@ export const DEFAULT_RATE_LIMITS: RateLimits = {
   resetRequestPerEmail: { limit: 3, windowMs: 60 * MINUTE },
   resetConfirm: { limit: 10, windowMs: 60 * MINUTE },
   admin: { limit: 600, windowMs: 15 * MINUTE },
+  inquiry: { limit: 5, windowMs: 60 * MINUTE },
+  inquiryDaily: { limit: 20, windowMs: 24 * 60 * MINUTE },
 };
 
 const tooManyRequests = (_req: Request, _res: Response, next: NextFunction) =>
@@ -59,5 +64,7 @@ export function createRateLimiters(limits: RateLimits) {
     }),
     resetConfirm: limiter(limits.resetConfirm),
     admin: limiter(limits.admin),
+    inquiry: limiter(limits.inquiry),
+    inquiryDaily: limiter(limits.inquiryDaily),
   };
 }

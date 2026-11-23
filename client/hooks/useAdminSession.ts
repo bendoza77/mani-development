@@ -3,9 +3,8 @@
 // The admin session lives on the API server (an HttpOnly cookie the browser sends along).
 // This module asks the server who is signed in and shares the answer with every component.
 import { useEffect, useSyncExternalStore } from "react";
-import { api, UNAUTHENTICATED_EVENT } from "./api";
+import { api, UNAUTHENTICATED_EVENT, type SessionUser } from "@/lib/api";
 
-export type SessionUser = { id: string; name: string; email: string };
 /** `undefined` while unknown (server render / first check pending), `null` when signed out. */
 type SessionState = SessionUser | null | undefined;
 
@@ -18,7 +17,7 @@ function set(next: SessionState) {
   listeners.forEach((l) => l());
 }
 
-/** Asks the server for the current session (once at a time). */
+/** Asks the server for the current session (one request at a time). */
 export function refreshSession(): Promise<void> {
   pending ??= api<{ user: SessionUser }>("/api/auth/session")
     .then(({ user }) => set(user))
@@ -40,7 +39,7 @@ function subscribe(listener: () => void) {
   };
 }
 
-export function useSession(): SessionState {
+export function useAdminSession(): SessionState {
   const session = useSyncExternalStore(
     subscribe,
     () => state,
@@ -59,10 +58,22 @@ export async function signIn(email: string, password: string): Promise<SessionUs
   return user;
 }
 
+/**
+ * Signs out on the server, then reloads onto the sign-in page so no admin data stays in memory
+ * (Next.js keeps visited pages alive in the background).
+ */
 export async function signOut(): Promise<void> {
   try {
     await api("/api/auth/logout", { method: "POST", body: {} });
-  } finally {
-    set(null);
+  } catch {
+    /* the cookie may already be gone; signing out locally is still right */
   }
+  // A full page load: nothing from the signed-in session survives in memory.
+  window.location.replace("/admin/login");
+}
+
+/** Where to go after signing in: a `?next=` admin path, or the overview. */
+export function nextAdminPath(search: string): string {
+  const next = new URLSearchParams(search).get("next");
+  return next && /^\/admin(\/|\?|$)/.test(next) && !next.startsWith("/admin/login") ? next : "/admin";
 }

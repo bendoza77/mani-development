@@ -34,5 +34,16 @@
     "slide": "slide",
     "openQuote": "“",
     "closeQuote": "”"
+  },
+  "slider": {
+    "title": "Featured work",
+    "carousel": "carousel",
+    "slide": "slide",
+    "position": "{{n}} of {{total}}",
+    "goTo": "Show slide {{n}} of {{total}}",
+    "previous": "Previous slide",
+    "next": "Next slide",
+    "pause": "Pause the slideshow",
+    "play": "Play the slideshow"
   }
 }

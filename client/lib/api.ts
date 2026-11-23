@@ -58,11 +58,46 @@ export async function api<T>(path: string, { method = "GET", body, signal }: Opt
 export function describeIssue(issue: FieldIssue): string {
   switch (issue.code) {
     case "too_small":
+      if (issue.minimum !== undefined && issue.minimum < 1) return `Must be ${issue.minimum} or more.`;
       return issue.minimum === 1 ? "Required." : `At least ${issue.minimum} characters.`;
     case "too_big":
       return `At most ${issue.maximum} characters.`;
     case "too_short":
       return "Too short (at least 12 characters).";
+    case "too_long":
+      return "Too long (at most 128 characters).";
+    case "same_as_email":
+      return "Don't use your email address as the password.";
+    case "too_common":
+      return "This password is too common. Choose a harder one.";
+    case "repeated_character":
+      return "Don't repeat a single character.";
+    case "required":
+      return "Required.";
+    case "invalid_phone":
+      return "Enter a valid phone number (digits, spaces, + ( ) -).";
+    case "invalid_whatsapp":
+      return "Digits only, with the country code, e.g. 995555123456.";
+    case "invalid_username":
+      return "Letters, numbers and dots only.";
+    case "not_google_maps":
+      return "Paste a Google Maps link (https://maps.app.goo.gl/… or https://www.google.com/maps/…).";
+    case "invalid_gtm_id":
+      return "Should look like GTM-XXXXXXX.";
+    case "invalid_token":
+      return "Letters, numbers, - and _ only.";
+    case "invalid_url":
+      return "Use a full address starting with https://.";
+    case "invalid_path":
+      return "Use a site path starting with /, e.g. /old-page (no spaces, ? or #).";
+    case "live_address":
+      return "A live page or project uses this address. Only addresses that no longer exist can redirect.";
+    case "same_as_from":
+      return "Must be different from the old address.";
+    case "page_or_link_required":
+      return "Enter a link.";
+    case "invalid_image":
+      return "The file isn't a valid image.";
     case "reserved_slug":
       return "This address is reserved. Choose another.";
     case "before_start":
@@ -90,6 +125,31 @@ export function describeIssue(issue: FieldIssue): string {
   }
 }
 
+/** A short, friendly sentence for an API error (by its code), for toasts and banners. */
+export function errorMessage(error: unknown, fallback = "Unexpected error. Please try again."): string {
+  if (!(error instanceof ApiError)) return error instanceof Error && error.message ? error.message : fallback;
+  switch (error.code) {
+    case "ORDER_MISMATCH":
+      return "The list changed in another tab or by someone else. It has been reloaded; please try again.";
+    case "SLIDE_LIMIT":
+      return "The slider holds at most 8 slides. Delete one first.";
+    case "MENU_FULL":
+      return "This menu already has 12 items. Remove one first.";
+    case "REDIRECT_EXISTS":
+      return "That old address already redirects somewhere. Delete that redirect first.";
+    case "ALREADY_IN_MENU":
+      return "That page is already in this menu.";
+    case "INVALID_REFERENCE":
+      return error.message || "A chosen item no longer exists. Reload and try again.";
+    case "RATE_LIMITED":
+      return "Too many requests. Please wait a few minutes and try again.";
+    case "VALIDATION_FAILED":
+      return "Check the highlighted fields.";
+    default:
+      return error.message || fallback;
+  }
+}
+
 /** Field errors as `{ field: "message" }`, plus a general message for errors without fields. */
 export function errorsFrom(error: unknown): { fields: Record<string, string>; message: string } {
   if (!(error instanceof ApiError)) return { fields: {}, message: "Unexpected error. Please try again." };
@@ -98,13 +158,50 @@ export function errorsFrom(error: unknown): { fields: Record<string, string>; me
     if (issues[0]) fields[key] = describeIssue(issues[0]);
   }
   if (error.code === "SLUG_TAKEN") fields.slug = "Another item already uses this address.";
-  return { fields, message: error.message };
+  if (error.code === "REDIRECT_EXISTS") fields.fromPath = "This address already redirects somewhere.";
+  return { fields, message: error.code === "VALIDATION_FAILED" ? error.message : errorMessage(error) };
+}
+
+/**
+ * Field errors for a form, with list items folded onto their list (e.g. `featuresKa.3` →
+ * `featuresKa`), so a form can show them under the one control that edits the list.
+ */
+export function fieldErrorsFrom(error: unknown): Record<string, string> {
+  const { fields } = errorsFrom(error);
+  const out: Record<string, string> = {};
+  for (const [key, message] of Object.entries(fields)) {
+    const base = key.split(".")[0]!;
+    const shown = key === base ? message : `Item ${Number(key.split(".")[1]) + 1}: ${message}`;
+    out[base] ??= shown;
+  }
+  return out;
+}
+
+/** Fired on `window` after an admin change that other parts of the panel show (badge, bell). */
+export const ADMIN_CHANGED_EVENT = "mani:admin-changed";
+export function announceAdminChange() {
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(ADMIN_CHANGED_EVENT));
+}
+
+/** Saves a whole-list order (`PUT …/order { ids }`); 409 ORDER_MISMATCH if the list is stale. */
+export function saveOrder<T>(path: string, ids: string[], extra: Record<string, unknown> = {}) {
+  return api<T>(`${path}/order`, { method: "PUT", body: { ...extra, ids } });
 }
 
 // ─── Shared shapes ──────────────────────────────────────────────────────────
 
 export type ApiImage = { id: string; src: string; width: number; height: number; alt: string };
-export type MediaAsset = ApiImage & { filename: string; bytes: number; mimeType: string; createdAt: string };
+export type MediaAsset = ApiImage & {
+  filename: string;
+  bytes: number;
+  mimeType: string;
+  createdAt: string;
+  altKa: string;
+  altEn: string | null;
+  category: "exterior" | "interior" | "construction" | "team" | "uploads";
+};
+/** A place that shows a photo (GET /api/admin/media/:id/usage). */
+export type MediaUsage = { type: string; id: string; label: string; href: string };
 
 export type ProjectCategory = "residential" | "apartments" | "commercial" | "hospitality" | "renovation";
 export type ProjectStatus = "planning" | "in-progress" | "completed" | "on-hold";
@@ -135,9 +232,25 @@ type ProjectFields = {
   isPublished: boolean;
 };
 
-export type ProjectInput = ProjectFields & { coverId: string; galleryIds: string[] };
+/** Search-engine overrides for a project or page (API_CONTRACTS §8.2); empty = use the record's own. */
+export type SeoFields = {
+  titleKa: string;
+  titleEn: string | null;
+  descriptionKa: string;
+  descriptionEn: string | null;
+  ogImageId: string | null;
+  robotsIndex: boolean;
+  robotsFollow: boolean;
+};
+
+/** Quick changes from the projects list (`PATCH /api/admin/projects/:id`). */
+export type ProjectPatch = { status?: ProjectStatus; progress?: number; featured?: boolean; isPublished?: boolean };
+
+/** `seo` may be omitted on save to keep what is stored. */
+export type ProjectInput = ProjectFields & { coverId: string; galleryIds: string[]; seo?: SeoFields };
 export type AdminProject = ProjectFields & {
   id: string;
+  seo?: SeoFields;
   cover: ApiImage;
   gallery: ApiImage[];
   publishedAt: string | null;
@@ -256,6 +369,7 @@ export type AdminPage = PageSummary & {
   blocks: AdminBlock[];
   menu?: { labelKa: string | null; labelEn: string | null; header: { show: boolean; position: number | null }; footer: { show: boolean; position: number | null } };
   style?: PageStyle;
+  seo?: SeoFields;
 };
 
 export type PageInput = {
@@ -270,6 +384,8 @@ export type PageInput = {
   menu?: PageMenu;
   /** Page colors; omit to leave unchanged. */
   style?: PageStyle;
+  /** Search-engine overrides; omit to leave unchanged. */
+  seo?: SeoFields;
 };
 
 export type PublicBlock = PublicBlockBase & { style?: SectionStyle };
@@ -284,3 +400,171 @@ type PublicBlockBase =
   | { id: string; type: "cards"; title: string; items: { title: string; text: string; image: ApiImage | null }[] };
 
 export type PublicPage = { id: string; slug: string; title: string; intro: string; blocks: PublicBlock[]; updatedAt: string; style?: PageStyle };
+
+// ─── Admin: session, overview ───────────────────────────────────────────────
+
+export type SessionUser = { id: string; name: string; email: string };
+
+export type InquiryStatus = "new" | "in-progress" | "resolved";
+export type InquirySummary = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  subject: string;
+  message: string;
+  status: InquiryStatus;
+  createdAt: string;
+};
+export type InquiryNote = { id: string; text: string; createdAt: string };
+export type InquiryDetail = InquirySummary & { notes: InquiryNote[] };
+export type InquiryCounts = { all: number; new: number; "in-progress": number; resolved: number };
+export type InquiryList = { items: InquirySummary[]; page: number; pageSize: number; total: number; counts: InquiryCounts };
+
+export type AdminNotification = { id: string; title: string; body: string; href: string; at: string; read: boolean };
+export type NotificationList = { unread: number; items: AdminNotification[] };
+
+export type ActivityEntry = { id: string; kind: string; message: string; at: string };
+
+export type DashboardData = {
+  projects: { total: number; byStatus: Record<ProjectStatus, number> };
+  inquiries: { total: number; byStatus: Record<InquiryStatus, number>; perMonth: { month: string; count: number }[] };
+  recentInquiries: InquirySummary[];
+  recentProjects: { id: string; title: string; location: string; progress: number; status: ProjectStatus; updatedAt: string }[];
+  activity: ActivityEntry[];
+};
+
+export type SearchResult = { type: "project" | "inquiry" | "service" | "team"; id: string; label: string; meta: string; href: string };
+
+// ─── Admin: site content ────────────────────────────────────────────────────
+
+export type ServiceInput = {
+  slug?: string | null;
+  titleKa: string;
+  titleEn?: string | null;
+  summaryKa: string;
+  summaryEn?: string | null;
+  descriptionKa: string;
+  descriptionEn?: string | null;
+  featuresKa: string[];
+  featuresEn: string[];
+  imageId: string;
+  visible: boolean;
+};
+export type AdminService = Required<ServiceInput> & { id: string; slug: string; image: ApiImage; position: number; updatedAt: string };
+
+export type TeamMemberInput = {
+  nameKa: string;
+  nameEn?: string | null;
+  roleKa: string;
+  roleEn?: string | null;
+  bioKa: string;
+  bioEn?: string | null;
+  photoId: string;
+  visible: boolean;
+};
+export type AdminTeamMember = Required<TeamMemberInput> & { id: string; photo: ApiImage; position: number; updatedAt: string };
+
+export type TestimonialInput = {
+  quoteKa: string;
+  quoteEn?: string | null;
+  authorKa: string;
+  authorEn?: string | null;
+  roleKa: string;
+  roleEn?: string | null;
+  projectId: string | null;
+  published: boolean;
+};
+export type AdminTestimonial = Required<TestimonialInput> & {
+  id: string;
+  project: { id: string; slug: string; title: string } | null;
+  createdAt: string;
+  updatedAt: string;
+};
+export type TestimonialList = { items: AdminTestimonial[]; counts: { all: number; published: number; draft: number } };
+
+export type SlideInput = {
+  imageId: string;
+  headingKa: string;
+  headingEn?: string | null;
+  textKa?: string | null;
+  textEn?: string | null;
+  ctaLabelKa?: string | null;
+  ctaLabelEn?: string | null;
+  ctaUrl?: string | null;
+  isPublished: boolean;
+};
+export type AdminSlide = {
+  id: string;
+  imageId: string;
+  image: ApiImage;
+  headingKa: string;
+  headingEn: string | null;
+  textKa: string;
+  textEn: string | null;
+  ctaLabelKa: string;
+  ctaLabelEn: string | null;
+  ctaUrl: string;
+  isPublished: boolean;
+  position: number;
+  updatedAt: string;
+};
+export const MAX_SLIDES = 8;
+
+export type MenuLocation = "header" | "footer";
+export const MAX_MENU_ITEMS = 12;
+export type NavItemInput = {
+  location: MenuLocation;
+  labelKa: string;
+  labelEn?: string | null;
+  pageId?: string | null;
+  url?: string | null;
+  newTab: boolean;
+  visible: boolean;
+};
+export type AdminNavItem = {
+  id: string;
+  location: MenuLocation;
+  labelKa: string;
+  labelEn: string | null;
+  pageId: string | null;
+  page: { id: string; title: string; isPublished: boolean } | null;
+  url: string | null;
+  href: string | null;
+  newTab: boolean;
+  visible: boolean;
+  position: number;
+};
+export type AdminMenus = Record<MenuLocation, AdminNavItem[]>;
+
+export type SettingsInput = {
+  companyName: string;
+  taglineKa: string;
+  taglineEn?: string | null;
+  email: string;
+  phone: string;
+  addressKa: string;
+  addressEn?: string | null;
+  hoursKa: string;
+  hoursEn?: string | null;
+  instagramUrl: string;
+  linkedinUrl: string;
+  facebookUrl: string;
+  whatsappNumber: string;
+  messengerUsername: string;
+  mapUrl: string;
+  latitude: number | null;
+  longitude: number | null;
+  defaultSeoDescriptionKa: string;
+  defaultSeoDescriptionEn?: string | null;
+  defaultOgImageId: string | null;
+  googleSiteVerification: string;
+  gtmContainerId: string;
+};
+export type AdminSettings = Required<SettingsInput> & { defaultOgImage: ApiImage | null; updatedAt: string };
+
+export type AdminRedirect = { id: string; fromPath: string; toPath: string; createdAt: string };
+export type RedirectList = { items: AdminRedirect[]; page: number; pageSize: number; total: number };
+
+/** Empty text becomes null (the API's "use the Georgian" for English fields). */
+export const orNull = (value: string | null | undefined) => (value && value.trim() ? value.trim() : null);

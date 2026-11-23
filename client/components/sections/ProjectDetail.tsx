@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
 import { ArrowLeft, Check } from "lucide-react";
 import { Gallery } from "@/components/sections/Gallery";
 import { ProjectCard } from "@/components/sections/ProjectCard";
@@ -10,35 +9,14 @@ import { Reveal } from "@/components/ui/Reveal";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useFormatters, useTranslation } from "@/i18n/client";
 import { LocaleLink as Link } from "@/i18n/LocaleLink";
-import { usePublicProject, usePublicProjects } from "@/lib/public-projects";
-import { useDB } from "@/lib/store";
+import type { Project } from "@/lib/types";
 import { cx, stageState } from "@/lib/format";
 
-export function ProjectDetail({ slug }: { slug: string }) {
+/** One published project, read on the server (app/[lang]/(site)/projects/[slug]/page.tsx). */
+export function ProjectDetail({ project: p, related }: { project: Project; related: Project[] }) {
   const { t } = useTranslation("projects");
   const { t: tc } = useTranslation("common");
   const fmt = useFormatters();
-  const { project: loaded } = usePublicProject(slug);
-  const list = usePublicProjects().projects;
-  const projects = useMemo(() => list ?? [], [list]);
-  const project = loaded ?? undefined;
-  const company = useDB((d) => d.settings.companyName);
-
-  // Server metadata is built from the seed data; keep the tab title in sync with admin edits.
-  useEffect(() => {
-    if (project) document.title = t("detail.titleTemplate", { title: project.title, company });
-  }, [project, company, t]);
-  const related = useMemo(() => {
-    if (!project) return [];
-    const same = projects.filter((p) => p.id !== project.id && p.category === project.category);
-    const others = projects.filter((p) => p.id !== project.id && p.category !== project.category);
-    return [...same, ...others].slice(0, 3);
-  }, [projects, project]);
-
-  // undefined = still loading (or the server can't be reached); null = no such published project.
-  if (!project) return loaded === null ? <ProjectMissing /> : <ProjectDetailSkeleton />;
-
-  const p = project;
   const facts: [string, string][] = [
     [t("detail.facts.location"), p.location],
     [t("detail.facts.type"), tc(`category.${p.category}`)],
@@ -196,20 +174,6 @@ export function ProjectDetailSkeleton() {
       <div className="h-4 w-28 rounded bg-paper-2" />
       <div className="mt-10 h-14 w-2/3 rounded bg-paper-2" />
       <div className="mt-10 aspect-[21/9] rounded-[2px] bg-paper-2" />
-    </div>
-  );
-}
-
-function ProjectMissing() {
-  const { t } = useTranslation("projects");
-  return (
-    <div className="shell flex min-h-[70svh] flex-col items-start justify-center pt-(--header-h)">
-      <p className="t-eyebrow text-muted">{t("detail.missing.eyebrow")}</p>
-      <h1 className="t-h1 mt-5 max-w-[16ch]">{t("detail.missing.title")}</h1>
-      <p className="t-lead mt-5 max-w-xl text-ink-soft">{t("detail.missing.body")}</p>
-      <ButtonLink href="/projects" className="mt-8" arrow>
-        {t("detail.missing.cta")}
-      </ButtonLink>
     </div>
   );
 }

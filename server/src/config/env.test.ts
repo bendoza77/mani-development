@@ -43,6 +43,8 @@ describe("loadConfig", () => {
       // Development runs on plain http://localhost, so the cookie can't be Secure or __Host-.
       sessionCookie: { name: "sid", secure: false },
       apiPublicUrl: "http://localhost:4000",
+      turnstileSecret: null,
+      smtp: null,
       media: { provider: "local", dir: "uploads" },
     });
   });
@@ -65,6 +67,30 @@ describe("loadConfig", () => {
   it("refuses the console mail transport outside development (it would print reset links to logs)", () => {
     expect(loadConfig({ ...valid, MAIL_TRANSPORT: "console" }).mailTransport).toBe("console");
     expect(problemsOf({ ...valid, NODE_ENV: "test", MAIL_TRANSPORT: "console" })[0]).toMatch(/MAIL_TRANSPORT/);
+  });
+
+  it("reads the Gmail SMTP settings, with Gmail's server and port 465 by default", () => {
+    const config = loadConfig({ ...valid, MAIL_TRANSPORT: "smtp", SMTP_USER: "info@manidevelopment.ge", SMTP_APP_PASSWORD: "abcd efgh ijkl mnop" });
+
+    expect(config.mailTransport).toBe("smtp");
+    expect(config.smtp).toEqual({
+      host: "smtp.gmail.com",
+      port: 465,
+      user: "info@manidevelopment.ge",
+      password: "abcd efgh ijkl mnop",
+      from: "MANI DEVELOPMENT <info@manidevelopment.ge>",
+    });
+    expect(loadConfig(valid).smtp).toBeNull();
+  });
+
+  it("names the missing SMTP settings and never repeats the password in a problem", () => {
+    expect(problemsOf({ ...valid, MAIL_TRANSPORT: "smtp" })).toEqual([
+      "SMTP_USER is required when MAIL_TRANSPORT=smtp",
+      "SMTP_APP_PASSWORD is required when MAIL_TRANSPORT=smtp",
+    ]);
+    const problems = problemsOf({ ...valid, MAIL_TRANSPORT: "smtp", SMTP_USER: "not-an-email", SMTP_APP_PASSWORD: "secret-pass-1234" });
+    expect(problems.join("\n")).toMatch(/SMTP_USER/);
+    expect(problems.join("\n")).not.toContain("secret-pass-1234");
   });
 
   it("accepts session lengths within limits", () => {

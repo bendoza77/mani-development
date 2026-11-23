@@ -30,11 +30,14 @@ export function toImage(asset: AssetRow, config: Config, locale: Locale = "ka"):
 }
 
 export function toMediaAsset(
-  asset: AssetRow & { filename: string; bytes: number; mimeType: string; createdAt: Date },
+  asset: AssetRow & { filename: string; bytes: number; mimeType: string; category: string; createdAt: Date },
   config: Config,
 ) {
   return {
     ...toImage(asset, config),
+    altKa: asset.altKa,
+    altEn: asset.altEn,
+    category: asset.category,
     filename: asset.filename,
     bytes: asset.bytes,
     mimeType: asset.mimeType,

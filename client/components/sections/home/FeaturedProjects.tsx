@@ -1,24 +1,19 @@
-"use client";
-
-import { useMemo } from "react";
 import { ProjectCard } from "@/components/sections/ProjectCard";
 import { Reveal } from "@/components/ui/Reveal";
 import { TextLink } from "@/components/ui/Button";
-import { useTranslation } from "@/i18n/client";
-import { usePublicProjects } from "@/lib/public-projects";
+import { getT } from "@/i18n/server";
+import { getProjects } from "@/lib/public-api";
 
 const MAX = 4;
 
 /** Featured projects (the admin "featured" flag), topped up with private houses if fewer than four are flagged. */
-export function FeaturedProjects() {
-  const { t } = useTranslation("home");
-  const all = usePublicProjects().projects;
-  const projects = useMemo(() => all ?? [], [all]);
-  const featured = useMemo(() => {
-    const f = projects.filter((p) => p.featured);
-    const houses = projects.filter((p) => !p.featured && p.category === "residential");
-    return [...f, ...houses].slice(0, MAX);
-  }, [projects]);
+export async function FeaturedProjects() {
+  const { t, locale } = await getT("home");
+  const projects = await getProjects(locale);
+  const featured = [
+    ...projects.filter((p) => p.featured),
+    ...projects.filter((p) => !p.featured && p.category === "residential"),
+  ].slice(0, MAX);
 
   if (!featured.length) return null;
 

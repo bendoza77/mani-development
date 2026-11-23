@@ -1,25 +1,107 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowDown, ArrowUp, Eye, EyeOff, ImagePlus, Pencil, Plus, Trash2, Users } from "lucide-react";
-import { MediaPicker } from "@/components/admin/MediaPicker";
+import { arrayMove } from "@dnd-kit/sortable";
+import { ArrowLeft, ArrowRight, Eye, EyeOff, ImagePlus, Pencil, Plus, Trash2, Users } from "lucide-react";
+import { BiField } from "@/components/admin/BiField";
+import { ImagePicker } from "@/components/admin/ImagePicker";
+import { LoadError, ServerErrors, without } from "@/components/admin/parts";
 import { EmptyState, IconButton, PageHeader } from "@/components/admin/ui";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog, Dialog } from "@/components/ui/Dialog";
-import { Field, Input, Textarea, Toggle } from "@/components/ui/Field";
+import { Toggle } from "@/components/ui/Field";
 import { Img } from "@/components/ui/Img";
 import { useToast } from "@/components/ui/Toast";
-import { teamDB, uid, useDB } from "@/lib/store";
+import { useApiData } from "@/hooks/useApiData";
+import { api, errorMessage, fieldErrorsFrom, orNull, saveOrder, type AdminTeamMember, type ApiImage, type TeamMemberInput } from "@/lib/api";
 import { cx } from "@/lib/format";
-import type { TeamMember } from "@/lib/types";
 
-const blank = (): TeamMember => ({ id: "", name: "", role: "", bio: "", photo: "", visible: true });
+type Draft = { nameKa: string; nameEn: string; roleKa: string; roleEn: string; bioKa: string; bioEn: string; photo: ApiImage | null; visible: boolean };
+
+const blank = (): Draft => ({ nameKa: "", nameEn: "", roleKa: "", roleEn: "", bioKa: "", bioEn: "", photo: null, visible: true });
+const toDraft = (m: AdminTeamMember): Draft => ({
+  nameKa: m.nameKa,
+  nameEn: m.nameEn ?? "",
+  roleKa: m.roleKa,
+  roleEn: m.roleEn ?? "",
+  bioKa: m.bioKa,
+  bioEn: m.bioEn ?? "",
+  photo: m.photo,
+  visible: m.visible,
+});
+const toInput = (d: Draft): TeamMemberInput => ({
+  nameKa: d.nameKa.trim(),
+  nameEn: orNull(d.nameEn),
+  roleKa: d.roleKa.trim(),
+  roleEn: orNull(d.roleEn),
+  bioKa: d.bioKa.trim(),
+  bioEn: orNull(d.bioEn),
+  photoId: d.photo?.id ?? "",
+  visible: d.visible,
+});
+
+function validate(d: Draft): Record<string, string> {
+  const e: Record<string, string> = {};
+  const len = (v: string) => v.trim().length;
+  if (len(d.nameKa) < 2) e.nameKa = "Name is required (2+ characters).";
+  else if (len(d.nameKa) > 100) e.nameKa = "At most 100 characters.";
+  if (len(d.nameEn) > 100) e.nameEn = "At most 100 characters.";
+  if (!len(d.roleKa)) e.roleKa = "Role is required.";
+  else if (len(d.roleKa) > 100) e.roleKa = "At most 100 characters.";
+  if (len(d.roleEn) > 100) e.roleEn = "At most 100 characters.";
+  if (len(d.bioKa) < 20) e.bioKa = "Write a short bio (20+ characters).";
+  else if (len(d.bioKa) > 600) e.bioKa = "At most 600 characters.";
+  if (len(d.bioEn) > 600) e.bioEn = "At most 600 characters.";
+  if (!d.photo) e.photo = "Choose a photo.";
+  return e;
+}
+
+const KNOWN = new Set(["nameKa", "nameEn", "roleKa", "roleEn", "bioKa", "bioEn", "photoId", "photo", "visible"]);
 
 export function TeamAdmin() {
-  const team = useDB((d) => d.team);
+  const { data, error, reload, update } = useApiData<{ items: AdminTeamMember[] }>("/api/admin/team");
+  const team = data?.items ?? null;
   const toast = useToast();
-  const [editing, setEditing] = useState<{ item: TeamMember; isNew: boolean } | null>(null);
-  const [toDelete, setToDelete] = useState<TeamMember | null>(null);
+  const [editing, setEditing] = useState<{ item: AdminTeamMember | null; key: number } | null>(null);
+  const [toDelete, setToDelete] = useState<AdminTeamMember | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  async function move(from: number, to: number) {
+    if (!team || to < 0 || to >= team.length) return;
+    const next = arrayMove(team, from, to);
+    update(() => ({ items: next }));
+    try {
+      const saved = await saveOrder<{ items: AdminTeamMember[] }>("/api/admin/team", next.map((m) => m.id));
+      update(() => saved);
+    } catch (err) {
+      toast({ tone: "error", title: "Order not saved", body: errorMessage(err) });
+      reload();
+    }
+  }
+
+  async function toggleVisible(m: AdminTeamMember) {
+    try {
+      const saved = await api<AdminTeamMember>(`/api/admin/team/${m.id}`, { method: "PATCH", body: { visible: !m.visible } });
+      update((d) => ({ items: d.items.map((x) => (x.id === saved.id ? saved : x)) }));
+      toast({ tone: "info", title: m.visible ? "Hidden from website" : "Visible on website", body: m.nameKa });
+    } catch (err) {
+      toast({ tone: "error", title: "Could not change", body: errorMessage(err) });
+    }
+  }
+
+  async function remove(m: AdminTeamMember) {
+    setDeleting(true);
+    try {
+      await api(`/api/admin/team/${m.id}`, { method: "DELETE" });
+      update((d) => ({ items: d.items.filter((x) => x.id !== m.id) }));
+      toast({ tone: "success", title: "Member removed", body: m.nameKa });
+      setToDelete(null);
+    } catch (err) {
+      toast({ tone: "error", title: "Could not remove", body: errorMessage(err) });
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   return (
     <>
@@ -27,12 +109,18 @@ export function TeamAdmin() {
         title="Team"
         description="Visible members appear on the About page, in this order."
         actions={
-          <Button size="sm" onClick={() => setEditing({ item: blank(), isNew: true })}>
+          <Button size="sm" onClick={() => setEditing({ item: null, key: Date.now() })}>
             <Plus aria-hidden className="size-4" /> Add member
           </Button>
         }
       />
-      {team.length === 0 ? (
+      {error ? (
+        <div className="rounded-md border border-line bg-card">
+          <LoadError message={error.message} onRetry={reload} />
+        </div>
+      ) : !team ? (
+        <div className="h-64 animate-pulse rounded-md bg-paper-2/50" aria-busy="true" />
+      ) : team.length === 0 ? (
         <div className="rounded-md border border-line bg-card">
           <EmptyState icon={Users} title="No team members" body="Add people to introduce the studio on the About page." />
         </div>
@@ -41,25 +129,21 @@ export function TeamAdmin() {
           {team.map((m, i) => (
             <li key={m.id} className="overflow-hidden rounded-md border border-line bg-card">
               <div className={cx("relative aspect-[4/3] bg-paper-2", !m.visible && "opacity-50 grayscale")}>
-                {m.photo && <Img src={m.photo} alt="" sizes="(min-width: 1024px) 25vw, 50vw" imgClassName="object-top" />}
+                <Img src={m.photo.src} alt="" sizes="(min-width: 1024px) 25vw, 50vw" imgClassName="object-top" />
                 {!m.visible && <span className="absolute top-3 left-3 rounded-full bg-ink px-2.5 py-0.5 text-[0.72rem] text-paper">Hidden</span>}
               </div>
               <div className="p-4">
-                <p className="font-medium">{m.name}</p>
-                <p className="text-[0.83rem] text-muted">{m.role}</p>
+                <p className="font-medium">{m.nameKa}</p>
+                <p className="text-[0.83rem] text-muted">
+                  {m.roleKa}
+                  {!m.nameEn && <span className="ml-2 rounded-full bg-warn-soft px-2 py-0.5 text-[0.7rem] text-warn">No English</span>}
+                </p>
                 <div className="mt-3 -ml-2 flex">
-                  <IconButton label={`Move ${m.name} earlier`} icon={ArrowUp} disabled={i === 0} onClick={() => teamDB.move(m.id, -1)} />
-                  <IconButton label={`Move ${m.name} later`} icon={ArrowDown} disabled={i === team.length - 1} onClick={() => teamDB.move(m.id, 1)} />
-                  <IconButton
-                    label={m.visible ? `Hide ${m.name}` : `Show ${m.name}`}
-                    icon={m.visible ? Eye : EyeOff}
-                    onClick={() => {
-                      teamDB.update(m.id, { visible: !m.visible }, `${m.name} ${m.visible ? "hidden" : "shown"} on About page`);
-                      toast({ tone: "info", title: m.visible ? "Hidden from website" : "Visible on website", body: m.name });
-                    }}
-                  />
-                  <IconButton label={`Edit ${m.name}`} icon={Pencil} onClick={() => setEditing({ item: m, isNew: false })} />
-                  <IconButton label={`Remove ${m.name}`} icon={Trash2} tone="danger" onClick={() => setToDelete(m)} />
+                  <IconButton label={`Move ${m.nameKa} earlier`} icon={ArrowLeft} disabled={i === 0} onClick={() => void move(i, i - 1)} />
+                  <IconButton label={`Move ${m.nameKa} later`} icon={ArrowRight} disabled={i === team.length - 1} onClick={() => void move(i, i + 1)} />
+                  <IconButton label={m.visible ? `Hide ${m.nameKa}` : `Show ${m.nameKa}`} icon={m.visible ? Eye : EyeOff} onClick={() => void toggleVisible(m)} />
+                  <IconButton label={`Edit ${m.nameKa}`} icon={Pencil} onClick={() => setEditing({ item: m, key: Date.now() })} />
+                  <IconButton label={`Remove ${m.nameKa}`} icon={Trash2} tone="danger" onClick={() => setToDelete(m)} />
                 </div>
               </div>
             </li>
@@ -67,98 +151,104 @@ export function TeamAdmin() {
         </ul>
       )}
 
-      <MemberEditor
-        key={editing?.item.id ?? "none"}
-        state={editing}
-        onClose={() => setEditing(null)}
-        onSave={(item, isNew) => {
-          if (isNew) teamDB.add({ ...item, id: uid("m") }, `${item.name} added to the team`, "end");
-          else teamDB.update(item.id, item, `${item.name}'s profile updated`);
-          toast({ tone: "success", title: isNew ? "Member added" : "Profile saved", body: item.name });
-          setEditing(null);
-        }}
-      />
+      {editing && (
+        <MemberEditor
+          key={editing.key}
+          item={editing.item}
+          onClose={() => setEditing(null)}
+          onSaved={(saved, isNew) => {
+            update((d) => ({ items: isNew ? [...d.items, saved] : d.items.map((x) => (x.id === saved.id ? saved : x)) }));
+            toast({ tone: "success", title: isNew ? "Member added" : "Profile saved", body: saved.nameKa });
+            setEditing(null);
+          }}
+        />
+      )}
       <ConfirmDialog
         open={!!toDelete}
         onClose={() => setToDelete(null)}
-        title={`Remove ${toDelete?.name}?`}
+        title={`Remove ${toDelete?.nameKa}?`}
         description="Their profile will be removed from the About page and the admin."
         confirmLabel="Remove"
-        onConfirm={() => {
-          if (!toDelete) return;
-          teamDB.remove(toDelete.id, `${toDelete.name} removed from the team`);
-          toast({ tone: "success", title: "Member removed", body: toDelete.name });
-          setToDelete(null);
-        }}
+        loading={deleting}
+        onConfirm={() => toDelete && void remove(toDelete)}
       />
     </>
   );
 }
 
-function MemberEditor({ state, onClose, onSave }: { state: { item: TeamMember; isNew: boolean } | null; onClose: () => void; onSave: (m: TeamMember, isNew: boolean) => void }) {
-  const [d, setD] = useState<TeamMember>(() => state?.item ?? blank());
+function MemberEditor({ item, onClose, onSaved }: { item: AdminTeamMember | null; onClose: () => void; onSaved: (m: AdminTeamMember, isNew: boolean) => void }) {
+  const [d, setD] = useState<Draft>(() => (item ? toDraft(item) : blank()));
   const [show, setShow] = useState(false);
+  const [server, setServer] = useState<Record<string, string>>({});
+  const [general, setGeneral] = useState<string | null>(null);
   const [picker, setPicker] = useState(false);
-  const errors = {
-    name: d.name.trim().length < 2 ? "Name is required." : undefined,
-    role: !d.role.trim() ? "Role is required." : undefined,
-    bio: d.bio.trim().length < 20 ? "Write a short bio (20+ characters)." : undefined,
-    photo: !d.photo ? "Choose a photo." : undefined,
+  const [saving, setSaving] = useState(false);
+
+  const local = validate(d);
+  const err = (k: string) => (show ? local[k] : undefined) ?? server[k] ?? (k === "photo" ? server.photoId : undefined);
+  const set = <K extends keyof Draft>(k: K, v: Draft[K]) => {
+    setD((x) => ({ ...x, [k]: v }));
+    setServer((s) => without(s, k));
   };
-  const e = (k: keyof typeof errors) => (show ? errors[k] : undefined);
+
+  async function save() {
+    setShow(true);
+    if (Object.keys(local).length) return;
+    setSaving(true);
+    setGeneral(null);
+    try {
+      const body = toInput(d);
+      const saved = item
+        ? await api<AdminTeamMember>(`/api/admin/team/${item.id}`, { method: "PUT", body })
+        : await api<AdminTeamMember>("/api/admin/team", { method: "POST", body });
+      onSaved(saved, !item);
+    } catch (e) {
+      setServer(fieldErrorsFrom(e));
+      setGeneral(errorMessage(e));
+      setSaving(false);
+    }
+  }
+
   return (
     <>
       <Dialog
-        open={!!state && !picker}
+        open={!picker}
         onClose={onClose}
-        title={state?.isNew ? "Add team member" : "Edit team member"}
+        title={item ? "Edit team member" : "Add team member"}
+        size="lg"
         footer={
           <>
             <Button variant="ghost" size="sm" onClick={onClose}>
               Cancel
             </Button>
-            <Button
-              size="sm"
-              onClick={() => {
-                setShow(true);
-                if (Object.values(errors).some(Boolean)) return;
-                onSave({ ...d, name: d.name.trim(), role: d.role.trim() }, !!state?.isNew);
-              }}
-            >
+            <Button size="sm" loading={saving} onClick={() => void save()}>
               Save
             </Button>
           </>
         }
       >
         <div className="grid gap-4">
+          {general && <ServerErrors message={general} fields={server} known={KNOWN} />}
           <div className="flex items-end gap-4">
-            <div className="relative aspect-[4/5] w-24 overflow-hidden rounded-[3px] border border-line bg-paper-2">{d.photo && <Img src={d.photo} alt="Selected portrait" sizes="96px" />}</div>
+            <div className="relative aspect-[4/5] w-24 overflow-hidden rounded-[3px] border border-line bg-paper-2">{d.photo && <Img src={d.photo.src} alt="Selected portrait" sizes="96px" />}</div>
             <div>
               <Button type="button" variant="outline" size="sm" onClick={() => setPicker(true)}>
                 <ImagePlus aria-hidden className="size-4" /> {d.photo ? "Change photo" : "Choose photo"}
               </Button>
-              {e("photo") && (
+              {err("photo") && (
                 <p role="alert" className="mt-1.5 text-[0.8rem] text-danger">
-                  {e("photo")}
+                  {err("photo")}
                 </p>
               )}
             </div>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Name" required error={e("name")}>
-              {(a) => <Input {...a} value={d.name} onChange={(ev) => setD({ ...d, name: ev.target.value })} />}
-            </Field>
-            <Field label="Role" required error={e("role")}>
-              {(a) => <Input {...a} value={d.role} onChange={(ev) => setD({ ...d, role: ev.target.value })} />}
-            </Field>
-          </div>
-          <Field label="Bio" required error={e("bio")}>
-            {(a) => <Textarea {...a} rows={4} value={d.bio} onChange={(ev) => setD({ ...d, bio: ev.target.value })} />}
-          </Field>
-          <Toggle checked={d.visible} onChange={(v) => setD({ ...d, visible: v })} label="Visible on About page" />
+          <BiField label="Name" required maxLength={100} ka={d.nameKa} en={d.nameEn} onKa={(v) => set("nameKa", v)} onEn={(v) => set("nameEn", v)} errorKa={err("nameKa")} errorEn={err("nameEn")} />
+          <BiField label="Role" required maxLength={100} ka={d.roleKa} en={d.roleEn} onKa={(v) => set("roleKa", v)} onEn={(v) => set("roleEn", v)} errorKa={err("roleKa")} errorEn={err("roleEn")} />
+          <BiField label="Bio" required multiline rows={4} maxLength={600} ka={d.bioKa} en={d.bioEn} onKa={(v) => set("bioKa", v)} onEn={(v) => set("bioEn", v)} errorKa={err("bioKa")} errorEn={err("bioEn")} />
+          <Toggle checked={d.visible} onChange={(v) => set("visible", v)} label="Visible on About page" />
         </div>
       </Dialog>
-      <MediaPicker open={picker} onClose={() => setPicker(false)} initial={d.photo ? [d.photo] : []} onSelect={([src]) => setD((x) => ({ ...x, photo: src }))} title="Choose a portrait" />
+      <ImagePicker open={picker} onClose={() => setPicker(false)} initial={d.photo ? [d.photo] : []} onSelect={([img]) => img && set("photo", img)} title="Choose a portrait" />
     </>
   );
 }

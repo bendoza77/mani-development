@@ -1,21 +1,15 @@
-"use client";
-
-import { useMemo } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { Img } from "@/components/ui/Img";
 import { TextLink } from "@/components/ui/Button";
 import { IMAGES } from "@/data/images";
-import { useContent, useTranslation } from "@/i18n/client";
 import { LocaleLink as Link } from "@/i18n/LocaleLink";
-import { useDB } from "@/lib/store";
-import { slugify } from "@/lib/format";
+import { getT } from "@/i18n/server";
+import { getServices } from "@/lib/public-api";
 
 /** Compact list of the visible services (managed in the admin), each linking to its detail on /services. */
-export function ServicesOverview() {
-  const { t } = useTranslation("home");
-  const content = useContent();
-  const all = useDB((d) => d.services);
-  const services = useMemo(() => all.filter((s) => s.visible), [all]);
+export async function ServicesOverview() {
+  const { t, locale } = await getT("home");
+  const services = await getServices(locale);
 
   if (!services.length) return null;
 
@@ -28,9 +22,7 @@ export function ServicesOverview() {
             <h2 id="services-title" className="t-h2 mt-4 max-w-[16ch]">
               {t("services.title")}
             </h2>
-            <p className="mt-5 max-w-md leading-relaxed text-ink-soft">
-              {t("services.lead")}
-            </p>
+            <p className="mt-5 max-w-md leading-relaxed text-ink-soft">{t("services.lead")}</p>
             <div className="relative mt-10 hidden aspect-[4/3] overflow-hidden rounded-[2px] lg:block">
               <Img src={IMAGES["villa-modern-white"].src} alt={t("services.imageAlt")} sizes="38vw" />
             </div>
@@ -39,13 +31,11 @@ export function ServicesOverview() {
 
         <div className="lg:col-span-7">
           <ul className="border-t border-line">
-            {services.map((raw, i) => {
-              const s = content.service(raw);
-              return (
+            {services.map((s, i) => (
               <li key={s.id} className="border-b border-line">
                 <Link
-                  // Anchors are derived from the stored (English) title so they match /services in every language.
-                  href={`/services#${slugify(raw.title)}`}
+                  // Anchors are the service's slug, the same in every language (see ServicesList).
+                  href={`/services#${s.slug}`}
                   className="group grid grid-cols-[2.25rem_1fr_auto] gap-x-4 py-6 sm:grid-cols-[3rem_1fr_auto] sm:py-7"
                 >
                   <span className="t-meta pt-2 text-muted">{String(i + 1).padStart(2, "0")}</span>
@@ -59,8 +49,7 @@ export function ServicesOverview() {
                   />
                 </Link>
               </li>
-              );
-            })}
+            ))}
           </ul>
           <TextLink href="/services" className="mt-10">
             {t("services.link")}

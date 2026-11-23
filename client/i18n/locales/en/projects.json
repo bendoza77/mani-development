@@ -25,7 +25,8 @@
     "clear": "Clear filters",
     "emptyTitle": "No projects match those filters.",
     "emptyBody": "Try a different category or status, or clear your search.",
-    "reset": "Reset filters"
+    "reset": "Reset filters",
+    "none": "No projects have been published yet. Please check back soon."
   },
   "card": {
     "imageAlt": "{{title}}, {{location}}"
@@ -50,7 +51,13 @@
       "in-progress": "On site now"
     },
     "progress": "Overall progress",
-    "stages": ["Groundworks", "Structure", "Envelope", "Interiors", "Handover"],
+    "stages": [
+      "Groundworks",
+      "Structure",
+      "Envelope",
+      "Interiors",
+      "Handover"
+    ],
     "stageState": {
       "done": "Complete",
       "active": "In progress",

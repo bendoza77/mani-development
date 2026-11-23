@@ -51,6 +51,18 @@ export function projectInput(coverId: string, overrides: Record<string, unknown>
   };
 }
 
+/** Any admin request: carries the allowed Origin (CSRF check) and the session cookie. */
+export function api(
+  app: Express,
+  method: "get" | "post" | "put" | "patch" | "delete",
+  path: string,
+  cookie: string,
+  body?: object,
+) {
+  const req = request(app)[method](path).set("Origin", ALLOWED_ORIGIN).set("Cookie", cookie);
+  return body === undefined ? req : req.send(body);
+}
+
 export const paragraph = (text: string) => ({
   type: "doc",
   content: [{ type: "paragraph", content: [{ type: "text", text }] }],

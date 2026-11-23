@@ -1,7 +1,6 @@
 "use client";
 
-import { useContent } from "@/i18n/client";
-import { useDB } from "@/lib/store";
+import { useSiteSettings } from "@/components/layout/SiteSettings";
 import { cx } from "@/lib/format";
 
 /** The brand mark: a beam spanning two posts, with a fired-clay bearing line. */
@@ -22,9 +21,7 @@ export function LogoMark({ className, title }: { className?: string; title?: str
 }
 
 export function Logo({ className, compact = false }: { className?: string; compact?: boolean }) {
-  const name = useDB((d) => d.settings.companyName);
-  const settings = useDB((d) => d.settings);
-  const { tagline } = useContent().settings(settings);
+  const { companyName: name, tagline } = useSiteSettings();
   return (
     <span className={cx("inline-flex items-center gap-2.5", className)}>
       <LogoMark className="size-7" />
@@ -32,7 +29,7 @@ export function Logo({ className, compact = false }: { className?: string; compa
         <span lang="en" className="whitespace-nowrap text-[1.05rem] font-semibold uppercase tracking-[0.06em] sm:tracking-[0.2em]">
           {name}
         </span>
-        {!compact && (
+        {!compact && tagline && (
           <span className="mt-1 whitespace-nowrap font-mono text-[0.58rem] uppercase tracking-[0.18em] opacity-60 max-sm:hidden">{tagline}</span>
         )}
       </span>

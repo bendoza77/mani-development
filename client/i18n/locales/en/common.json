@@ -69,5 +69,12 @@
     ],
     "monthYear": "{{month}} {{year}}",
     "estimatedYear": "Est. {{year}}"
+  },
+  "consent": {
+    "title": "Analytics cookies",
+    "body": "With your permission we use Google Analytics to count visits and see which pages help people. Nothing is collected unless you accept. You can change your choice at any time from the footer.",
+    "accept": "Accept",
+    "decline": "Decline",
+    "settings": "Cookie settings"
   }
 }

@@ -1,0 +1,74 @@
+# Render Blueprint for the MANI DEVELOPMENT API and database (server/docs/RUNBOOK.md §2).
+# Field names and plan/region values checked against https://render.com/docs/blueprint-spec
+# on 2026-11-21. The envVars syntax (key / value / sync / fromDatabase) follows Render's documented
+# format but was not re-read word for word; Render validates the file when the Blueprint is created.
+#
+# Secrets use `sync: false`: Render asks for them once, in its dashboard. They never go into Git.
+# Everything is in Frankfurt (Render's only EU region; it can't be changed later).
+
+previews:
+  generation: off
+
+services:
+  - type: web
+    name: mani-api
+    runtime: node
+    rootDir: server
+    region: frankfurt
+    plan: 0.5c-512mb
+    branch: main
+    # Dev dependencies (Prisma CLI, TypeScript) are needed to build; NODE_ENV=production would skip them.
+    buildCommand: npm ci --include=dev && npx prisma generate && npm run build
+    # Runs before each new version goes live; a failed migration cancels the deploy.
+    preDeployCommand: npx prisma migrate deploy
+    startCommand: npm start
+    healthCheckPath: /api/health/ready
+    autoDeployTrigger: commit
+    domains:
+      - api.manidevelopment.ge
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mani-db
+          property: connectionString
+      - key: CORS_ORIGINS
+        value: https://www.manidevelopment.ge
+      - key: PUBLIC_SITE_URL
+        value: https://www.manidevelopment.ge
+      - key: API_PUBLIC_URL
+        value: https://api.manidevelopment.ge
+      - key: LOG_LEVEL
+        value: info
+      # Number of proxies in front of the app; measured on staging (Phase 3) before launch.
+      - key: TRUST_PROXY_HOPS
+        sync: false
+      - key: MEDIA_PROVIDER
+        value: cloudflare
+      - key: CLOUDFLARE_ACCOUNT_ID
+        sync: false
+      - key: CLOUDFLARE_IMAGES_API_TOKEN
+        sync: false
+      - key: CLOUDFLARE_IMAGES_ACCOUNT_HASH
+        sync: false
+      - key: MAIL_TRANSPORT
+        value: smtp
+      - key: SMTP_USER
+        value: info@manidevelopment.ge
+      - key: SMTP_APP_PASSWORD
+        sync: false
+      # Optional, add later in the dashboard if the contact form gets spam: TURNSTILE_SECRET_KEY
+
+databases:
+  - name: mani-db
+    databaseName: mani
+    plan: 0.1c-256mb
+    region: frankfurt
+    postgresMajorVersion: "18"
+    # Only Render's own network may connect; open a single IP temporarily for a restore drill.
+    ipAllowList: []
+
+# Staging (recommended, about $13/month more): create a second Blueprint from a copy of this file
+# with names mani-api-staging / mani-db-staging, branch `staging`, domain api-staging.manidevelopment.ge,
+# CORS_ORIGINS / PUBLIC_SITE_URL = https://staging.manidevelopment.ge, and its own Cloudflare token.

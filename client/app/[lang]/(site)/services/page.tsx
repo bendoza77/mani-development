@@ -3,10 +3,18 @@ import { Plus } from "lucide-react";
 import { Trans } from "react-i18next/TransWithoutContext";
 import { PageIntro } from "@/components/sections/PageIntro";
 import { ServicesList } from "@/components/sections/ServicesList";
-import { getT, pageMetadata } from "@/i18n/server";
+import { getT } from "@/i18n/server";
+import { getPageSeo } from "@/lib/public-api";
+import { routeMetadata } from "@/lib/seo/route";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return pageMetadata("services", "/services");
+  const { t, locale } = await getT("meta");
+  return routeMetadata({
+    path: "/services",
+    title: t("services.title"),
+    description: t("services.description"),
+    seo: await getPageSeo("services", locale),
+  });
 }
 
 export default async function ServicesPage() {

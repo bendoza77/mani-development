@@ -16,7 +16,9 @@ import {
   slugTaken,
 } from "../content/fields.js";
 import { pageStyle, pageStyleInput } from "../content/style.js";
-import { pick } from "../media/media.serialize.js";
+import { pick, toImage } from "../media/media.serialize.js";
+import { customPagePath, recordAddressChange } from "../content/redirects.js";
+import { adminSeo, publicSeo, seoColumns, seoInput } from "../content/seo.js";
 import { blockInput, blocksInclude, imageIdsOf, toAdminBlock, toPublicBlock, writeBlocks } from "./blocks.js";
 import { applyMenu, menuInput, readMenu } from "./menu.js";
 
@@ -33,9 +35,16 @@ const pageInput = z.strictObject({
   blocks: z.array(blockInput).max(60),
   /** Omitted = leave the page's menu entries as they are. */
   menu: menuInput.optional(),
+  /** Omitted = leave the stored search-engine fields as they are. */
+  seo: seoInput.optional(),
 });
 
-const withBlocks = { blocks: blocksInclude } satisfies Prisma.PageInclude;
+const withBlocks = { blocks: blocksInclude, ogImage: true } satisfies Prisma.PageInclude;
+
+const imagesOf = (input: z.output<typeof pageInput>) => [
+  ...imageIdsOf(input.blocks),
+  ...(input.seo?.ogImageId ? [input.seo.ogImageId] : []),
+];
 
 type PageRow = Prisma.PageGetPayload<{ include: typeof withBlocks }>;
 
@@ -55,6 +64,9 @@ function toAdminPage(page: PageRow, config: Config, menu: Awaited<ReturnType<typ
     style: pageStyle(page.style),
     blocks: page.blocks.map((b) => toAdminBlock(b, config)),
     menu,
+    seo: adminSeo(page),
+    /** Preview of seo.ogImageId for the editor. */
+    ogImage: page.ogImage ? toImage(page.ogImage, config) : null,
     updatedAt: page.updatedAt.toISOString(),
   };
 }
@@ -95,7 +107,7 @@ export function adminPageRoutes({ config, prisma }: { config: Config; prisma: Pr
   router.post("/", async (req, res) => {
     const input = parse(pageInput, req.body);
     assertPageSlugAllowed(input.slug);
-    await assertReadyImages(prisma, imageIdsOf(input.blocks));
+    await assertReadyImages(prisma, imagesOf(input));
     try {
       const page = await prisma.$transaction(async (tx) => {
         const created = await tx.page.create({
@@ -109,6 +121,7 @@ export function adminPageRoutes({ config, prisma }: { config: Config; prisma: Pr
             style: pageStyle(input.style),
             isPublished: input.isPublished,
             publishedAt: input.isPublished ? new Date() : null,
+            ...(input.seo ? seoColumns(input.seo) : {}),
           },
         });
         await writeBlocks(tx, { pageId: created.id }, input.blocks);
@@ -131,7 +144,7 @@ export function adminPageRoutes({ config, prisma }: { config: Config; prisma: Pr
     const isSystem = existing.kind === "SYSTEM";
     // Built-in pages keep their address and are always published.
     if (!isSystem) assertPageSlugAllowed(input.slug);
-    await assertReadyImages(prisma, imageIdsOf(input.blocks));
+    await assertReadyImages(prisma, imagesOf(input));
     try {
       const page = await prisma.$transaction(async (tx) => {
         await tx.page.update({
@@ -142,6 +155,7 @@ export function adminPageRoutes({ config, prisma }: { config: Config; prisma: Pr
             introKa: input.introKa,
             introEn: input.introEn,
             ...(input.style ? { style: pageStyle(input.style) } : {}),
+            ...(input.seo ? seoColumns(input.seo) : {}),
             ...(isSystem
               ? {}
               : {
@@ -151,6 +165,9 @@ export function adminPageRoutes({ config, prisma }: { config: Config; prisma: Pr
                 }),
           },
         });
+        if (!isSystem && existing.isPublished && existing.slug !== input.slug) {
+          await recordAddressChange(tx, customPagePath(existing.slug), customPagePath(input.slug));
+        }
         await writeBlocks(tx, { pageId: id }, input.blocks);
         if (input.menu) await applyMenu(tx, { id, titleKa: input.titleKa, titleEn: input.titleEn }, input.menu);
         return tx.page.findUniqueOrThrow({ where: { id }, include: withBlocks });
@@ -186,11 +203,24 @@ export function publicPageRoutes({ config, prisma }: { config: Config; prisma: P
       include: withBlocks,
     });
     if (!page) throw notFound();
+    const settings = await prisma.siteSettings.findUniqueOrThrow({ where: { id: 1 }, include: { defaultOgImage: true } });
+    const title = pick(page.titleKa, page.titleEn, locale);
+    const intro = pick(page.introKa, page.introEn, locale);
     res.json({
       id: page.id,
       slug: page.slug,
-      title: pick(page.titleKa, page.titleEn, locale),
-      intro: pick(page.introKa, page.introEn, locale),
+      title,
+      intro,
+      seo: publicSeo(
+        page,
+        locale,
+        {
+          title,
+          description: intro || pick(settings.defaultSeoDescriptionKa, settings.defaultSeoDescriptionEn, locale),
+          image: settings.defaultOgImage,
+        },
+        config,
+      ),
       style: pageStyle(page.style),
       blocks: page.blocks.map((b) => toPublicBlock(b, config, locale)).filter((b) => b !== null),
       updatedAt: page.updatedAt.toISOString(),

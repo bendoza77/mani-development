@@ -3,6 +3,7 @@ import { join } from "node:path";
 import type { Logger } from "pino";
 import { inject } from "vitest";
 import { createApp } from "../../src/app.js";
+import type { SpamCheck } from "../../src/integrations/turnstile.js";
 import { loadConfig, type Config } from "../../src/config/env.js";
 import { createFakeMailer, type FakeMailer } from "../../src/integrations/mailer.js";
 import { createBackgroundTasks } from "../../src/lib/background.js";
@@ -24,6 +25,8 @@ const GENEROUS_LIMITS: RateLimits = {
   resetRequestPerEmail: { limit: 10_000, windowMs: 60_000 },
   resetConfirm: { limit: 10_000, windowMs: 60_000 },
   admin: { limit: 10_000, windowMs: 60_000 },
+  inquiry: { limit: 10_000, windowMs: 60_000 },
+  inquiryDaily: { limit: 10_000, windowMs: 60_000 },
 };
 
 /** Configuration for integration tests: the test database, one allowed origin, silent logs. */
@@ -49,6 +52,8 @@ export function buildTestApp(
     limits?: Partial<RateLimits>;
     mailer?: FakeMailer;
     logger?: Logger;
+    /** Contact-form spam check (stands in for Cloudflare Turnstile). */
+    spamCheck?: SpamCheck;
   } = {},
 ) {
   const config = options.config ?? testConfig();
@@ -57,7 +62,7 @@ export function buildTestApp(
   const mailer = options.mailer ?? createFakeMailer();
   const limits = { ...GENEROUS_LIMITS, ...options.limits };
   const tasks = createBackgroundTasks(logger);
-  const app = createApp({ config, logger, db, mailer, clock: options.clock, limits, tasks });
+  const app = createApp({ config, logger, db, mailer, clock: options.clock, limits, tasks, spamCheck: options.spamCheck });
   return {
     app,
     db,

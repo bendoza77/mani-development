@@ -32,6 +32,50 @@ const completeBody = z.strictObject({
 
 const idParam = z.uuid();
 
+const categoryField = z.enum(["exterior", "interior", "construction", "team", "uploads"]);
+
+const editBody = z
+  .strictObject({
+    altKa: z.string().trim().max(300).optional(),
+    altEn: z.string().trim().max(300).nullish(),
+    category: categoryField.optional(),
+  })
+  .refine((b) => Object.keys(b).length > 0, { message: "empty_update" });
+
+type Usage = { type: string; id: string; label: string; href: string };
+
+/** Every place a photo appears, so the admin knows what to change before deleting it. */
+async function usageOf(prisma: PrismaClient, mediaId: string): Promise<Usage[]> {
+  const [projects, services, team, slides, pages, blocks, settings] = await Promise.all([
+    prisma.project.findMany({
+      where: { OR: [{ coverId: mediaId }, { ogImageId: mediaId }, { gallery: { some: { mediaId } } }] },
+      select: { id: true, titleKa: true },
+    }),
+    prisma.service.findMany({ where: { imageId: mediaId }, select: { id: true, titleKa: true } }),
+    prisma.teamMember.findMany({ where: { photoId: mediaId }, select: { id: true, nameKa: true } }),
+    prisma.homeSlide.findMany({ where: { imageId: mediaId }, select: { id: true, headingKa: true } }),
+    prisma.page.findMany({ where: { ogImageId: mediaId }, select: { id: true, titleKa: true } }),
+    prisma.contentBlockMedia.findMany({
+      where: { mediaId },
+      select: { block: { select: { page: { select: { id: true, titleKa: true } }, project: { select: { id: true, titleKa: true } } } } },
+    }),
+    prisma.siteSettings.count({ where: { defaultOgImageId: mediaId } }),
+  ]);
+  const found = new Map<string, Usage>();
+  const add = (u: Usage) => found.set(`${u.type}:${u.id}`, u);
+  for (const p of projects) add({ type: "project", id: p.id, label: p.titleKa, href: `/admin/projects/${p.id}/edit` });
+  for (const s of services) add({ type: "service", id: s.id, label: s.titleKa, href: "/admin/services" });
+  for (const m of team) add({ type: "team", id: m.id, label: m.nameKa, href: "/admin/team" });
+  for (const s of slides) add({ type: "slide", id: s.id, label: s.headingKa, href: "/admin/slider" });
+  for (const p of pages) add({ type: "page", id: p.id, label: p.titleKa, href: `/admin/pages/${p.id}/edit` });
+  for (const { block } of blocks) {
+    if (block.page) add({ type: "page", id: block.page.id, label: block.page.titleKa, href: `/admin/pages/${block.page.id}/edit` });
+    if (block.project) add({ type: "project", id: block.project.id, label: block.project.titleKa, href: `/admin/projects/${block.project.id}/edit` });
+  }
+  if (settings > 0) add({ type: "settings", id: "settings", label: "Site settings (default share image)", href: "/admin/settings" });
+  return [...found.values()];
+}
+
 /** The first bytes of each accepted format, so a renamed file of another kind is refused. */
 function looksLike(type: ImageType, bytes: Buffer): boolean {
   const ascii = (start: number, end: number) => bytes.subarray(start, end).toString("latin1");
@@ -53,13 +97,58 @@ const notFound = () => new AppError(404, "NOT_FOUND", "That photo doesn't exist.
 export function mediaRoutes({ config, prisma, storage }: { config: Config; prisma: PrismaClient; storage: MediaStorage }) {
   const router = Router();
 
-  router.get("/", async (_req, res) => {
+  router.get("/", async (req, res) => {
+    const { category } = parse(z.object({ category: categoryField.optional() }), req.query);
     const assets = await prisma.mediaAsset.findMany({
-      where: { status: "READY", kind: "IMAGE" },
+      where: { status: "READY", kind: "IMAGE", ...(category ? { category } : {}) },
       orderBy: { createdAt: "desc" },
       take: 500,
     });
     res.json({ items: assets.map((a) => toMediaAsset(a, config)) });
+  });
+
+  router.patch("/:id", async (req, res) => {
+    const id = parse(idParam, req.params.id);
+    const body = parse(editBody, req.body);
+    const data = {
+      ...(body.altKa !== undefined ? { altKa: body.altKa } : {}),
+      ...(body.altEn !== undefined ? { altEn: body.altEn || null } : {}),
+      ...(body.category ? { category: body.category } : {}),
+    };
+    if ((await prisma.mediaAsset.updateMany({ where: { id, status: "READY" }, data })).count === 0) throw notFound();
+    res.json(toMediaAsset(await prisma.mediaAsset.findUniqueOrThrow({ where: { id } }), config));
+  });
+
+  router.get("/:id/usage", async (req, res) => {
+    const id = parse(idParam, req.params.id);
+    if (!(await prisma.mediaAsset.findUnique({ where: { id }, select: { id: true } }))) throw notFound();
+    res.json({ usedBy: await usageOf(prisma, id) });
+  });
+
+  /** A photo in use can't be deleted (the pages using it would break); the answer lists where it is used. */
+  router.delete("/:id", async (req, res) => {
+    const id = parse(idParam, req.params.id);
+    const asset = await prisma.mediaAsset.findUnique({ where: { id } });
+    if (!asset) throw notFound();
+    const usedBy = await usageOf(prisma, id);
+    if (usedBy.length > 0) {
+      throw new AppError(409, "MEDIA_IN_USE", "This photo is still used. Remove it from those places first.", { usedBy });
+    }
+    try {
+      await prisma.mediaAsset.delete({ where: { id } });
+    } catch (error) {
+      // Linked by something in the meantime: the database's RESTRICT rule refused the delete.
+      if (error instanceof Error && "code" in error && error.code === "P2003") {
+        throw new AppError(409, "MEDIA_IN_USE", "This photo is still used. Remove it from those places first.", {
+          usedBy: await usageOf(prisma, id),
+        });
+      }
+      throw error;
+    }
+    // After the row is gone: a failure here leaves an orphan file, never a broken page.
+    await storage.remove(asset.providerKey).catch(() => undefined);
+    await recordActivity(prisma, { kind: "media", message: `Photo deleted: ${asset.filename}`, actorId: req.session!.user.id });
+    res.status(204).end();
   });
 
   router.post("/uploads", async (req, res) => {

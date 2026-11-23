@@ -26,11 +26,12 @@ export function Hero() {
           <p className="t-lead leading-relaxed rise-in mt-6 max-w-[34rem] text-ink-soft" style={{ "--d": "120ms" } as React.CSSProperties}>
             {t("hero.lead")}
           </p>
-          <div className="rise-in leading-relaxed mt-8 flex flex-wrap gap-3" style={{ "--d": "180ms" } as React.CSSProperties}>
-            <ButtonLink href="/contact" size="lg" arrow>
+          {/* On phones the two actions stack at full width instead of two ragged lengths. */}
+          <div className="rise-in mt-8 flex flex-wrap gap-3" style={{ "--d": "180ms" } as React.CSSProperties}>
+            <ButtonLink href="/contact" size="lg" arrow className="max-sm:w-full">
               {t("hero.primaryCta")}
             </ButtonLink>
-            <ButtonLink href="/projects" size="lg" variant="outline">
+            <ButtonLink href="/projects" size="lg" variant="outline" className="max-sm:w-full">
               {t("hero.secondaryCta")}
             </ButtonLink>
           </div>

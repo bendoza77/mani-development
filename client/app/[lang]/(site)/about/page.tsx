@@ -4,14 +4,24 @@ import { TeamGrid } from "@/components/sections/TeamGrid";
 import { Img } from "@/components/ui/Img";
 import { Trans } from "react-i18next/TransWithoutContext";
 import { IMAGES } from "@/data/images";
-import { getT, pageMetadata } from "@/i18n/server";
+import { getT } from "@/i18n/server";
+import { getPageSeo, getTeam } from "@/lib/public-api";
+import { routeMetadata } from "@/lib/seo/route";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return pageMetadata("about", "/about");
+  const { t, locale } = await getT("meta");
+  return routeMetadata({
+    path: "/about",
+    title: t("about.title"),
+    description: t("about.description"),
+    seo: await getPageSeo("about", locale),
+  });
 }
 
 export default async function AboutPage() {
-  const { t, i18n } = await getT("about");
+  const { t, i18n, locale } = await getT("about");
+  // Same cached read as TeamGrid: the team section is left out when nobody is listed.
+  const hasTeam = (await getTeam(locale)).length > 0;
   const { t: tc } = await getT("company");
   const em = { em: <em className="text-accent" /> };
   const stats = tc("stats", { returnObjects: true });
@@ -112,15 +122,17 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <section className="shell py-[clamp(4rem,9vw,7rem)]" aria-labelledby="team-title">
-        <div className="mb-12 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="t-eyebrow text-muted">{t("team.eyebrow")}</p>
-            <h2 id="team-title" className="t-h2 mt-4">{t("team.title")}</h2>
+      {hasTeam && (
+        <section className="shell py-[clamp(4rem,9vw,7rem)]" aria-labelledby="team-title">
+          <div className="mb-12 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="t-eyebrow text-muted">{t("team.eyebrow")}</p>
+              <h2 id="team-title" className="t-h2 mt-4">{t("team.title")}</h2>
+            </div>
           </div>
-        </div>
-        <TeamGrid />
-      </section>
+          <TeamGrid />
+        </section>
+      )}
     </>
   );
 }

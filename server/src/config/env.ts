@@ -51,7 +51,14 @@ const schema = z
     SESSION_IDLE_MINUTES: integerString(5, 10_080).optional(),
     SESSION_MAX_DAYS: integerString(1, 30).optional(),
     // "smtp" arrives in Phase 10. "none" logs that an email would be sent, without its content.
-    MAIL_TRANSPORT: z.enum(["none", "console"]).optional(),
+    MAIL_TRANSPORT: z.enum(["none", "console", "smtp"]).optional(),
+    // Gmail / Google Workspace SMTP (docs/INTEGRATIONS.md §3.3). The app password is a secret:
+    // only in the local .env and in Render, never in Git or chat.
+    SMTP_HOST: z.string().min(1).optional(),
+    SMTP_PORT: integerString(1, 65535).optional(),
+    SMTP_USER: z.email("must be the sending account's email address").optional(),
+    SMTP_APP_PASSWORD: z.string().min(8, "is too short to be an app password").optional(),
+    MAIL_FROM: z.string().min(3).max(200).optional(),
     // Where uploaded photos go: "local" = a folder on this machine (development only),
     // "cloudflare" = Cloudflare Images (docs/INTEGRATIONS.md §1).
     MEDIA_PROVIDER: z.enum(["local", "cloudflare"]).optional(),
@@ -61,6 +68,9 @@ const schema = z
     CLOUDFLARE_ACCOUNT_ID: z.string().regex(/^[a-f0-9]{32}$/, "must be the 32-character account ID").optional(),
     CLOUDFLARE_IMAGES_API_TOKEN: z.string().min(20).optional(),
     CLOUDFLARE_IMAGES_ACCOUNT_HASH: z.string().regex(/^[A-Za-z0-9_-]{10,}$/, "must be the Images account hash").optional(),
+    // Cloudflare Turnstile secret for the contact form. Unset = no spam check beyond the honeypot
+    // and the rate limits (docs/SECURITY_PLAN.md §9).
+    TURNSTILE_SECRET_KEY: z.string().min(10).optional(),
   });
 
 /**
@@ -79,6 +89,11 @@ function environmentProblems(source: Record<string, string | undefined>): string
   } else if (source.NODE_ENV === "production") {
     problems.push("MEDIA_PROVIDER=cloudflare is required in production (local files are lost on every deploy)");
   }
+  if (source.MAIL_TRANSPORT === "smtp") {
+    for (const name of ["SMTP_USER", "SMTP_APP_PASSWORD"]) {
+      if (!source[name]) problems.push(`${name} is required when MAIL_TRANSPORT=smtp`);
+    }
+  }
   if (source.MAIL_TRANSPORT === "console" && source.NODE_ENV !== "development") {
     problems.push("MAIL_TRANSPORT=console is only allowed in development (it prints password-reset links)");
   }
@@ -96,7 +111,9 @@ export type Config = {
   publicSiteUrl: string;
   sessionIdleMinutes: number;
   sessionMaxDays: number;
-  mailTransport: "none" | "console";
+  mailTransport: "none" | "console" | "smtp";
+  /** Set when mailTransport is "smtp". */
+  smtp: { host: string; port: number; user: string; password: string; from: string } | null;
   /**
    * Host-only, HttpOnly, SameSite=Strict session cookie (docs/SECURITY_PLAN.md §2). Development runs on
    * plain http://localhost, where a Secure / __Host- cookie can't be used.
@@ -104,6 +121,8 @@ export type Config = {
   sessionCookie: { name: "__Host-sid" | "sid"; secure: boolean };
   /** This API's public origin (links to locally stored photos). */
   apiPublicUrl: string;
+  /** Contact-form spam check (Cloudflare Turnstile); null = off. */
+  turnstileSecret: string | null;
   media:
     | { provider: "local"; dir: string }
     | { provider: "cloudflare"; accountId: string; apiToken: string; accountHash: string };
@@ -148,8 +167,19 @@ export function loadConfig(source: Record<string, string | undefined> = process.
     sessionIdleMinutes: env.SESSION_IDLE_MINUTES ?? 720,
     sessionMaxDays: env.SESSION_MAX_DAYS ?? 7,
     mailTransport: env.MAIL_TRANSPORT ?? "none",
+    smtp:
+      env.MAIL_TRANSPORT === "smtp"
+        ? {
+            host: env.SMTP_HOST ?? "smtp.gmail.com",
+            port: env.SMTP_PORT ?? 465,
+            user: env.SMTP_USER!,
+            password: env.SMTP_APP_PASSWORD!,
+            from: env.MAIL_FROM ?? `MANI DEVELOPMENT <${env.SMTP_USER}>`,
+          }
+        : null,
     sessionCookie: secureCookie ? { name: "__Host-sid", secure: true } : { name: "sid", secure: false },
     apiPublicUrl: env.API_PUBLIC_URL ?? `http://localhost:${env.PORT ?? 4000}`,
+    turnstileSecret: env.TURNSTILE_SECRET_KEY ?? null,
     media:
       env.MEDIA_PROVIDER === "cloudflare"
         ? {

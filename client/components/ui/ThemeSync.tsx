@@ -1,19 +1,24 @@
 "use client";
 
 import { useEffect } from "react";
+import { useStoredPref } from "@/hooks/useStoredPref";
 import { useLocale } from "@/i18n/client";
-import { useDB } from "@/lib/store";
+
+/** Same key the inline head script reads before first paint (app/[lang]/layout.tsx). */
+const THEME_KEY = "lintel:theme";
 
 /**
- * Keeps <html data-theme> in sync with the theme preference stored in prototype settings, and
- * keeps the `js` class (set by the inline head script on the first page load) in place.
+ * Keeps <html data-theme> in sync with this browser's theme preference (light, dark or system;
+ * a per-browser choice, never site data), and keeps the `js` class (set by the inline head script
+ * on the first page load) in place.
  *
  * Switching language re-renders the root layout's <html> element, which resets both to their
  * server values, and the head script does not run again on the client, so both are re-applied
  * whenever the locale changes.
  */
 export function ThemeSync() {
-  const theme = useDB((d) => d.settings.theme);
+  const [stored] = useStoredPref(THEME_KEY, "light");
+  const theme = stored === "dark" || stored === "system" ? stored : "light";
   const locale = useLocale();
 
   useEffect(() => {

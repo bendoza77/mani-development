@@ -18,6 +18,8 @@ import {
   slugTaken,
   toDate,
 } from "../content/fields.js";
+import { projectPath, recordAddressChange } from "../content/redirects.js";
+import { adminSeo, publicSeo, seoColumns, seoInput } from "../content/seo.js";
 import { pick, toImage, type Locale } from "../media/media.serialize.js";
 
 /** Projects (docs/API_CONTRACTS.md §6.1 and §5). Admin routes sit behind requireAdmin. */
@@ -59,6 +61,8 @@ const projectInput = z
       .max(20)
       .default([]),
     isPublished: z.boolean(),
+    /** Omitted on update = keep the stored values. */
+    seo: seoInput.optional(),
   })
   .superRefine((p, ctx) => {
     if (p.estimatedCompletion < p.startDate) {
@@ -82,6 +86,7 @@ type ProjectInput = z.output<typeof projectInput>;
 
 const withMedia = {
   cover: true,
+  ogImage: true,
   gallery: { orderBy: { position: "asc" }, include: { media: true } },
   specs: { orderBy: { position: "asc" } },
 } satisfies Prisma.ProjectInclude;
@@ -115,6 +120,9 @@ function toAdminProject(p: ProjectRow, config: Config) {
     specs: p.specs.map((s) => ({ labelKa: s.labelKa, labelEn: s.labelEn, valueKa: s.valueKa, valueEn: s.valueEn })),
     isPublished: p.isPublished,
     publishedAt: p.publishedAt?.toISOString() ?? null,
+    seo: adminSeo(p),
+    /** Preview of seo.ogImageId for the editor. */
+    ogImage: p.ogImage ? toImage(p.ogImage, config) : null,
     updatedAt: p.updatedAt.toISOString(),
   };
 }
@@ -146,6 +154,12 @@ function toDetail(p: ProjectRow, config: Config, locale: Locale) {
     architect: p.architect,
     specs: p.specs.map((s) => ({ id: s.id, label: pick(s.labelKa, s.labelEn, locale), value: pick(s.valueKa, s.valueEn, locale) })),
     gallery: p.gallery.map((g) => toImage(g.media, config, locale)),
+    seo: publicSeo(
+      p,
+      locale,
+      { title: pick(p.titleKa, p.titleEn, locale), description: pick(p.summaryKa, p.summaryEn, locale), image: p.cover },
+      config,
+    ),
   };
 }
 
@@ -172,6 +186,7 @@ function columns(input: ProjectInput) {
     architect: input.architect,
     coverId: input.coverId,
     isPublished: input.isPublished,
+    ...(input.seo ? seoColumns(input.seo) : {}),
   };
 }
 
@@ -180,7 +195,23 @@ const children = (input: ProjectInput) => ({
   specs: { create: input.specs.map((s, position) => ({ ...s, position })) },
 });
 
+const imagesOf = (input: ProjectInput) => [
+  input.coverId,
+  ...input.galleryIds,
+  ...(input.seo?.ogImageId ? [input.seo.ogImageId] : []),
+];
+
 const notFound = () => new AppError(404, "NOT_FOUND", "That project doesn't exist.");
+
+/** Quick changes from the projects list (API_CONTRACTS §6.1). */
+const projectPatch = z
+  .strictObject({
+    status: z.enum(projectStatus.apiValues as [string, ...string[]]).optional(),
+    progress: z.number().int().min(0).max(100).optional(),
+    featured: z.boolean().optional(),
+    isPublished: z.boolean().optional(),
+  })
+  .refine((body) => Object.keys(body).length > 0, { message: "empty_update" });
 const idParam = z.uuid();
 
 export function adminProjectRoutes({ config, prisma }: { config: Config; prisma: PrismaClient }) {
@@ -199,7 +230,7 @@ export function adminProjectRoutes({ config, prisma }: { config: Config; prisma:
 
   router.post("/", async (req, res) => {
     const input = parse(projectInput, req.body);
-    await assertReadyImages(prisma, [input.coverId, ...input.galleryIds]);
+    await assertReadyImages(prisma, imagesOf(input));
     try {
       const project = await prisma.project.create({
         data: { ...columns(input), publishedAt: input.isPublished ? new Date() : null, ...children(input) },
@@ -216,14 +247,18 @@ export function adminProjectRoutes({ config, prisma }: { config: Config; prisma:
   router.put("/:id", async (req, res) => {
     const id = parse(idParam, req.params.id);
     const input = parse(projectInput, req.body);
-    const existing = await prisma.project.findUnique({ where: { id }, select: { isPublished: true, publishedAt: true } });
+    const existing = await prisma.project.findUnique({ where: { id }, select: { slug: true, isPublished: true, publishedAt: true } });
     if (!existing) throw notFound();
-    await assertReadyImages(prisma, [input.coverId, ...input.galleryIds]);
+    await assertReadyImages(prisma, imagesOf(input));
     try {
       const project = await prisma.$transaction(async (tx) => {
         // Saving replaces the gallery and specs as a whole.
         await tx.projectImage.deleteMany({ where: { projectId: id } });
         await tx.projectSpec.deleteMany({ where: { projectId: id } });
+        // A published project's old address keeps working (docs/DATABASE_DESIGN.md §3.12).
+        if (existing.isPublished && existing.slug !== input.slug) {
+          await recordAddressChange(tx, projectPath(existing.slug), projectPath(input.slug));
+        }
         return tx.project.update({
           where: { id },
           data: {
@@ -240,6 +275,31 @@ export function adminProjectRoutes({ config, prisma }: { config: Config; prisma:
       if (isUniqueViolation(error)) throw slugTaken();
       throw error;
     }
+  });
+
+  router.patch("/:id", async (req, res) => {
+    const id = parse(idParam, req.params.id);
+    const body = parse(projectPatch, req.body);
+    const existing = await prisma.project.findUnique({ where: { id } });
+    if (!existing) throw notFound();
+    const status = body.status ? projectStatus.fromApi(body.status)! : existing.status;
+    const completed = status === "completed";
+    const project = await prisma.project.update({
+      where: { id },
+      data: {
+        status,
+        // A completed project is at 100% and has a completion date (the form's rules).
+        progress: completed ? 100 : (body.progress ?? existing.progress),
+        ...(completed && !existing.completionDate ? { completionDate: toDate(new Date().toISOString().slice(0, 10)) } : {}),
+        ...(body.featured !== undefined ? { featured: body.featured } : {}),
+        ...(body.isPublished !== undefined
+          ? { isPublished: body.isPublished, publishedAt: body.isPublished ? (existing.publishedAt ?? new Date()) : null }
+          : {}),
+      },
+      include: withMedia,
+    });
+    await recordActivity(prisma, { kind: "project", message: `Project updated: ${project.titleKa}`, actorId: req.session!.user.id });
+    res.json(toAdminProject(project, config));
   });
 
   router.delete("/:id", async (req, res) => {
