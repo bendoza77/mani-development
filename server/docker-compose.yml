@@ -1,3 +1,4 @@
+name: mani-development
 # Local PostgreSQL 18 for development and integration tests.
 # Host port 5434 because 5433 is already used by a local PostgreSQL on the development machine.
 # The test database (mani_test) is created automatically by the test setup.
