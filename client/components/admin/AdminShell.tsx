@@ -97,7 +97,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const signedIn = !!session;
   const inbox = useAdminPoll<InquiryList>(signedIn ? "/api/admin/inquiries?status=new&pageSize=1" : null, { refreshKey: pathname });
   const newInquiries = inbox.data?.counts.new ?? 0;
-  const reviewsPoll = useAdminPoll<ReviewList>(signedIn ? "/api/admin/reviews?status=pending" : null, { refreshKey: pathname });
+  const reviewsPoll = useAdminPoll<ReviewList>(signedIn ? "/api/admin/reviews?status=pending&pageSize=1" : null, { refreshKey: pathname });
   const pendingReviews = reviewsPoll.data?.counts.pending ?? 0;
 
   const toggleCollapsed = () => setSidebarPref(collapsed ? "open" : "collapsed");

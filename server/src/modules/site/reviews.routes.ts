@@ -1,6 +1,6 @@
 import { Router, type RequestHandler } from "express";
 import { z } from "zod";
-import type { Prisma, PrismaClient, ReviewStatus } from "../../generated/prisma/client.js";
+import { Prisma, type PrismaClient, type ReviewStatus } from "../../generated/prisma/client.js";
 import type { SpamCheck } from "../../integrations/turnstile.js";
 import { recordActivity } from "../../lib/activity.js";
 import type { Clock } from "../../lib/clock.js";
@@ -72,6 +72,8 @@ export function publicReviewRoutes({
 
 const idParam = z.uuid();
 const notFound = () => new AppError(404, "NOT_FOUND", "That review doesn't exist.");
+/** Prisma's "record to update or delete was not found" (gone between the request and the write). */
+const isMissing = (error: unknown) => error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025";
 const statusValues = reviewStatus.apiValues as [string, ...string[]];
 
 const toAdmin = (r: Prisma.ReviewGetPayload<object>) => ({
@@ -92,11 +94,16 @@ export function adminReviewRoutes({ prisma, clock }: { prisma: PrismaClient; clo
   const actor = (req: { session?: { user: { id: string } } }) => req.session!.user.id;
 
   router.get("/", async (req, res) => {
-    const query = parse(z.object({ status: z.enum(statusValues).optional() }), req.query);
+    // Without `pageSize` every matching review is listed; the counts never depend on it.
+    const query = parse(
+      z.object({ status: z.enum(statusValues).optional(), pageSize: z.coerce.number().int().min(1).max(100).optional() }),
+      req.query,
+    );
     const [items, grouped] = await Promise.all([
       prisma.review.findMany({
         where: query.status ? { status: reviewStatus.fromApi(query.status) as ReviewStatus } : {},
         orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        take: query.pageSize,
       }),
       prisma.review.groupBy({ by: ["status"], _count: { _all: true } }),
     ]);
@@ -111,21 +118,20 @@ export function adminReviewRoutes({ prisma, clock }: { prisma: PrismaClient; clo
   router.patch("/:id", async (req, res) => {
     const id = parse(idParam, req.params.id);
     const { status } = parse(z.strictObject({ status: z.enum(statusValues) }), req.body);
-    const updated = await prisma.review.updateMany({
-      where: { id },
-      data: { status: reviewStatus.fromApi(status) as ReviewStatus, reviewedAt: clock.now() },
-    });
-    if (updated.count === 0) throw notFound();
-    const review = await prisma.review.findUniqueOrThrow({ where: { id } });
+    const review = await prisma.review
+      .update({ where: { id }, data: { status: reviewStatus.fromApi(status) as ReviewStatus, reviewedAt: clock.now() } })
+      .catch((error: unknown) => {
+        throw isMissing(error) ? notFound() : error;
+      });
     await recordActivity(prisma, { kind: "review", message: `Review ${ACTIVITY[status]}: ${review.fullName}`, actorId: actor(req) });
     res.json(toAdmin(review));
   });
 
   router.delete("/:id", async (req, res) => {
     const id = parse(idParam, req.params.id);
-    const review = await prisma.review.findUnique({ where: { id }, select: { fullName: true } });
-    if (!review) throw notFound();
-    await prisma.review.delete({ where: { id } });
+    const review = await prisma.review.delete({ where: { id }, select: { fullName: true } }).catch((error: unknown) => {
+      throw isMissing(error) ? notFound() : error;
+    });
     await recordActivity(prisma, { kind: "review", message: `Review deleted: ${review.fullName}`, actorId: actor(req) });
     res.status(204).end();
   });

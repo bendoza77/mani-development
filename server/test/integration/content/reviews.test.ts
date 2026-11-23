@@ -161,6 +161,20 @@ describe("admin reviews", () => {
     expect(pending.body.counts.all).toBe(4);
   });
 
+  it("limits the items with pageSize but keeps the full counts", async () => {
+    await seed();
+
+    const one = await api(app, "get", "/api/admin/reviews?status=pending&pageSize=1", cookie);
+    expect(one.status).toBe(200);
+    expect(one.body.items.map((r: { fullName: string }) => r.fullName)).toEqual(["P2"]);
+    expect(one.body.counts).toEqual({ all: 4, pending: 2, approved: 1, rejected: 1 });
+
+    expect((await api(app, "get", "/api/admin/reviews?pageSize=2", cookie)).body.items).toHaveLength(2);
+    for (const bad of ["0", "101", "1.5", "x"]) {
+      expect((await api(app, "get", `/api/admin/reviews?pageSize=${bad}`, cookie)).status).toBe(400);
+    }
+  });
+
   it("approving shows it publicly and hiding removes it", async () => {
     await seed();
     const p1 = await first("P1");
