@@ -16,19 +16,26 @@ import { Img } from "@/components/ui/Img";
 import { useToast } from "@/components/ui/Toast";
 import { useApiData } from "@/hooks/useApiData";
 import { api, errorsFrom, type AdminPage, type ApiImage, type PageInput, type RichTextDoc } from "@/lib/api";
+import type { Locale } from "@/i18n/config";
 import { cx } from "@/lib/format";
 import { ALIGN_CLASS, CHROME_STYLE, PADDING_CLASS, cleanPageStyle, pageColorStyle, sectionColorStyle, type PageStyle, type SectionStyle } from "@/lib/style";
 import { InlineText } from "./InlineText";
 
-type Lang = "ka" | "en";
+type Lang = Locale;
+
+const LANG_NAME: Record<Lang, string> = { ka: "Georgian", en: "English", ru: "Russian" };
+/** The Georgian, English or Russian value, for the language being edited. */
+const inLang = <T,>(lang: Lang, ka: T, en: T, ru: T): T => (lang === "ka" ? ka : lang === "en" ? en : ru);
 
 type Draft = {
   kind: AdminPage["kind"];
   slug: string;
   titleKa: string;
   titleEn: string;
+  titleRu: string;
   introKa: string;
   introEn: string;
+  introRu: string;
   isPublished: boolean;
   sections: Section[];
   style: PageStyle;
@@ -40,8 +47,10 @@ function fromPage(p: AdminPage): Draft {
     slug: p.slug,
     titleKa: p.titleKa,
     titleEn: p.titleEn ?? "",
+    titleRu: p.titleRu ?? "",
     introKa: p.introKa,
     introEn: p.introEn ?? "",
+    introRu: p.introRu ?? "",
     isPublished: p.isPublished,
     sections: p.blocks.map(fromBlock),
     style: cleanPageStyle(p.style),
@@ -56,8 +65,10 @@ function toInput(d: Draft): PageInput {
     slug: d.slug,
     titleKa: d.titleKa.trim(),
     titleEn: orNull(d.titleEn),
+    titleRu: orNull(d.titleRu),
     introKa: d.introKa.trim(),
     introEn: orNull(d.introEn),
+    introRu: orNull(d.introRu),
     isPublished: d.isPublished,
     blocks: d.sections.map(toBlockInput),
     style: d.style,
@@ -205,7 +216,7 @@ export function LiveEditor({ pageId, onClose }: { pageId: string; onClose: (save
   const errorCount = Object.keys(errors).length;
   const sectionErrors = (i: number) => Object.entries(errors).filter(([k]) => k.startsWith(`blocks.${i}.`) || k === `blocks.${i}`).map(([, v]) => v);
 
-  const t = (ka: string, en: string) => (lang === "ka" ? ka : en);
+  const t = (ka: string, en: string, ru: string) => inLang(lang, ka, en, ru);
   const langProps = { lang, resetKey: lang };
 
   return (
@@ -215,22 +226,22 @@ export function LiveEditor({ pageId, onClose }: { pageId: string; onClose: (save
           eyebrow="MANI DEVELOPMENT"
           title={
             <InlineText
-              value={t(draft.titleKa, draft.titleEn)}
-              placeholder={t("Page title", draft.titleKa || "Page title")}
-              label={`Page title (${lang === "ka" ? "Georgian" : "English"})`}
+              value={t(draft.titleKa, draft.titleEn, draft.titleRu)}
+              placeholder={t("Page title", draft.titleKa || "Page title", draft.titleEn || draft.titleKa || "Page title")}
+              label={`Page title (${LANG_NAME[lang]})`}
               maxLength={120}
-              onChange={(v) => set(lang === "ka" ? { titleKa: v } : { titleEn: v })}
+              onChange={(v) => set(lang === "ka" ? { titleKa: v } : lang === "en" ? { titleEn: v } : { titleRu: v })}
               {...langProps}
             />
           }
           lead={
             <InlineText
-              value={t(draft.introKa, draft.introEn)}
-              placeholder={t("Short intro (optional)", draft.introKa || "Short intro (optional)")}
-              label={`Page intro (${lang === "ka" ? "Georgian" : "English"})`}
+              value={t(draft.introKa, draft.introEn, draft.introRu)}
+              placeholder={t("Short intro (optional)", draft.introKa || "Short intro (optional)", draft.introEn || draft.introKa || "Short intro (optional)")}
+              label={`Page intro (${LANG_NAME[lang]})`}
               maxLength={400}
               multiline
-              onChange={(v) => set(lang === "ka" ? { introKa: v } : { introEn: v })}
+              onChange={(v) => set(lang === "ka" ? { introKa: v } : lang === "en" ? { introEn: v } : { introRu: v })}
               {...langProps}
             />
           }
@@ -294,7 +305,7 @@ export function LiveEditor({ pageId, onClose }: { pageId: string; onClose: (save
         <div className="mx-auto flex max-w-[88rem] flex-wrap items-center gap-2 px-4 py-2.5">
           <p className="mr-1 text-[0.85rem] font-semibold">Editing page</p>
           <div role="group" aria-label="Language being edited" className="inline-flex rounded-full bg-paper-2 p-1">
-            {(["ka", "en"] as const).map((l) => (
+            {(["ka", "en", "ru"] as const).map((l) => (
               <button
                 key={l}
                 type="button"
@@ -302,7 +313,7 @@ export function LiveEditor({ pageId, onClose }: { pageId: string; onClose: (save
                 onClick={() => setLang(l)}
                 className={cx("h-8 rounded-full px-3 text-[0.8rem]", lang === l ? "bg-ink text-paper" : "text-muted hover:text-ink")}
               >
-                {l === "ka" ? "ქართული" : "English"}
+                {l === "ka" ? "ქართული" : l === "en" ? "English" : "Русский"}
               </button>
             ))}
           </div>
@@ -602,9 +613,10 @@ function PhotoButton({ onClick, label, hasPhoto }: { onClick: () => void; label:
 
 function SectionContent({ section: s, lang, update, pick }: LiveSectionProps) {
   const ka = lang === "ka";
-  const who = ka ? "Georgian" : "English";
-  // For English, an empty field shows the Georgian text as a hint (that's what visitors would see).
-  const ph = (kaValue: string, fallback: string) => (ka ? fallback : kaValue || fallback);
+  const who = LANG_NAME[lang];
+  // For English, an empty field shows the Georgian text as a hint (that's what visitors would see);
+  // for Russian, the English text (or the Georgian one).
+  const ph = (kaValue: string, enValue: string, fallback: string) => inLang(lang, fallback, kaValue || fallback, enValue || kaValue || fallback);
   const common = { lang, resetKey: `${s.key}-${lang}` };
   const align = blockAlign(s.style.align);
 
@@ -615,11 +627,11 @@ function SectionContent({ section: s, lang, update, pick }: LiveSectionProps) {
         <InlineText
           as={Tag}
           className={s.level === 2 ? "t-h2" : "t-h3"}
-          value={ka ? s.textKa : s.textEn}
-          placeholder={ph(s.textKa, "Heading")}
+          value={inLang(lang, s.textKa, s.textEn, s.textRu)}
+          placeholder={ph(s.textKa, s.textEn, "Heading")}
           label={`Heading (${who})`}
           maxLength={150}
-          onChange={(v) => update(ka ? { textKa: v } : { textEn: v })}
+          onChange={(v) => update(ka ? { textKa: v } : lang === "en" ? { textEn: v } : { textRu: v })}
           {...common}
         />
       );
@@ -629,9 +641,9 @@ function SectionContent({ section: s, lang, update, pick }: LiveSectionProps) {
         <RichField
           key={`${s.key}-${lang}`}
           lang={lang}
-          value={ka ? s.docKa : s.docEn}
+          value={inLang(lang, s.docKa, s.docEn, s.docRu)}
           kaEmpty={!s.docKa}
-          onChange={(d) => update(ka ? { docKa: d } : { docEn: d })}
+          onChange={(d) => update(ka ? { docKa: d } : lang === "en" ? { docEn: d } : { docRu: d })}
           className="space-y-4 text-[1.05rem] leading-[1.75] text-ink-soft"
         />
       );
@@ -645,11 +657,11 @@ function SectionContent({ section: s, lang, update, pick }: LiveSectionProps) {
           <InlineText
             as="figcaption"
             className="mt-2 block text-[0.85rem] text-muted"
-            value={ka ? s.captionKa : s.captionEn}
-            placeholder={ph(s.captionKa, "Caption (optional)")}
+            value={inLang(lang, s.captionKa, s.captionEn, s.captionRu)}
+            placeholder={ph(s.captionKa, s.captionEn, "Caption (optional)")}
             label={`Photo caption (${who})`}
             maxLength={200}
-            onChange={(v) => update(ka ? { captionKa: v } : { captionEn: v })}
+            onChange={(v) => update(ka ? { captionKa: v } : lang === "en" ? { captionEn: v } : { captionRu: v })}
             {...common}
           />
         </figure>
@@ -664,31 +676,31 @@ function SectionContent({ section: s, lang, update, pick }: LiveSectionProps) {
             <InlineText
               as="h2"
               className={cx("t-h2 block max-w-[18ch] text-white", align)}
-              value={ka ? s.titleKa : s.titleEn}
-              placeholder={ph(s.titleKa, "Banner title")}
+              value={inLang(lang, s.titleKa, s.titleEn, s.titleRu)}
+              placeholder={ph(s.titleKa, s.titleEn, "Banner title")}
               label={`Banner title (${who})`}
               maxLength={120}
-              onChange={(v) => update(ka ? { titleKa: v } : { titleEn: v })}
+              onChange={(v) => update(ka ? { titleKa: v } : lang === "en" ? { titleEn: v } : { titleRu: v })}
               {...common}
             />
             <InlineText
               as="p"
               className={cx("t-lead mt-4 block max-w-2xl text-white/85", align)}
-              value={ka ? s.textKa : s.textEn}
-              placeholder={ph(s.textKa, "Short text (optional)")}
+              value={inLang(lang, s.textKa, s.textEn, s.textRu)}
+              placeholder={ph(s.textKa, s.textEn, "Short text (optional)")}
               label={`Banner text (${who})`}
               maxLength={300}
               multiline
-              onChange={(v) => update(ka ? { textKa: v } : { textEn: v })}
+              onChange={(v) => update(ka ? { textKa: v } : lang === "en" ? { textEn: v } : { textRu: v })}
               {...common}
             />
             <span className="mt-8 inline-flex h-13 items-center gap-2 rounded-[3px] bg-white px-7 text-[0.95rem] font-medium text-[#151617]">
               <InlineText
-                value={ka ? s.buttonLabelKa : s.buttonLabelEn}
-                placeholder={ph(s.buttonLabelKa, "Button label (optional)")}
+                value={inLang(lang, s.buttonLabelKa, s.buttonLabelEn, s.buttonLabelRu)}
+                placeholder={ph(s.buttonLabelKa, s.buttonLabelEn, "Button label (optional)")}
                 label={`Button label (${who}). The link is set in the section settings.`}
                 maxLength={40}
-                onChange={(v) => update(ka ? { buttonLabelKa: v } : { buttonLabelEn: v })}
+                onChange={(v) => update(ka ? { buttonLabelKa: v } : lang === "en" ? { buttonLabelEn: v } : { buttonLabelRu: v })}
                 {...common}
               />
             </span>
@@ -730,20 +742,20 @@ function SectionContent({ section: s, lang, update, pick }: LiveSectionProps) {
             <InlineText
               as="h2"
               className="t-h2 block"
-              value={ka ? s.titleKa : s.titleEn}
-              placeholder={ph(s.titleKa, "Title (optional)")}
+              value={inLang(lang, s.titleKa, s.titleEn, s.titleRu)}
+              placeholder={ph(s.titleKa, s.titleEn, "Title (optional)")}
               label={`Title (${who})`}
               maxLength={120}
-              onChange={(v) => update(ka ? { titleKa: v } : { titleEn: v })}
+              onChange={(v) => update(ka ? { titleKa: v } : lang === "en" ? { titleEn: v } : { titleRu: v })}
               {...common}
             />
             <div className="mt-6">
               <RichField
                 key={`${s.key}-${lang}`}
                 lang={lang}
-                value={ka ? s.docKa : s.docEn}
+                value={inLang(lang, s.docKa, s.docEn, s.docRu)}
                 kaEmpty={!s.docKa}
-                onChange={(d) => update(ka ? { docKa: d } : { docEn: d })}
+                onChange={(d) => update(ka ? { docKa: d } : lang === "en" ? { docEn: d } : { docRu: d })}
                 className="space-y-4 leading-[1.75] text-ink-soft"
               />
             </div>
@@ -757,11 +769,11 @@ function SectionContent({ section: s, lang, update, pick }: LiveSectionProps) {
           <InlineText
             as="h2"
             className={cx("t-h2 block max-w-[20ch]", align)}
-            value={ka ? s.titleKa : s.titleEn}
-            placeholder={ph(s.titleKa, "Section title (optional)")}
+            value={inLang(lang, s.titleKa, s.titleEn, s.titleRu)}
+            placeholder={ph(s.titleKa, s.titleEn, "Section title (optional)")}
             label={`Cards section title (${who})`}
             maxLength={120}
-            onChange={(v) => update(ka ? { titleKa: v } : { titleEn: v })}
+            onChange={(v) => update(ka ? { titleKa: v } : lang === "en" ? { titleEn: v } : { titleRu: v })}
             {...common}
           />
           <ul className="mt-10 grid gap-x-[clamp(1rem,2.5vw,2.5rem)] gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
@@ -784,22 +796,22 @@ function SectionContent({ section: s, lang, update, pick }: LiveSectionProps) {
                 <InlineText
                   as="h3"
                   className="block font-display text-[1.35rem] leading-snug"
-                  value={ka ? item.titleKa : item.titleEn}
-                  placeholder={ph(item.titleKa, "Card title")}
+                  value={inLang(lang, item.titleKa, item.titleEn, item.titleRu)}
+                  placeholder={ph(item.titleKa, item.titleEn, "Card title")}
                   label={`Card ${j + 1} title (${who})`}
                   maxLength={80}
-                  onChange={(v) => setItem(item.key, ka ? { titleKa: v } : { titleEn: v })}
+                  onChange={(v) => setItem(item.key, ka ? { titleKa: v } : lang === "en" ? { titleEn: v } : { titleRu: v })}
                   {...common}
                 />
                 <InlineText
                   as="p"
                   className="mt-2 block leading-relaxed text-ink-soft"
-                  value={ka ? item.textKa : item.textEn}
-                  placeholder={ph(item.textKa, "Short text (optional)")}
+                  value={inLang(lang, item.textKa, item.textEn, item.textRu)}
+                  placeholder={ph(item.textKa, item.textEn, "Short text (optional)")}
                   label={`Card ${j + 1} text (${who})`}
                   maxLength={300}
                   multiline
-                  onChange={(v) => setItem(item.key, ka ? { textKa: v } : { textEn: v })}
+                  onChange={(v) => setItem(item.key, ka ? { textKa: v } : lang === "en" ? { textEn: v } : { textRu: v })}
                   {...common}
                 />
                 {s.items.length > 1 && (
@@ -819,7 +831,7 @@ function SectionContent({ section: s, lang, update, pick }: LiveSectionProps) {
             <button
               type="button"
               style={CHROME_STYLE}
-              onClick={() => update({ items: [...s.items, { key: newKey("card"), titleKa: "", titleEn: "", textKa: "", textEn: "", image: null }] })}
+              onClick={() => update({ items: [...s.items, { key: newKey("card"), titleKa: "", titleEn: "", titleRu: "", textKa: "", textEn: "", textRu: "", image: null }] })}
               className="mt-6 inline-flex h-9 items-center gap-1.5 rounded-full bg-card px-3 text-[0.8rem] shadow-card"
             >
               <Plus aria-hidden className="size-4" /> Add card ({s.items.length}/12)
@@ -831,16 +843,16 @@ function SectionContent({ section: s, lang, update, pick }: LiveSectionProps) {
   }
 }
 
-/** Rich text in place, with a note when English is empty (visitors then see the Georgian text). */
+/** Rich text in place, with a note when English or Russian is empty (visitors then see the fallback text). */
 function RichField({ value, onChange, lang, kaEmpty, className }: { value: RichTextDoc | null; onChange: (d: RichTextDoc | null) => void; lang: Lang; kaEmpty: boolean; className: string }) {
   return (
     <div>
-      {lang === "en" && !value && (
+      {lang !== "ka" && !value && (
         <p style={CHROME_STYLE} className="mb-2 inline-block rounded-full bg-paper-2 px-3 py-1 text-[0.75rem] text-muted">
-          {kaEmpty ? "Empty in both languages" : "English is empty: visitors see the Georgian text"}
+          {lang === "ru" ? "Empty = English text is shown (or Georgian)." : kaEmpty ? "Empty in both languages" : "English is empty: visitors see the Georgian text"}
         </p>
       )}
-      <InlineRichText value={value} onChange={onChange} lang={lang} label={`Text (${lang === "ka" ? "Georgian" : "English"})`} className={className} />
+      <InlineRichText value={value} onChange={onChange} lang={lang} label={`Text (${LANG_NAME[lang]})`} className={className} />
     </div>
   );
 }

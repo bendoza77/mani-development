@@ -16,26 +16,32 @@ import { useApiData } from "@/hooks/useApiData";
 import { api, errorMessage, fieldErrorsFrom, orNull, saveOrder, type AdminTeamMember, type ApiImage, type TeamMemberInput } from "@/lib/api";
 import { cx } from "@/lib/format";
 
-type Draft = { nameKa: string; nameEn: string; roleKa: string; roleEn: string; bioKa: string; bioEn: string; photo: ApiImage | null; visible: boolean };
+type Draft = { nameKa: string; nameEn: string; nameRu: string; roleKa: string; roleEn: string; roleRu: string; bioKa: string; bioEn: string; bioRu: string; photo: ApiImage | null; visible: boolean };
 
-const blank = (): Draft => ({ nameKa: "", nameEn: "", roleKa: "", roleEn: "", bioKa: "", bioEn: "", photo: null, visible: true });
+const blank = (): Draft => ({ nameKa: "", nameEn: "", nameRu: "", roleKa: "", roleEn: "", roleRu: "", bioKa: "", bioEn: "", bioRu: "", photo: null, visible: true });
 const toDraft = (m: AdminTeamMember): Draft => ({
   nameKa: m.nameKa,
   nameEn: m.nameEn ?? "",
+  nameRu: m.nameRu ?? "",
   roleKa: m.roleKa,
   roleEn: m.roleEn ?? "",
+  roleRu: m.roleRu ?? "",
   bioKa: m.bioKa,
   bioEn: m.bioEn ?? "",
+  bioRu: m.bioRu ?? "",
   photo: m.photo,
   visible: m.visible,
 });
 const toInput = (d: Draft): TeamMemberInput => ({
   nameKa: d.nameKa.trim(),
   nameEn: orNull(d.nameEn),
+  nameRu: orNull(d.nameRu),
   roleKa: d.roleKa.trim(),
   roleEn: orNull(d.roleEn),
+  roleRu: orNull(d.roleRu),
   bioKa: d.bioKa.trim(),
   bioEn: orNull(d.bioEn),
+  bioRu: orNull(d.bioRu),
   photoId: d.photo?.id ?? "",
   visible: d.visible,
 });
@@ -46,17 +52,20 @@ function validate(d: Draft): Record<string, string> {
   if (len(d.nameKa) < 2) e.nameKa = "Name is required (2+ characters).";
   else if (len(d.nameKa) > 100) e.nameKa = "At most 100 characters.";
   if (len(d.nameEn) > 100) e.nameEn = "At most 100 characters.";
+  if (len(d.nameRu) > 100) e.nameRu = "At most 100 characters.";
   if (!len(d.roleKa)) e.roleKa = "Role is required.";
   else if (len(d.roleKa) > 100) e.roleKa = "At most 100 characters.";
   if (len(d.roleEn) > 100) e.roleEn = "At most 100 characters.";
+  if (len(d.roleRu) > 100) e.roleRu = "At most 100 characters.";
   if (len(d.bioKa) < 20) e.bioKa = "Write a short bio (20+ characters).";
   else if (len(d.bioKa) > 600) e.bioKa = "At most 600 characters.";
   if (len(d.bioEn) > 600) e.bioEn = "At most 600 characters.";
+  if (len(d.bioRu) > 600) e.bioRu = "At most 600 characters.";
   if (!d.photo) e.photo = "Choose a photo.";
   return e;
 }
 
-const KNOWN = new Set(["nameKa", "nameEn", "roleKa", "roleEn", "bioKa", "bioEn", "photoId", "photo", "visible"]);
+const KNOWN = new Set(["nameKa", "nameEn", "nameRu", "roleKa", "roleEn", "roleRu", "bioKa", "bioEn", "bioRu", "photoId", "photo", "visible"]);
 
 export function TeamAdmin() {
   const { data, error, reload, update } = useApiData<{ items: AdminTeamMember[] }>("/api/admin/team");
@@ -137,6 +146,7 @@ export function TeamAdmin() {
                 <p className="text-[0.83rem] text-muted">
                   {m.roleKa}
                   {!m.nameEn && <span className="ml-2 rounded-full bg-warn-soft px-2 py-0.5 text-[0.7rem] text-warn">No English</span>}
+                  {!m.nameRu && <span className="ml-2 rounded-full bg-warn-soft px-2 py-0.5 text-[0.7rem] text-warn">No Russian</span>}
                 </p>
                 <div className="mt-3 -ml-2 flex">
                   <IconButton label={`Move ${m.nameKa} earlier`} icon={ArrowLeft} disabled={i === 0} onClick={() => void move(i, i - 1)} />
@@ -242,9 +252,9 @@ function MemberEditor({ item, onClose, onSaved }: { item: AdminTeamMember | null
               )}
             </div>
           </div>
-          <BiField label="Name" required maxLength={100} ka={d.nameKa} en={d.nameEn} onKa={(v) => set("nameKa", v)} onEn={(v) => set("nameEn", v)} errorKa={err("nameKa")} errorEn={err("nameEn")} />
-          <BiField label="Role" required maxLength={100} ka={d.roleKa} en={d.roleEn} onKa={(v) => set("roleKa", v)} onEn={(v) => set("roleEn", v)} errorKa={err("roleKa")} errorEn={err("roleEn")} />
-          <BiField label="Bio" required multiline rows={4} maxLength={600} ka={d.bioKa} en={d.bioEn} onKa={(v) => set("bioKa", v)} onEn={(v) => set("bioEn", v)} errorKa={err("bioKa")} errorEn={err("bioEn")} />
+          <BiField label="Name" required maxLength={100} ka={d.nameKa} en={d.nameEn} ru={d.nameRu} onKa={(v) => set("nameKa", v)} onEn={(v) => set("nameEn", v)} onRu={(v) => set("nameRu", v)} errorKa={err("nameKa")} errorEn={err("nameEn")} errorRu={err("nameRu")} />
+          <BiField label="Role" required maxLength={100} ka={d.roleKa} en={d.roleEn} ru={d.roleRu} onKa={(v) => set("roleKa", v)} onEn={(v) => set("roleEn", v)} onRu={(v) => set("roleRu", v)} errorKa={err("roleKa")} errorEn={err("roleEn")} errorRu={err("roleRu")} />
+          <BiField label="Bio" required multiline rows={4} maxLength={600} ka={d.bioKa} en={d.bioEn} ru={d.bioRu} onKa={(v) => set("bioKa", v)} onEn={(v) => set("bioEn", v)} onRu={(v) => set("bioRu", v)} errorKa={err("bioKa")} errorEn={err("bioEn")} errorRu={err("bioRu")} />
           <Toggle checked={d.visible} onChange={(v) => set("visible", v)} label="Visible on About page" />
         </div>
       </Dialog>

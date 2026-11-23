@@ -30,12 +30,13 @@ import { cx } from "@/lib/format";
 const MENU_LABEL: Record<MenuLocation, string> = { header: "Top menu", footer: "Footer menu" };
 const LINK = /^(\/(?!\/)\S*|https:\/\/[^\s/]+\.\S+)$/;
 
-type Draft = { location: MenuLocation; labelKa: string; labelEn: string; url: string; newTab: boolean; visible: boolean };
+type Draft = { location: MenuLocation; labelKa: string; labelEn: string; labelRu: string; url: string; newTab: boolean; visible: boolean };
 
 const itemInput = (i: AdminNavItem, patch: Partial<NavItemInput> = {}): NavItemInput => ({
   location: i.location,
   labelKa: i.labelKa,
   labelEn: i.labelEn,
+  labelRu: i.labelRu,
   pageId: i.pageId,
   url: i.pageId ? null : i.url,
   newTab: i.newTab,
@@ -48,6 +49,7 @@ function validate(d: Draft, isPage: boolean): Record<string, string> {
   if (!d.labelKa.trim()) e.labelKa = "Label is required.";
   else if (d.labelKa.trim().length > 40) e.labelKa = "At most 40 characters.";
   if (d.labelEn.trim().length > 40) e.labelEn = "At most 40 characters.";
+  if (d.labelRu.trim().length > 40) e.labelRu = "At most 40 characters.";
   if (!isPage) {
     if (!d.url.trim()) e.url = "Enter a link.";
     else if (!LINK.test(d.url.trim())) e.url = "Use a site path like /contact or an address starting with https://.";
@@ -55,7 +57,7 @@ function validate(d: Draft, isPage: boolean): Record<string, string> {
   return e;
 }
 
-const KNOWN = new Set(["location", "labelKa", "labelEn", "url", "pageId", "newTab", "visible"]);
+const KNOWN = new Set(["location", "labelKa", "labelEn", "labelRu", "url", "pageId", "newTab", "visible"]);
 
 export function NavigationAdmin() {
   const { data, error, reload, update } = useApiData<AdminMenus>("/api/admin/navigation");
@@ -235,6 +237,7 @@ function ItemEditor({
     location: item?.location ?? location,
     labelKa: item?.labelKa ?? "",
     labelEn: item?.labelEn ?? "",
+    labelRu: item?.labelRu ?? "",
     url: item?.url ?? "",
     newTab: item?.newTab ?? false,
     visible: item?.visible ?? true,
@@ -262,6 +265,7 @@ function ItemEditor({
       location: d.location,
       labelKa: d.labelKa.trim(),
       labelEn: orNull(d.labelEn),
+      labelRu: orNull(d.labelRu),
       pageId: item?.pageId ?? null,
       url: isPage ? null : d.url.trim(),
       newTab: d.newTab,
@@ -319,7 +323,7 @@ function ItemEditor({
             </Select>
           )}
         </Field>
-        <BiField label="Label" required maxLength={40} ka={d.labelKa} en={d.labelEn} onKa={(v) => set("labelKa", v)} onEn={(v) => set("labelEn", v)} errorKa={err("labelKa")} errorEn={err("labelEn")} />
+        <BiField label="Label" required maxLength={40} ka={d.labelKa} en={d.labelEn} ru={d.labelRu} onKa={(v) => set("labelKa", v)} onEn={(v) => set("labelEn", v)} onRu={(v) => set("labelRu", v)} errorKa={err("labelKa")} errorEn={err("labelEn")} errorRu={err("labelRu")} />
         {!isPage && (
           <Field label="Link" required error={err("url")} hint="A site path like /contact, or a full address starting with https://.">
             {(a) => <Input {...a} value={d.url} placeholder="/contact" onChange={(ev) => set("url", ev.target.value)} />}

@@ -195,6 +195,7 @@ function MediaDetails({
   const toast = useToast();
   const [altKa, setAltKa] = useState(asset.altKa);
   const [altEn, setAltEn] = useState(asset.altEn ?? "");
+  const [altRu, setAltRu] = useState(asset.altRu ?? "");
   const [category, setCategory] = useState<MediaAsset["category"]>(asset.category);
   const [saving, setSaving] = useState(false);
   const [usedBy, setUsedBy] = useState<MediaUsage[] | null>(null);
@@ -211,14 +212,14 @@ function MediaDetails({
     return () => ctrl.abort();
   }, [asset.id]);
 
-  const dirty = altKa.trim() !== asset.altKa || (altEn.trim() || null) !== asset.altEn || category !== asset.category;
+  const dirty = altKa.trim() !== asset.altKa || (altEn.trim() || null) !== asset.altEn || (altRu.trim() || null) !== asset.altRu || category !== asset.category;
 
   async function save() {
     setSaving(true);
     try {
       const saved = await api<MediaAsset>(`/api/admin/media/${asset.id}`, {
         method: "PATCH",
-        body: { altKa: altKa.trim(), altEn: orNull(altEn), category },
+        body: { altKa: altKa.trim(), altEn: orNull(altEn), altRu: orNull(altRu), category },
       });
       onSaved(saved);
       toast({ tone: "success", title: "Image details saved", body: saved.filename });
@@ -279,6 +280,9 @@ function MediaDetails({
         </Field>
         <Field label="Alt text · English">
           {(p) => <Input {...p} value={altEn} maxLength={300} onChange={(e) => setAltEn(e.target.value)} />}
+        </Field>
+        <Field label="Alt text · Russian">
+          {(p) => <Input {...p} value={altRu} maxLength={300} onChange={(e) => setAltRu(e.target.value)} />}
         </Field>
         <Field label="Category">
           {(p) => (

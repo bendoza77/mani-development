@@ -4,6 +4,7 @@ import { useId, useRef, useState, type KeyboardEvent, type ReactNode } from "rea
 import { EditorContent, useEditor, useEditorState, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Bold, Italic, Link2, List, ListOrdered, Quote, Redo2, RemoveFormatting, Underline, Undo2 } from "lucide-react";
+import { EN_FALLBACK_HINT, RU_FALLBACK_HINT } from "@/components/admin/BiField";
 import type { RichTextDoc } from "@/lib/api";
 import { cx } from "@/lib/format";
 import { isEmptyDoc, isSafeHref } from "@/lib/richtext";
@@ -366,32 +367,42 @@ function Divider() {
   return <span aria-hidden className="mx-1 h-5 w-px bg-line" />;
 }
 
-/** Georgian (main) and English (optional) editors side by side, like BiField. */
+/**
+ * Georgian (main), English and Russian (optional) editors, like BiField. Rich text needs room,
+ * so the three stack and only sit side by side on very wide screens.
+ */
 export function BiRichField({
   label,
   ka,
   en,
+  ru,
   onKa,
   onEn,
+  onRu,
   required,
   errorKa,
   errorEn,
+  errorRu,
   hint,
 }: {
   label: string;
   ka: RichTextDoc | null;
   en: RichTextDoc | null;
+  ru: RichTextDoc | null;
   onKa: (doc: RichTextDoc | null) => void;
   onEn: (doc: RichTextDoc | null) => void;
+  onRu: (doc: RichTextDoc | null) => void;
   required?: boolean;
   errorKa?: string;
   errorEn?: string;
+  errorRu?: string;
   hint?: string;
 }) {
   return (
-    <div className="grid gap-4 sm:col-span-2 xl:grid-cols-2 [&>*]:min-w-0">
+    <div className="grid gap-4 sm:col-span-2 2xl:grid-cols-3 [&>*]:min-w-0">
       <RichTextEditor label={`${label} · Georgian`} required={required} lang="ka" value={ka} onChange={onKa} error={errorKa} hint={hint} />
-      <RichTextEditor label={`${label} · English`} lang="en" value={en} onChange={onEn} error={errorEn} hint="Optional. Empty = Georgian text is shown." />
+      <RichTextEditor label={`${label} · English`} lang="en" value={en} onChange={onEn} error={errorEn} hint={EN_FALLBACK_HINT} />
+      <RichTextEditor label={`${label} · Russian`} lang="ru" value={ru} onChange={onRu} error={errorRu} hint={RU_FALLBACK_HINT} />
     </div>
   );
 }

@@ -21,23 +21,29 @@ type Draft = {
   image: ApiImage | null;
   headingKa: string;
   headingEn: string;
+  headingRu: string;
   textKa: string;
   textEn: string;
+  textRu: string;
   ctaLabelKa: string;
   ctaLabelEn: string;
+  ctaLabelRu: string;
   ctaUrl: string;
   isPublished: boolean;
 };
 
-const blank = (): Draft => ({ image: null, headingKa: "", headingEn: "", textKa: "", textEn: "", ctaLabelKa: "", ctaLabelEn: "", ctaUrl: "", isPublished: true });
+const blank = (): Draft => ({ image: null, headingKa: "", headingEn: "", headingRu: "", textKa: "", textEn: "", textRu: "", ctaLabelKa: "", ctaLabelEn: "", ctaLabelRu: "", ctaUrl: "", isPublished: true });
 const toDraft = (s: AdminSlide): Draft => ({
   image: s.image,
   headingKa: s.headingKa,
   headingEn: s.headingEn ?? "",
+  headingRu: s.headingRu ?? "",
   textKa: s.textKa,
   textEn: s.textEn ?? "",
+  textRu: s.textRu ?? "",
   ctaLabelKa: s.ctaLabelKa,
   ctaLabelEn: s.ctaLabelEn ?? "",
+  ctaLabelRu: s.ctaLabelRu ?? "",
   ctaUrl: s.ctaUrl,
   isPublished: s.isPublished,
 });
@@ -45,10 +51,13 @@ const toInput = (d: Draft): SlideInput => ({
   imageId: d.image?.id ?? "",
   headingKa: d.headingKa.trim(),
   headingEn: orNull(d.headingEn),
+  headingRu: orNull(d.headingRu),
   textKa: d.textKa.trim(),
   textEn: orNull(d.textEn),
+  textRu: orNull(d.textRu),
   ctaLabelKa: d.ctaLabelKa.trim(),
   ctaLabelEn: orNull(d.ctaLabelEn),
+  ctaLabelRu: orNull(d.ctaLabelRu),
   ctaUrl: d.ctaUrl.trim(),
   isPublished: d.isPublished,
 });
@@ -62,17 +71,20 @@ function validate(d: Draft): Record<string, string> {
   if (!len(d.headingKa)) e.headingKa = "Heading is required.";
   else if (len(d.headingKa) > 120) e.headingKa = "At most 120 characters.";
   if (len(d.headingEn) > 120) e.headingEn = "At most 120 characters.";
+  if (len(d.headingRu) > 120) e.headingRu = "At most 120 characters.";
   if (len(d.textKa) > 300) e.textKa = "At most 300 characters.";
   if (len(d.textEn) > 300) e.textEn = "At most 300 characters.";
+  if (len(d.textRu) > 300) e.textRu = "At most 300 characters.";
   if (len(d.ctaLabelKa) > 40) e.ctaLabelKa = "At most 40 characters.";
   if (len(d.ctaLabelEn) > 40) e.ctaLabelEn = "At most 40 characters.";
+  if (len(d.ctaLabelRu) > 40) e.ctaLabelRu = "At most 40 characters.";
   const url = d.ctaUrl.trim();
   if (url && !LINK.test(url)) e.ctaUrl = "Use a site path like /projects or an address starting with https://.";
   else if (!len(d.ctaLabelKa) !== !url) e[url ? "ctaLabelKa" : "ctaUrl"] = "Give the button both a label and a link, or leave both empty.";
   return e;
 }
 
-const KNOWN = new Set(["imageId", "image", "headingKa", "headingEn", "textKa", "textEn", "ctaLabelKa", "ctaLabelEn", "ctaUrl", "isPublished"]);
+const KNOWN = new Set(["imageId", "image", "headingKa", "headingEn", "headingRu", "textKa", "textEn", "textRu", "ctaLabelKa", "ctaLabelEn", "ctaLabelRu", "ctaUrl", "isPublished"]);
 
 export function SlidesAdmin() {
   const { data, error, reload, update } = useApiData<{ items: AdminSlide[] }>("/api/admin/slides");
@@ -158,6 +170,7 @@ export function SlidesAdmin() {
                             {s.headingKa}
                             {!s.isPublished && <span className="ml-2 rounded-full bg-paper-2 px-2 py-0.5 text-[0.7rem] font-normal text-muted">Hidden</span>}
                             {!s.headingEn && <span className="ml-2 rounded-full bg-warn-soft px-2 py-0.5 text-[0.7rem] font-normal text-warn">No English</span>}
+                            {!s.headingRu && <span className="ml-2 rounded-full bg-warn-soft px-2 py-0.5 text-[0.7rem] font-normal text-warn">No Russian</span>}
                           </p>
                           <p className="truncate text-[0.83rem] text-muted">{s.ctaUrl ? `Button: ${s.ctaLabelKa} → ${s.ctaUrl}` : s.textKa || "No button"}</p>
                         </div>
@@ -277,9 +290,9 @@ function SlideEditor({ item, onClose, onSaved }: { item: AdminSlide | null; onCl
               </p>
             )}
           </div>
-          <BiField label="Heading" required maxLength={120} ka={d.headingKa} en={d.headingEn} onKa={(v) => set("headingKa", v)} onEn={(v) => set("headingEn", v)} errorKa={err("headingKa")} errorEn={err("headingEn")} />
-          <BiField label="Text" multiline rows={3} maxLength={300} hint="Optional" ka={d.textKa} en={d.textEn} onKa={(v) => set("textKa", v)} onEn={(v) => set("textEn", v)} errorKa={err("textKa")} errorEn={err("textEn")} />
-          <BiField label="Button label" maxLength={40} hint="Optional" ka={d.ctaLabelKa} en={d.ctaLabelEn} onKa={(v) => set("ctaLabelKa", v)} onEn={(v) => set("ctaLabelEn", v)} errorKa={err("ctaLabelKa")} errorEn={err("ctaLabelEn")} />
+          <BiField label="Heading" required maxLength={120} ka={d.headingKa} en={d.headingEn} ru={d.headingRu} onKa={(v) => set("headingKa", v)} onEn={(v) => set("headingEn", v)} onRu={(v) => set("headingRu", v)} errorKa={err("headingKa")} errorEn={err("headingEn")} errorRu={err("headingRu")} />
+          <BiField label="Text" multiline rows={3} maxLength={300} hint="Optional" ka={d.textKa} en={d.textEn} ru={d.textRu} onKa={(v) => set("textKa", v)} onEn={(v) => set("textEn", v)} onRu={(v) => set("textRu", v)} errorKa={err("textKa")} errorEn={err("textEn")} errorRu={err("textRu")} />
+          <BiField label="Button label" maxLength={40} hint="Optional" ka={d.ctaLabelKa} en={d.ctaLabelEn} ru={d.ctaLabelRu} onKa={(v) => set("ctaLabelKa", v)} onEn={(v) => set("ctaLabelEn", v)} onRu={(v) => set("ctaLabelRu", v)} errorKa={err("ctaLabelKa")} errorEn={err("ctaLabelEn")} errorRu={err("ctaLabelRu")} />
           <Field label="Button link" error={err("ctaUrl")} hint="A site path like /projects, or an address starting with https://. Empty = no button.">
             {(a) => <Input {...a} value={d.ctaUrl} placeholder="/projects" onChange={(ev) => set("ctaUrl", ev.target.value)} />}
           </Field>

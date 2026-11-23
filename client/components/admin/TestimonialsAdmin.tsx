@@ -13,26 +13,32 @@ import { useApiData } from "@/hooks/useApiData";
 import { api, errorMessage, fieldErrorsFrom, orNull, type AdminProject, type AdminTestimonial, type TestimonialInput, type TestimonialList } from "@/lib/api";
 import { cx } from "@/lib/format";
 
-type Draft = { quoteKa: string; quoteEn: string; authorKa: string; authorEn: string; roleKa: string; roleEn: string; projectId: string; published: boolean };
+type Draft = { quoteKa: string; quoteEn: string; quoteRu: string; authorKa: string; authorEn: string; authorRu: string; roleKa: string; roleEn: string; roleRu: string; projectId: string; published: boolean };
 
-const blank = (): Draft => ({ quoteKa: "", quoteEn: "", authorKa: "", authorEn: "", roleKa: "", roleEn: "", projectId: "", published: false });
+const blank = (): Draft => ({ quoteKa: "", quoteEn: "", quoteRu: "", authorKa: "", authorEn: "", authorRu: "", roleKa: "", roleEn: "", roleRu: "", projectId: "", published: false });
 const toDraft = (t: AdminTestimonial): Draft => ({
   quoteKa: t.quoteKa,
   quoteEn: t.quoteEn ?? "",
+  quoteRu: t.quoteRu ?? "",
   authorKa: t.authorKa,
   authorEn: t.authorEn ?? "",
+  authorRu: t.authorRu ?? "",
   roleKa: t.roleKa,
   roleEn: t.roleEn ?? "",
+  roleRu: t.roleRu ?? "",
   projectId: t.projectId ?? "",
   published: t.published,
 });
 const toInput = (d: Draft): TestimonialInput => ({
   quoteKa: d.quoteKa.trim(),
   quoteEn: orNull(d.quoteEn),
+  quoteRu: orNull(d.quoteRu),
   authorKa: d.authorKa.trim(),
   authorEn: orNull(d.authorEn),
+  authorRu: orNull(d.authorRu),
   roleKa: d.roleKa.trim(),
   roleEn: orNull(d.roleEn),
+  roleRu: orNull(d.roleRu),
   projectId: d.projectId || null,
   published: d.published,
 });
@@ -43,16 +49,19 @@ function validate(d: Draft): Record<string, string> {
   if (len(d.quoteKa) < 20) e.quoteKa = "The quote should be at least 20 characters.";
   else if (len(d.quoteKa) > 400) e.quoteKa = "At most 400 characters.";
   if (len(d.quoteEn) > 400) e.quoteEn = "At most 400 characters.";
+  if (len(d.quoteRu) > 400) e.quoteRu = "At most 400 characters.";
   if (!len(d.authorKa)) e.authorKa = "Author is required.";
   else if (len(d.authorKa) > 100) e.authorKa = "At most 100 characters.";
   if (len(d.authorEn) > 100) e.authorEn = "At most 100 characters.";
+  if (len(d.authorRu) > 100) e.authorRu = "At most 100 characters.";
   if (!len(d.roleKa)) e.roleKa = "Role or company is required.";
   else if (len(d.roleKa) > 100) e.roleKa = "At most 100 characters.";
   if (len(d.roleEn) > 100) e.roleEn = "At most 100 characters.";
+  if (len(d.roleRu) > 100) e.roleRu = "At most 100 characters.";
   return e;
 }
 
-const KNOWN = new Set(["quoteKa", "quoteEn", "authorKa", "authorEn", "roleKa", "roleEn", "projectId", "published"]);
+const KNOWN = new Set(["quoteKa", "quoteEn", "quoteRu", "authorKa", "authorEn", "authorRu", "roleKa", "roleEn", "roleRu", "projectId", "published"]);
 
 export function TestimonialsAdmin() {
   const { data, error, reload, update } = useApiData<TestimonialList>("/api/admin/testimonials");
@@ -134,6 +143,7 @@ export function TestimonialsAdmin() {
                   <span className="flex flex-wrap gap-1.5">
                     <span className={cx("rounded-full px-2.5 py-0.5 text-[0.72rem] font-medium", t.published ? "bg-ok-soft text-ok" : "bg-paper-2 text-muted")}>{t.published ? "Published" : "Draft"}</span>
                     {!t.quoteEn && <span className="rounded-full bg-warn-soft px-2.5 py-0.5 text-[0.72rem] text-warn">No English</span>}
+                    {!t.quoteRu && <span className="rounded-full bg-warn-soft px-2.5 py-0.5 text-[0.72rem] text-warn">No Russian</span>}
                   </span>
                   <div className="-mt-1 -mr-2 flex">
                     <IconButton label={t.published ? `Unpublish quote by ${t.authorKa}` : `Publish quote by ${t.authorKa}`} icon={t.published ? EyeOff : Eye} onClick={() => void togglePublished(t)} />
@@ -233,9 +243,9 @@ function TestimonialEditor({ item, onClose, onSaved }: { item: AdminTestimonial 
     >
       <div className="grid gap-4">
         {general && <ServerErrors message={general} fields={server} known={KNOWN} />}
-        <BiField label="Quote" required multiline rows={4} maxLength={400} ka={d.quoteKa} en={d.quoteEn} onKa={(v) => set("quoteKa", v)} onEn={(v) => set("quoteEn", v)} errorKa={err("quoteKa")} errorEn={err("quoteEn")} />
-        <BiField label="Author" required maxLength={100} ka={d.authorKa} en={d.authorEn} onKa={(v) => set("authorKa", v)} onEn={(v) => set("authorEn", v)} errorKa={err("authorKa")} errorEn={err("authorEn")} />
-        <BiField label="Role / company" required maxLength={100} ka={d.roleKa} en={d.roleEn} onKa={(v) => set("roleKa", v)} onEn={(v) => set("roleEn", v)} errorKa={err("roleKa")} errorEn={err("roleEn")} />
+        <BiField label="Quote" required multiline rows={4} maxLength={400} ka={d.quoteKa} en={d.quoteEn} ru={d.quoteRu} onKa={(v) => set("quoteKa", v)} onEn={(v) => set("quoteEn", v)} onRu={(v) => set("quoteRu", v)} errorKa={err("quoteKa")} errorEn={err("quoteEn")} errorRu={err("quoteRu")} />
+        <BiField label="Author" required maxLength={100} ka={d.authorKa} en={d.authorEn} ru={d.authorRu} onKa={(v) => set("authorKa", v)} onEn={(v) => set("authorEn", v)} onRu={(v) => set("authorRu", v)} errorKa={err("authorKa")} errorEn={err("authorEn")} errorRu={err("authorRu")} />
+        <BiField label="Role / company" required maxLength={100} ka={d.roleKa} en={d.roleEn} ru={d.roleRu} onKa={(v) => set("roleKa", v)} onEn={(v) => set("roleEn", v)} onRu={(v) => set("roleRu", v)} errorKa={err("roleKa")} errorEn={err("roleEn")} errorRu={err("roleRu")} />
         <Field
           label="Related project"
           error={err("projectId")}

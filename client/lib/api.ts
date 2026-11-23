@@ -198,6 +198,7 @@ export type MediaAsset = ApiImage & {
   createdAt: string;
   altKa: string;
   altEn: string | null;
+  altRu: string | null;
   category: "exterior" | "interior" | "construction" | "team" | "uploads";
 };
 /** A place that shows a photo (GET /api/admin/media/:id/usage). */
@@ -206,20 +207,25 @@ export type MediaUsage = { type: string; id: string; label: string; href: string
 export type ProjectCategory = "residential" | "apartments" | "commercial" | "hospitality" | "renovation";
 export type ProjectStatus = "planning" | "in-progress" | "completed" | "on-hold";
 
-export type SpecInput = { labelKa: string; labelEn?: string | null; valueKa: string; valueEn?: string | null };
+export type SpecInput = { labelKa: string; labelEn?: string | null; labelRu?: string | null; valueKa: string; valueEn?: string | null; valueRu?: string | null };
 
 type ProjectFields = {
   slug: string;
   titleKa: string;
   titleEn?: string | null;
+  titleRu?: string | null;
   summaryKa: string;
   summaryEn?: string | null;
+  summaryRu?: string | null;
   descriptionKa: string;
   descriptionEn?: string | null;
+  descriptionRu?: string | null;
   locationKa: string;
   locationEn?: string | null;
+  locationRu?: string | null;
   cityKa: string;
   cityEn?: string | null;
+  cityRu?: string | null;
   category: ProjectCategory;
   status: ProjectStatus;
   progress: number;
@@ -236,8 +242,10 @@ type ProjectFields = {
 export type SeoFields = {
   titleKa: string;
   titleEn: string | null;
+  titleRu: string | null;
   descriptionKa: string;
   descriptionEn: string | null;
+  descriptionRu: string | null;
   ogImageId: string | null;
   robotsIndex: boolean;
   robotsFollow: boolean;
@@ -304,23 +312,26 @@ export type RichTextDoc = { type: "doc"; content: BlockNode[] };
 /** Optional on save; the API always returns the full style with defaults. */
 export type BlockStyleInput = Partial<SectionStyle>;
 
-export type CardInput = { titleKa: string; titleEn?: string | null; textKa?: string | null; textEn?: string | null; mediaId?: string | null };
+export type CardInput = { titleKa: string; titleEn?: string | null; titleRu?: string | null; textKa?: string | null; textEn?: string | null; textRu?: string | null; mediaId?: string | null };
 
 export type BlockInput = BlockInputBase & { style?: BlockStyleInput };
 
 type BlockInputBase =
-  | { type: "heading"; level: 2 | 3; textKa: string; textEn?: string | null }
-  | { type: "text"; docKa: RichTextDoc; docEn?: RichTextDoc | null }
-  | { type: "image"; mediaId: string; captionKa?: string | null; captionEn?: string | null }
+  | { type: "heading"; level: 2 | 3; textKa: string; textEn?: string | null; textRu?: string | null }
+  | { type: "text"; docKa: RichTextDoc; docEn?: RichTextDoc | null; docRu?: RichTextDoc | null }
+  | { type: "image"; mediaId: string; captionKa?: string | null; captionEn?: string | null; captionRu?: string | null }
   | {
       type: "banner";
       mediaId: string;
       titleKa: string;
       titleEn?: string | null;
+      titleRu?: string | null;
       textKa?: string | null;
       textEn?: string | null;
+      textRu?: string | null;
       buttonLabelKa?: string | null;
       buttonLabelEn?: string | null;
+      buttonLabelRu?: string | null;
       buttonHref?: string | null;
     }
   | { type: "gallery"; mediaIds: string[] }
@@ -330,10 +341,12 @@ type BlockInputBase =
       imageSide: "left" | "right";
       titleKa?: string | null;
       titleEn?: string | null;
+      titleRu?: string | null;
       docKa: RichTextDoc;
       docEn?: RichTextDoc | null;
+      docRu?: RichTextDoc | null;
     }
-  | { type: "cards"; titleKa?: string | null; titleEn?: string | null; items: CardInput[] };
+  | { type: "cards"; titleKa?: string | null; titleEn?: string | null; titleRu?: string | null; items: CardInput[] };
 
 /** Saved sections as the admin API returns them: the input fields, image previews and the full style. */
 export type AdminBlock = AdminBlockBase & { style?: SectionStyle };
@@ -354,6 +367,7 @@ export type PageSummary = {
   slug: string;
   titleKa: string;
   titleEn: string | null;
+  titleRu: string | null;
   isPublished: boolean;
   updatedAt: string;
   inHeader?: boolean;
@@ -361,13 +375,14 @@ export type PageSummary = {
 };
 
 export type MenuPlacement = { show: boolean; position?: number | null };
-export type PageMenu = { labelKa?: string | null; labelEn?: string | null; header: MenuPlacement; footer: MenuPlacement };
+export type PageMenu = { labelKa?: string | null; labelEn?: string | null; labelRu?: string | null; header: MenuPlacement; footer: MenuPlacement };
 
 export type AdminPage = PageSummary & {
   introKa: string;
   introEn: string | null;
+  introRu: string | null;
   blocks: AdminBlock[];
-  menu?: { labelKa: string | null; labelEn: string | null; header: { show: boolean; position: number | null }; footer: { show: boolean; position: number | null } };
+  menu?: { labelKa: string | null; labelEn: string | null; labelRu: string | null; header: { show: boolean; position: number | null }; footer: { show: boolean; position: number | null } };
   style?: PageStyle;
   seo?: SeoFields;
 };
@@ -376,8 +391,10 @@ export type PageInput = {
   slug: string;
   titleKa: string;
   titleEn?: string | null;
+  titleRu?: string | null;
   introKa?: string;
   introEn?: string | null;
+  introRu?: string | null;
   isPublished: boolean;
   blocks: BlockInput[];
   /** Omit to leave the page's menu entries unchanged. */
@@ -442,12 +459,16 @@ export type ServiceInput = {
   slug?: string | null;
   titleKa: string;
   titleEn?: string | null;
+  titleRu?: string | null;
   summaryKa: string;
   summaryEn?: string | null;
+  summaryRu?: string | null;
   descriptionKa: string;
   descriptionEn?: string | null;
+  descriptionRu?: string | null;
   featuresKa: string[];
   featuresEn: string[];
+  featuresRu: string[];
   imageId: string;
   visible: boolean;
 };
@@ -456,10 +477,13 @@ export type AdminService = Required<ServiceInput> & { id: string; slug: string; 
 export type TeamMemberInput = {
   nameKa: string;
   nameEn?: string | null;
+  nameRu?: string | null;
   roleKa: string;
   roleEn?: string | null;
+  roleRu?: string | null;
   bioKa: string;
   bioEn?: string | null;
+  bioRu?: string | null;
   photoId: string;
   visible: boolean;
 };
@@ -468,10 +492,13 @@ export type AdminTeamMember = Required<TeamMemberInput> & { id: string; photo: A
 export type TestimonialInput = {
   quoteKa: string;
   quoteEn?: string | null;
+  quoteRu?: string | null;
   authorKa: string;
   authorEn?: string | null;
+  authorRu?: string | null;
   roleKa: string;
   roleEn?: string | null;
+  roleRu?: string | null;
   projectId: string | null;
   published: boolean;
 };
@@ -487,10 +514,13 @@ export type SlideInput = {
   imageId: string;
   headingKa: string;
   headingEn?: string | null;
+  headingRu?: string | null;
   textKa?: string | null;
   textEn?: string | null;
+  textRu?: string | null;
   ctaLabelKa?: string | null;
   ctaLabelEn?: string | null;
+  ctaLabelRu?: string | null;
   ctaUrl?: string | null;
   isPublished: boolean;
 };
@@ -500,10 +530,13 @@ export type AdminSlide = {
   image: ApiImage;
   headingKa: string;
   headingEn: string | null;
+  headingRu: string | null;
   textKa: string;
   textEn: string | null;
+  textRu: string | null;
   ctaLabelKa: string;
   ctaLabelEn: string | null;
+  ctaLabelRu: string | null;
   ctaUrl: string;
   isPublished: boolean;
   position: number;
@@ -517,6 +550,7 @@ export type NavItemInput = {
   location: MenuLocation;
   labelKa: string;
   labelEn?: string | null;
+  labelRu?: string | null;
   pageId?: string | null;
   url?: string | null;
   newTab: boolean;
@@ -527,6 +561,7 @@ export type AdminNavItem = {
   location: MenuLocation;
   labelKa: string;
   labelEn: string | null;
+  labelRu: string | null;
   pageId: string | null;
   page: { id: string; title: string; isPublished: boolean } | null;
   url: string | null;
@@ -541,12 +576,15 @@ export type SettingsInput = {
   companyName: string;
   taglineKa: string;
   taglineEn?: string | null;
+  taglineRu?: string | null;
   email: string;
   phone: string;
   addressKa: string;
   addressEn?: string | null;
+  addressRu?: string | null;
   hoursKa: string;
   hoursEn?: string | null;
+  hoursRu?: string | null;
   instagramUrl: string;
   linkedinUrl: string;
   facebookUrl: string;
@@ -557,6 +595,7 @@ export type SettingsInput = {
   longitude: number | null;
   defaultSeoDescriptionKa: string;
   defaultSeoDescriptionEn?: string | null;
+  defaultSeoDescriptionRu?: string | null;
   defaultOgImageId: string | null;
   googleSiteVerification: string;
   gtmContainerId: string;

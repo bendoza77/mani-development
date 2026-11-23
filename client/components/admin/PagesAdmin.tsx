@@ -89,6 +89,7 @@ export function PagesAdmin() {
                         {p.titleKa}
                       </Link>
                       {p.titleEn && <span className="block text-[0.8rem] text-muted">{p.titleEn}</span>}
+                      {p.titleRu && <span className="block text-[0.8rem] text-muted">{p.titleRu}</span>}
                       {p.kind === "system" && (
                         <span className="mt-1 inline-flex items-center gap-1 text-[0.72rem] text-muted">
                           <Lock aria-hidden className="size-3" /> Built-in

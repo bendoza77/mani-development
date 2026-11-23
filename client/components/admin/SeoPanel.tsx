@@ -14,22 +14,26 @@ import { cx } from "@/lib/format";
 export type SeoDraft = {
   titleKa: string;
   titleEn: string;
+  titleRu: string;
   descriptionKa: string;
   descriptionEn: string;
+  descriptionRu: string;
   ogImageId: string | null;
   robotsIndex: boolean;
   robotsFollow: boolean;
 };
 
-export const blankSeo = (): SeoDraft => ({ titleKa: "", titleEn: "", descriptionKa: "", descriptionEn: "", ogImageId: null, robotsIndex: true, robotsFollow: true });
+export const blankSeo = (): SeoDraft => ({ titleKa: "", titleEn: "", titleRu: "", descriptionKa: "", descriptionEn: "", descriptionRu: "", ogImageId: null, robotsIndex: true, robotsFollow: true });
 
 export const seoDraftFrom = (seo: SeoFields | undefined): SeoDraft =>
   seo
     ? {
         titleKa: seo.titleKa,
         titleEn: seo.titleEn ?? "",
+        titleRu: seo.titleRu ?? "",
         descriptionKa: seo.descriptionKa,
         descriptionEn: seo.descriptionEn ?? "",
+        descriptionRu: seo.descriptionRu ?? "",
         ogImageId: seo.ogImageId,
         robotsIndex: seo.robotsIndex,
         robotsFollow: seo.robotsFollow,
@@ -39,8 +43,10 @@ export const seoDraftFrom = (seo: SeoFields | undefined): SeoDraft =>
 export const seoInputFrom = (d: SeoDraft): SeoFields => ({
   titleKa: d.titleKa.trim(),
   titleEn: d.titleEn.trim() || null,
+  titleRu: d.titleRu.trim() || null,
   descriptionKa: d.descriptionKa.trim(),
   descriptionEn: d.descriptionEn.trim() || null,
+  descriptionRu: d.descriptionRu.trim() || null,
   ogImageId: d.ogImageId,
   robotsIndex: d.robotsIndex,
   robotsFollow: d.robotsFollow,
@@ -51,8 +57,10 @@ export function validateSeo(d: SeoDraft): Record<string, string> {
   const e: Record<string, string> = {};
   if (d.titleKa.trim().length > 70) e["seo.titleKa"] = "At most 70 characters.";
   if (d.titleEn.trim().length > 70) e["seo.titleEn"] = "At most 70 characters.";
+  if (d.titleRu.trim().length > 70) e["seo.titleRu"] = "At most 70 characters.";
   if (d.descriptionKa.trim().length > 200) e["seo.descriptionKa"] = "At most 200 characters.";
   if (d.descriptionEn.trim().length > 200) e["seo.descriptionEn"] = "At most 200 characters.";
+  if (d.descriptionRu.trim().length > 200) e["seo.descriptionRu"] = "At most 200 characters.";
   return e;
 }
 
@@ -77,7 +85,7 @@ export function SeoPanel({
   /** Public address, shown in the preview. */
   path: string;
 }) {
-  const hasError = ["titleKa", "titleEn", "descriptionKa", "descriptionEn", "ogImageId"].some((k) => error(`seo.${k}`));
+  const hasError = ["titleKa", "titleEn", "titleRu", "descriptionKa", "descriptionEn", "descriptionRu", "ogImageId"].some((k) => error(`seo.${k}`));
   const [open, setOpen] = useState(false);
   const [picker, setPicker] = useState(false);
   const [picked, setPicked] = useState<ApiImage | null>(null);
@@ -124,10 +132,13 @@ export function SeoPanel({
             hint="Empty = the page title"
             ka={value.titleKa}
             en={value.titleEn}
+            ru={value.titleRu}
             onKa={(v) => onChange({ titleKa: v })}
             onEn={(v) => onChange({ titleEn: v })}
+            onRu={(v) => onChange({ titleRu: v })}
             errorKa={error("seo.titleKa")}
             errorEn={error("seo.titleEn")}
+            errorRu={error("seo.titleRu")}
           />
           <BiField
             label="Search description"
@@ -137,10 +148,13 @@ export function SeoPanel({
             hint="Empty = the summary"
             ka={value.descriptionKa}
             en={value.descriptionEn}
+            ru={value.descriptionRu}
             onKa={(v) => onChange({ descriptionKa: v })}
             onEn={(v) => onChange({ descriptionEn: v })}
+            onRu={(v) => onChange({ descriptionRu: v })}
             errorKa={error("seo.descriptionKa")}
             errorEn={error("seo.descriptionEn")}
+            errorRu={error("seo.descriptionRu")}
           />
           <div className="sm:col-span-2">
             <p className="text-[0.82rem] font-medium text-ink-soft">Share image</p>

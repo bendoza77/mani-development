@@ -25,14 +25,15 @@ import { DEFAULT_PAGE_STYLE, cleanPageStyle, type PageStyle } from "@/lib/style"
 type MenuDraft = {
   labelKa: string;
   labelEn: string;
+  labelRu: string;
   header: { show: boolean; position: string };
   footer: { show: boolean; position: string };
 };
 
-type Draft = { slug: string; titleKa: string; titleEn: string; introKa: string; introEn: string; isPublished: boolean; sections: Section[]; menu: MenuDraft; style: PageStyle; seo: SeoDraft };
+type Draft = { slug: string; titleKa: string; titleEn: string; titleRu: string; introKa: string; introEn: string; introRu: string; isPublished: boolean; sections: Section[]; menu: MenuDraft; style: PageStyle; seo: SeoDraft };
 
-const blankMenu = (): MenuDraft => ({ labelKa: "", labelEn: "", header: { show: false, position: "" }, footer: { show: false, position: "" } });
-const blank = (): Draft => ({ slug: "", titleKa: "", titleEn: "", introKa: "", introEn: "", isPublished: false, sections: [], menu: blankMenu(), style: { ...DEFAULT_PAGE_STYLE }, seo: blankSeo() });
+const blankMenu = (): MenuDraft => ({ labelKa: "", labelEn: "", labelRu: "", header: { show: false, position: "" }, footer: { show: false, position: "" } });
+const blank = (): Draft => ({ slug: "", titleKa: "", titleEn: "", titleRu: "", introKa: "", introEn: "", introRu: "", isPublished: false, sections: [], menu: blankMenu(), style: { ...DEFAULT_PAGE_STYLE }, seo: blankSeo() });
 
 function fromPage(p: AdminPage): Draft {
   const m = p.menu;
@@ -40,8 +41,10 @@ function fromPage(p: AdminPage): Draft {
     slug: p.slug,
     titleKa: p.titleKa,
     titleEn: p.titleEn ?? "",
+    titleRu: p.titleRu ?? "",
     introKa: p.introKa,
     introEn: p.introEn ?? "",
+    introRu: p.introRu ?? "",
     isPublished: p.isPublished,
     sections: p.blocks.map(fromBlock),
     style: cleanPageStyle(p.style),
@@ -50,6 +53,7 @@ function fromPage(p: AdminPage): Draft {
       ? {
           labelKa: m.labelKa ?? "",
           labelEn: m.labelEn ?? "",
+          labelRu: m.labelRu ?? "",
           header: { show: m.header.show, position: m.header.position ? String(m.header.position) : "" },
           footer: { show: m.footer.show, position: m.footer.position ? String(m.footer.position) : "" },
         }
@@ -65,8 +69,10 @@ function toInput(d: Draft): PageInput {
     slug: d.slug,
     titleKa: d.titleKa.trim(),
     titleEn: orNull(d.titleEn),
+    titleRu: orNull(d.titleRu),
     introKa: d.introKa.trim(),
     introEn: orNull(d.introEn),
+    introRu: orNull(d.introRu),
     isPublished: d.isPublished,
     blocks: d.sections.map(toBlockInput),
     style: d.style,
@@ -74,6 +80,7 @@ function toInput(d: Draft): PageInput {
     menu: {
       labelKa: orNull(d.menu.labelKa),
       labelEn: orNull(d.menu.labelEn),
+      labelRu: orNull(d.menu.labelRu),
       header: { show: d.menu.header.show, position: d.menu.header.show ? position(d.menu.header.position) : null },
       footer: { show: d.menu.footer.show, position: d.menu.footer.show ? position(d.menu.footer.position) : null },
     },
@@ -170,6 +177,7 @@ export function PageForm({ pageId }: { pageId?: string }) {
 
   const setTitleKa = (titleKa: string) => setDraft((d) => ({ ...d, titleKa, slug: slugTouched ? d.slug : slugify(d.titleEn || titleKa) }));
   const setTitleEn = (titleEn: string) => setDraft((d) => ({ ...d, titleEn, slug: slugTouched ? d.slug : slugify(titleEn || d.titleKa) }));
+  const setTitleRu = (titleRu: string) => setDraft((d) => ({ ...d, titleRu }));
 
   // Photo picking for whichever section asked.
   const pickedSection = picking ? draft.sections.find((b) => b.key === picking.key) : undefined;
@@ -228,7 +236,7 @@ export function PageForm({ pageId }: { pageId?: string }) {
 
   const cancel = () => (dirty ? setConfirmLeave(true) : router.push("/admin/pages"));
   const publicPath = adopted ? publicPathOf({ ...adopted, slug: draft.slug }) : `/${draft.slug || "…"}`;
-  const knownTop = new Set(["slug", "titleKa", "titleEn", "introKa", "introEn"]);
+  const knownTop = new Set(["slug", "titleKa", "titleEn", "titleRu", "introKa", "introEn", "introRu"]);
   const generalErrors = Object.entries(serverErrors).filter(([k]) => !knownTop.has(k) && !k.startsWith("blocks.") && !k.startsWith("menu") && !k.startsWith("seo."));
 
   return (
@@ -265,8 +273,8 @@ export function PageForm({ pageId }: { pageId?: string }) {
 
       <div className="grid gap-6 xl:grid-cols-[1fr_22rem]">
         <div className="min-w-0 space-y-6">
-          <Panel title="Page" description="Georgian is the main language. English is optional; empty English fields show the Georgian text.">
-            <BiField label="Title" required maxLength={120} ka={draft.titleKa} en={draft.titleEn} onKa={setTitleKa} onEn={setTitleEn} errorKa={err("titleKa")} errorEn={err("titleEn")} />
+          <Panel title="Page" description="Georgian is the main language. English and Russian are optional; empty English fields show the Georgian text, empty Russian fields the English (or Georgian) text.">
+            <BiField label="Title" required maxLength={120} ka={draft.titleKa} en={draft.titleEn} ru={draft.titleRu} onKa={setTitleKa} onEn={setTitleEn} onRu={setTitleRu} errorKa={err("titleKa")} errorEn={err("titleEn")} errorRu={err("titleRu")} />
             {!isSystem && (
               <div className="sm:col-span-2">
                 <Field label="URL slug" required error={err("slug")} hint={`/${draft.slug || "your-page"} · Latin letters, numbers and hyphens`}>
@@ -283,7 +291,7 @@ export function PageForm({ pageId }: { pageId?: string }) {
                 </Field>
               </div>
             )}
-            <BiField label="Intro" multiline rows={3} maxLength={400} hint="Short text under the title" ka={draft.introKa} en={draft.introEn} onKa={(v) => set("introKa", v)} onEn={(v) => set("introEn", v)} errorKa={err("introKa")} errorEn={err("introEn")} />
+            <BiField label="Intro" multiline rows={3} maxLength={400} hint="Short text under the title" ka={draft.introKa} en={draft.introEn} ru={draft.introRu} onKa={(v) => set("introKa", v)} onEn={(v) => set("introEn", v)} onRu={(v) => set("introRu", v)} errorKa={err("introKa")} errorEn={err("introEn")} errorRu={err("introRu")} />
           </Panel>
 
           <section aria-label="Page sections" className="space-y-4">
@@ -427,6 +435,9 @@ export function PageForm({ pageId }: { pageId?: string }) {
             </Field>
             <Field label="Menu label · English" error={err("menu.labelEn")} hint="Optional. Empty = page title">
               {(a) => <Input {...a} lang="en" maxLength={40} placeholder={draft.titleEn || draft.titleKa || "Page title"} value={draft.menu.labelEn} onChange={(e) => setMenu({ labelEn: e.target.value })} />}
+            </Field>
+            <Field label="Menu label · Russian" error={err("menu.labelRu")} hint="Optional. Empty = page title">
+              {(a) => <Input {...a} lang="ru" maxLength={40} placeholder={draft.titleRu || draft.titleEn || draft.titleKa || "Page title"} value={draft.menu.labelRu} onChange={(e) => setMenu({ labelRu: e.target.value })} />}
             </Field>
           </fieldset>
 

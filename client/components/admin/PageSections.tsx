@@ -15,27 +15,30 @@ import type { AdminBlock, ApiImage, BlockInput, RichTextDoc } from "@/lib/api";
 import { isEmptyDoc, isSafeHref } from "@/lib/richtext";
 import { DEFAULT_SECTION_STYLE, cleanSectionStyle, type SectionStyle } from "@/lib/style";
 
-export type CardItem = { key: string; titleKa: string; titleEn: string; textKa: string; textEn: string; image: ApiImage | null };
+export type CardItem = { key: string; titleKa: string; titleEn: string; titleRu: string; textKa: string; textEn: string; textRu: string; image: ApiImage | null };
 
 type SectionBody =
-  | { key: string; type: "heading"; level: 2 | 3; textKa: string; textEn: string }
-  | { key: string; type: "text"; docKa: RichTextDoc | null; docEn: RichTextDoc | null }
-  | { key: string; type: "image"; image: ApiImage | null; captionKa: string; captionEn: string }
+  | { key: string; type: "heading"; level: 2 | 3; textKa: string; textEn: string; textRu: string }
+  | { key: string; type: "text"; docKa: RichTextDoc | null; docEn: RichTextDoc | null; docRu: RichTextDoc | null }
+  | { key: string; type: "image"; image: ApiImage | null; captionKa: string; captionEn: string; captionRu: string }
   | {
       key: string;
       type: "banner";
       image: ApiImage | null;
       titleKa: string;
       titleEn: string;
+      titleRu: string;
       textKa: string;
       textEn: string;
+      textRu: string;
       buttonLabelKa: string;
       buttonLabelEn: string;
+      buttonLabelRu: string;
       buttonHref: string;
     }
   | { key: string; type: "gallery"; images: ApiImage[] }
-  | { key: string; type: "textImage"; image: ApiImage | null; imageSide: "left" | "right"; titleKa: string; titleEn: string; docKa: RichTextDoc | null; docEn: RichTextDoc | null }
-  | { key: string; type: "cards"; titleKa: string; titleEn: string; items: CardItem[] };
+  | { key: string; type: "textImage"; image: ApiImage | null; imageSide: "left" | "right"; titleKa: string; titleEn: string; titleRu: string; docKa: RichTextDoc | null; docEn: RichTextDoc | null; docRu: RichTextDoc | null }
+  | { key: string; type: "cards"; titleKa: string; titleEn: string; titleRu: string; items: CardItem[] };
 
 /** One section in the editor: its content plus its style. */
 export type Section = SectionBody & { style: SectionStyle };
@@ -58,7 +61,7 @@ export const sectionLabel = (type: SectionType) => SECTION_TYPES.find((s) => s.t
 let counter = 0;
 export const newKey = (prefix = "s") => `${prefix}-${++counter}`;
 
-const blankCard = (): CardItem => ({ key: newKey("card"), titleKa: "", titleEn: "", textKa: "", textEn: "", image: null });
+const blankCard = (): CardItem => ({ key: newKey("card"), titleKa: "", titleEn: "", titleRu: "", textKa: "", textEn: "", textRu: "", image: null });
 
 export function newSection(type: SectionType): Section {
   return { ...newBody(type), style: { ...DEFAULT_SECTION_STYLE } } as Section;
@@ -68,19 +71,19 @@ function newBody(type: SectionType): SectionBody {
   const key = newKey();
   switch (type) {
     case "heading":
-      return { key, type, level: 2, textKa: "", textEn: "" };
+      return { key, type, level: 2, textKa: "", textEn: "", textRu: "" };
     case "text":
-      return { key, type, docKa: null, docEn: null };
+      return { key, type, docKa: null, docEn: null, docRu: null };
     case "image":
-      return { key, type, image: null, captionKa: "", captionEn: "" };
+      return { key, type, image: null, captionKa: "", captionEn: "", captionRu: "" };
     case "banner":
-      return { key, type, image: null, titleKa: "", titleEn: "", textKa: "", textEn: "", buttonLabelKa: "", buttonLabelEn: "", buttonHref: "" };
+      return { key, type, image: null, titleKa: "", titleEn: "", titleRu: "", textKa: "", textEn: "", textRu: "", buttonLabelKa: "", buttonLabelEn: "", buttonLabelRu: "", buttonHref: "" };
     case "gallery":
       return { key, type, images: [] };
     case "textImage":
-      return { key, type, image: null, imageSide: "right", titleKa: "", titleEn: "", docKa: null, docEn: null };
+      return { key, type, image: null, imageSide: "right", titleKa: "", titleEn: "", titleRu: "", docKa: null, docEn: null, docRu: null };
     case "cards":
-      return { key, type, titleKa: "", titleEn: "", items: [blankCard()] };
+      return { key, type, titleKa: "", titleEn: "", titleRu: "", items: [blankCard()] };
   }
 }
 
@@ -94,12 +97,12 @@ function bodyFromBlock(b: AdminBlock): SectionBody {
   const key = newKey();
   switch (b.type) {
     case "heading":
-      return { key, type: "heading", level: b.level, textKa: b.textKa, textEn: s(b.textEn) };
+      return { key, type: "heading", level: b.level, textKa: b.textKa, textEn: s(b.textEn), textRu: s(b.textRu) };
     case "text":
       // Documents load into the editor exactly as saved.
-      return { key, type: "text", docKa: b.docKa, docEn: b.docEn ?? null };
+      return { key, type: "text", docKa: b.docKa, docEn: b.docEn ?? null, docRu: b.docRu ?? null };
     case "image":
-      return { key, type: "image", image: b.image, captionKa: s(b.captionKa), captionEn: s(b.captionEn) };
+      return { key, type: "image", image: b.image, captionKa: s(b.captionKa), captionEn: s(b.captionEn), captionRu: s(b.captionRu) };
     case "banner":
       return {
         key,
@@ -107,10 +110,13 @@ function bodyFromBlock(b: AdminBlock): SectionBody {
         image: b.image,
         titleKa: b.titleKa,
         titleEn: s(b.titleEn),
+        titleRu: s(b.titleRu),
         textKa: s(b.textKa),
         textEn: s(b.textEn),
+        textRu: s(b.textRu),
         buttonLabelKa: s(b.buttonLabelKa),
         buttonLabelEn: s(b.buttonLabelEn),
+        buttonLabelRu: s(b.buttonLabelRu),
         buttonHref: s(b.buttonHref),
       };
     case "gallery":
@@ -123,8 +129,10 @@ function bodyFromBlock(b: AdminBlock): SectionBody {
         imageSide: b.imageSide,
         titleKa: s(b.titleKa),
         titleEn: s(b.titleEn),
+        titleRu: s(b.titleRu),
         docKa: b.docKa,
         docEn: b.docEn ?? null,
+        docRu: b.docRu ?? null,
       };
     case "cards":
       return {
@@ -132,7 +140,8 @@ function bodyFromBlock(b: AdminBlock): SectionBody {
         type: "cards",
         titleKa: s(b.titleKa),
         titleEn: s(b.titleEn),
-        items: b.items.map((i) => ({ key: newKey("card"), titleKa: i.titleKa, titleEn: s(i.titleEn), textKa: s(i.textKa), textEn: s(i.textEn), image: i.image })),
+        titleRu: s(b.titleRu),
+        items: b.items.map((i) => ({ key: newKey("card"), titleKa: i.titleKa, titleEn: s(i.titleEn), titleRu: s(i.titleRu), textKa: s(i.textKa), textEn: s(i.textEn), textRu: s(i.textRu), image: i.image })),
       };
   }
 }
@@ -149,21 +158,24 @@ export function toBlockInput(b: Section): BlockInput {
 function bodyInput(b: Section): BlockInput {
   switch (b.type) {
     case "heading":
-      return { type: "heading", level: b.level, textKa: b.textKa.trim(), textEn: orNull(b.textEn) };
+      return { type: "heading", level: b.level, textKa: b.textKa.trim(), textEn: orNull(b.textEn), textRu: orNull(b.textRu) };
     case "text":
-      return { type: "text", docKa: b.docKa ?? EMPTY_DOC, docEn: docOrNull(b.docEn) };
+      return { type: "text", docKa: b.docKa ?? EMPTY_DOC, docEn: docOrNull(b.docEn), docRu: docOrNull(b.docRu) };
     case "image":
-      return { type: "image", mediaId: b.image?.id ?? "", captionKa: orNull(b.captionKa), captionEn: orNull(b.captionEn) };
+      return { type: "image", mediaId: b.image?.id ?? "", captionKa: orNull(b.captionKa), captionEn: orNull(b.captionEn), captionRu: orNull(b.captionRu) };
     case "banner":
       return {
         type: "banner",
         mediaId: b.image?.id ?? "",
         titleKa: b.titleKa.trim(),
         titleEn: orNull(b.titleEn),
+        titleRu: orNull(b.titleRu),
         textKa: orNull(b.textKa),
         textEn: orNull(b.textEn),
+        textRu: orNull(b.textRu),
         buttonLabelKa: orNull(b.buttonLabelKa),
         buttonLabelEn: orNull(b.buttonLabelEn),
+        buttonLabelRu: orNull(b.buttonLabelRu),
         buttonHref: orNull(b.buttonHref),
       };
     case "gallery":
@@ -175,16 +187,19 @@ function bodyInput(b: Section): BlockInput {
         imageSide: b.imageSide,
         titleKa: orNull(b.titleKa),
         titleEn: orNull(b.titleEn),
+        titleRu: orNull(b.titleRu),
         docKa: b.docKa ?? EMPTY_DOC,
         docEn: docOrNull(b.docEn),
+        docRu: docOrNull(b.docRu),
       };
     case "cards":
       return {
         type: "cards",
         titleKa: orNull(b.titleKa),
         titleEn: orNull(b.titleEn),
+        titleRu: orNull(b.titleRu),
         // Card textKa is a string on the server ("" when empty), not null.
-        items: b.items.map((i) => ({ titleKa: i.titleKa.trim(), titleEn: orNull(i.titleEn), textKa: i.textKa.trim(), textEn: orNull(i.textEn), mediaId: i.image?.id ?? null })),
+        items: b.items.map((i) => ({ titleKa: i.titleKa.trim(), titleEn: orNull(i.titleEn), titleRu: orNull(i.titleRu), textKa: i.textKa.trim(), textEn: orNull(i.textEn), textRu: orNull(i.textRu), mediaId: i.image?.id ?? null })),
       };
   }
 }
@@ -205,7 +220,7 @@ export function validateSection(b: Section, i: number, e: Record<string, string>
     case "banner": {
       if (!b.image) e[k("mediaId")] = "Choose or upload a photo.";
       if (!b.titleKa.trim()) e[k("titleKa")] = "Georgian title is required.";
-      const hasLabel = !!(b.buttonLabelKa.trim() || b.buttonLabelEn.trim());
+      const hasLabel = !!(b.buttonLabelKa.trim() || b.buttonLabelEn.trim() || b.buttonLabelRu.trim());
       const hasHref = !!b.buttonHref.trim();
       if (hasLabel !== hasHref || (hasHref && !b.buttonLabelKa.trim())) e[k("buttonHref")] = "Give the button a Georgian label and a link, or leave both empty.";
       else if (hasHref && !isSafeHref(b.buttonHref.trim())) e[k("buttonHref")] = "Use a link starting with https://, http://, mailto:, tel: or a site path like /contact.";
@@ -287,14 +302,14 @@ export function sectionFields({ section, update, pick, errorFor }: EditorProps<S
             )}
           </Field>
           <div className="max-sm:hidden" />
-          <BiField label="Heading" required maxLength={150} ka={b.textKa} en={b.textEn} onKa={(v) => update({ textKa: v })} onEn={(v) => update({ textEn: v })} errorKa={errorFor("textKa")} errorEn={errorFor("textEn")} />
+          <BiField label="Heading" required maxLength={150} ka={b.textKa} en={b.textEn} ru={b.textRu} onKa={(v) => update({ textKa: v })} onEn={(v) => update({ textEn: v })} onRu={(v) => update({ textRu: v })} errorKa={errorFor("textKa")} errorEn={errorFor("textEn")} errorRu={errorFor("textRu")} />
         </>
       );
     }
     case "text": {
       const b = section;
       return (
-        <BiRichField label="Text" required ka={b.docKa} en={b.docEn} onKa={(d) => update({ docKa: d })} onEn={(d) => update({ docEn: d })} errorKa={errorFor("docKa")} errorEn={errorFor("docEn")} />
+        <BiRichField label="Text" required ka={b.docKa} en={b.docEn} ru={b.docRu} onKa={(d) => update({ docKa: d })} onEn={(d) => update({ docEn: d })} onRu={(d) => update({ docRu: d })} errorKa={errorFor("docKa")} errorEn={errorFor("docEn")} errorRu={errorFor("docRu")} />
       );
     }
     case "image": {
@@ -302,7 +317,7 @@ export function sectionFields({ section, update, pick, errorFor }: EditorProps<S
       return (
         <>
           <PhotoSlot label="Photo *" image={b.image} onPick={() => pick({ key: b.key, kind: "image" })} error={errorFor("mediaId")} />
-          <BiField label="Caption" maxLength={200} ka={b.captionKa} en={b.captionEn} onKa={(v) => update({ captionKa: v })} onEn={(v) => update({ captionEn: v })} errorKa={errorFor("captionKa")} errorEn={errorFor("captionEn")} />
+          <BiField label="Caption" maxLength={200} ka={b.captionKa} en={b.captionEn} ru={b.captionRu} onKa={(v) => update({ captionKa: v })} onEn={(v) => update({ captionEn: v })} onRu={(v) => update({ captionRu: v })} errorKa={errorFor("captionKa")} errorEn={errorFor("captionEn")} errorRu={errorFor("captionRu")} />
         </>
       );
     }
@@ -311,9 +326,9 @@ export function sectionFields({ section, update, pick, errorFor }: EditorProps<S
       return (
         <>
           <PhotoSlot label="Background photo *" wide image={b.image} onPick={() => pick({ key: b.key, kind: "image" })} error={errorFor("mediaId")} />
-          <BiField label="Title" required maxLength={120} ka={b.titleKa} en={b.titleEn} onKa={(v) => update({ titleKa: v })} onEn={(v) => update({ titleEn: v })} errorKa={errorFor("titleKa")} errorEn={errorFor("titleEn")} />
-          <BiField label="Short text" multiline rows={3} maxLength={300} ka={b.textKa} en={b.textEn} onKa={(v) => update({ textKa: v })} onEn={(v) => update({ textEn: v })} errorKa={errorFor("textKa")} errorEn={errorFor("textEn")} />
-          <BiField label="Button label" maxLength={40} hint="Optional" ka={b.buttonLabelKa} en={b.buttonLabelEn} onKa={(v) => update({ buttonLabelKa: v })} onEn={(v) => update({ buttonLabelEn: v })} errorKa={errorFor("buttonLabelKa")} errorEn={errorFor("buttonLabelEn")} />
+          <BiField label="Title" required maxLength={120} ka={b.titleKa} en={b.titleEn} ru={b.titleRu} onKa={(v) => update({ titleKa: v })} onEn={(v) => update({ titleEn: v })} onRu={(v) => update({ titleRu: v })} errorKa={errorFor("titleKa")} errorEn={errorFor("titleEn")} errorRu={errorFor("titleRu")} />
+          <BiField label="Short text" multiline rows={3} maxLength={300} ka={b.textKa} en={b.textEn} ru={b.textRu} onKa={(v) => update({ textKa: v })} onEn={(v) => update({ textEn: v })} onRu={(v) => update({ textRu: v })} errorKa={errorFor("textKa")} errorEn={errorFor("textEn")} errorRu={errorFor("textRu")} />
+          <BiField label="Button label" maxLength={40} hint="Optional" ka={b.buttonLabelKa} en={b.buttonLabelEn} ru={b.buttonLabelRu} onKa={(v) => update({ buttonLabelKa: v })} onEn={(v) => update({ buttonLabelEn: v })} onRu={(v) => update({ buttonLabelRu: v })} errorKa={errorFor("buttonLabelKa")} errorEn={errorFor("buttonLabelEn")} errorRu={errorFor("buttonLabelRu")} />
           <div className="sm:col-span-2">
             <Field label="Button link" error={errorFor("buttonHref")} hint="A site page like /contact, or a full address like https://… (needs a button label)">
               {(a) => <Input {...a} value={b.buttonHref} placeholder="/contact" onChange={(e) => update({ buttonHref: e.target.value })} />}
@@ -376,8 +391,8 @@ export function sectionFields({ section, update, pick, errorFor }: EditorProps<S
             )}
           </Field>
           <div className="max-sm:hidden" />
-          <BiField label="Title" maxLength={120} hint="Optional" ka={b.titleKa} en={b.titleEn} onKa={(v) => update({ titleKa: v })} onEn={(v) => update({ titleEn: v })} errorKa={errorFor("titleKa")} errorEn={errorFor("titleEn")} />
-          <BiRichField label="Text" required ka={b.docKa} en={b.docEn} onKa={(d) => update({ docKa: d })} onEn={(d) => update({ docEn: d })} errorKa={errorFor("docKa")} errorEn={errorFor("docEn")} />
+          <BiField label="Title" maxLength={120} hint="Optional" ka={b.titleKa} en={b.titleEn} ru={b.titleRu} onKa={(v) => update({ titleKa: v })} onEn={(v) => update({ titleEn: v })} onRu={(v) => update({ titleRu: v })} errorKa={errorFor("titleKa")} errorEn={errorFor("titleEn")} errorRu={errorFor("titleRu")} />
+          <BiRichField label="Text" required ka={b.docKa} en={b.docEn} ru={b.docRu} onKa={(d) => update({ docKa: d })} onEn={(d) => update({ docEn: d })} onRu={(d) => update({ docRu: d })} errorKa={errorFor("docKa")} errorEn={errorFor("docEn")} errorRu={errorFor("docRu")} />
         </>
       );
     }
@@ -386,7 +401,7 @@ export function sectionFields({ section, update, pick, errorFor }: EditorProps<S
       const setItem = (key: string, patch: Partial<CardItem>) => update({ items: b.items.map((x) => (x.key === key ? { ...x, ...patch } : x)) });
       return (
         <>
-          <BiField label="Section title" maxLength={120} hint="Optional" ka={b.titleKa} en={b.titleEn} onKa={(v) => update({ titleKa: v })} onEn={(v) => update({ titleEn: v })} errorKa={errorFor("titleKa")} errorEn={errorFor("titleEn")} />
+          <BiField label="Section title" maxLength={120} hint="Optional" ka={b.titleKa} en={b.titleEn} ru={b.titleRu} onKa={(v) => update({ titleKa: v })} onEn={(v) => update({ titleEn: v })} onRu={(v) => update({ titleRu: v })} errorKa={errorFor("titleKa")} errorEn={errorFor("titleEn")} errorRu={errorFor("titleRu")} />
           <div className="space-y-3 sm:col-span-2">
             {b.items.map((item, j) => (
               <div key={item.key} className="rounded-[3px] border border-line p-3">
@@ -399,8 +414,8 @@ export function sectionFields({ section, update, pick, errorFor }: EditorProps<S
                   </div>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <BiField label="Card title" required maxLength={80} ka={item.titleKa} en={item.titleEn} onKa={(v) => setItem(item.key, { titleKa: v })} onEn={(v) => setItem(item.key, { titleEn: v })} errorKa={errorFor(`items.${j}.titleKa`)} errorEn={errorFor(`items.${j}.titleEn`)} />
-                  <BiField label="Card text" multiline rows={3} maxLength={300} ka={item.textKa} en={item.textEn} onKa={(v) => setItem(item.key, { textKa: v })} onEn={(v) => setItem(item.key, { textEn: v })} errorKa={errorFor(`items.${j}.textKa`)} errorEn={errorFor(`items.${j}.textEn`)} />
+                  <BiField label="Card title" required maxLength={80} ka={item.titleKa} en={item.titleEn} ru={item.titleRu} onKa={(v) => setItem(item.key, { titleKa: v })} onEn={(v) => setItem(item.key, { titleEn: v })} onRu={(v) => setItem(item.key, { titleRu: v })} errorKa={errorFor(`items.${j}.titleKa`)} errorEn={errorFor(`items.${j}.titleEn`)} errorRu={errorFor(`items.${j}.titleRu`)} />
+                  <BiField label="Card text" multiline rows={3} maxLength={300} ka={item.textKa} en={item.textEn} ru={item.textRu} onKa={(v) => setItem(item.key, { textKa: v })} onEn={(v) => setItem(item.key, { textEn: v })} onRu={(v) => setItem(item.key, { textRu: v })} errorKa={errorFor(`items.${j}.textKa`)} errorEn={errorFor(`items.${j}.textEn`)} errorRu={errorFor(`items.${j}.textRu`)} />
                   <PhotoSlot
                     label="Photo (optional)"
                     image={item.image}

@@ -21,12 +21,16 @@ type Draft = {
   slug: string;
   titleKa: string;
   titleEn: string;
+  titleRu: string;
   summaryKa: string;
   summaryEn: string;
+  summaryRu: string;
   descriptionKa: string;
   descriptionEn: string;
+  descriptionRu: string;
   featuresKa: string;
   featuresEn: string;
+  featuresRu: string;
   image: ApiImage | null;
   visible: boolean;
 };
@@ -35,12 +39,16 @@ const blank = (): Draft => ({
   slug: "",
   titleKa: "",
   titleEn: "",
+  titleRu: "",
   summaryKa: "",
   summaryEn: "",
+  summaryRu: "",
   descriptionKa: "",
   descriptionEn: "",
+  descriptionRu: "",
   featuresKa: "",
   featuresEn: "",
+  featuresRu: "",
   image: null,
   visible: true,
 });
@@ -49,12 +57,16 @@ const toDraft = (s: AdminService): Draft => ({
   slug: s.slug,
   titleKa: s.titleKa,
   titleEn: s.titleEn ?? "",
+  titleRu: s.titleRu ?? "",
   summaryKa: s.summaryKa,
   summaryEn: s.summaryEn ?? "",
+  summaryRu: s.summaryRu ?? "",
   descriptionKa: s.descriptionKa,
   descriptionEn: s.descriptionEn ?? "",
+  descriptionRu: s.descriptionRu ?? "",
   featuresKa: s.featuresKa.join("\n"),
   featuresEn: s.featuresEn.join("\n"),
+  featuresRu: s.featuresRu.join("\n"),
   image: s.image,
   visible: s.visible,
 });
@@ -71,12 +83,16 @@ function toInput(d: Draft): ServiceInput {
     slug: orNull(d.slug),
     titleKa: d.titleKa.trim(),
     titleEn: orNull(d.titleEn),
+    titleRu: orNull(d.titleRu),
     summaryKa: d.summaryKa.trim(),
     summaryEn: orNull(d.summaryEn),
+    summaryRu: orNull(d.summaryRu),
     descriptionKa: d.descriptionKa.trim(),
     descriptionEn: orNull(d.descriptionEn),
+    descriptionRu: orNull(d.descriptionRu),
     featuresKa: lines(d.featuresKa),
     featuresEn: lines(d.featuresEn),
+    featuresRu: lines(d.featuresRu),
     imageId: d.image?.id ?? "",
     visible: d.visible,
   };
@@ -95,16 +111,21 @@ function validate(d: Draft): Record<string, string> {
   if (len(d.titleKa) < 3) e.titleKa = "At least 3 characters.";
   else if (len(d.titleKa) > 80) e.titleKa = "At most 80 characters.";
   if (len(d.titleEn) > 80) e.titleEn = "At most 80 characters.";
+  if (len(d.titleRu) > 80) e.titleRu = "At most 80 characters.";
   if (len(d.summaryKa) < 10) e.summaryKa = "Add a short summary (10+ characters).";
   else if (len(d.summaryKa) > 200) e.summaryKa = "At most 200 characters.";
   if (len(d.summaryEn) > 200) e.summaryEn = "At most 200 characters.";
+  if (len(d.summaryRu) > 200) e.summaryRu = "At most 200 characters.";
   if (len(d.descriptionKa) < 20) e.descriptionKa = "Describe the service (20+ characters).";
   else if (len(d.descriptionKa) > 2000) e.descriptionKa = "At most 2000 characters.";
   if (len(d.descriptionEn) > 2000) e.descriptionEn = "At most 2000 characters.";
+  if (len(d.descriptionRu) > 2000) e.descriptionRu = "At most 2000 characters.";
   const fk = featureError(d.featuresKa);
   const fe = featureError(d.featuresEn);
+  const fr = featureError(d.featuresRu);
   if (fk) e.featuresKa = fk;
   if (fe) e.featuresEn = fe;
+  if (fr) e.featuresRu = fr;
   if (d.slug.trim() && !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(d.slug.trim())) e.slug = "Lowercase letters, numbers and single hyphens only.";
   if (!d.image) e.image = "Choose an image.";
   return e;
@@ -192,6 +213,7 @@ export function ServicesAdmin() {
                             {s.titleKa}
                             {!s.visible && <span className="ml-2 rounded-full bg-paper-2 px-2 py-0.5 text-[0.7rem] font-normal text-muted">Hidden</span>}
                             {!s.titleEn && <span className="ml-2 rounded-full bg-warn-soft px-2 py-0.5 text-[0.7rem] font-normal text-warn">No English</span>}
+                            {!s.titleRu && <span className="ml-2 rounded-full bg-warn-soft px-2 py-0.5 text-[0.7rem] font-normal text-warn">No Russian</span>}
                           </p>
                           <p className="truncate text-[0.83rem] text-muted">{s.summaryKa}</p>
                         </div>
@@ -294,10 +316,10 @@ function ServiceEditor({ item, onClose, onSaved }: { item: AdminService | null; 
       >
         <div className="grid gap-4">
           {general && <ServerErrors message={general} fields={server} known={KNOWN} />}
-          <BiField label="Title" required maxLength={80} ka={d.titleKa} en={d.titleEn} onKa={(v) => set("titleKa", v)} onEn={(v) => set("titleEn", v)} errorKa={err("titleKa")} errorEn={err("titleEn")} />
-          <BiField label="Summary" required maxLength={200} hint="One line for cards" ka={d.summaryKa} en={d.summaryEn} onKa={(v) => set("summaryKa", v)} onEn={(v) => set("summaryEn", v)} errorKa={err("summaryKa")} errorEn={err("summaryEn")} />
-          <BiField label="Description" required multiline rows={4} maxLength={2000} ka={d.descriptionKa} en={d.descriptionEn} onKa={(v) => set("descriptionKa", v)} onEn={(v) => set("descriptionEn", v)} errorKa={err("descriptionKa")} errorEn={err("descriptionEn")} />
-          <BiField label="What's included" multiline rows={4} hint="One item per line, up to 12" ka={d.featuresKa} en={d.featuresEn} onKa={(v) => set("featuresKa", v)} onEn={(v) => set("featuresEn", v)} errorKa={err("featuresKa")} errorEn={err("featuresEn")} />
+          <BiField label="Title" required maxLength={80} ka={d.titleKa} en={d.titleEn} ru={d.titleRu} onKa={(v) => set("titleKa", v)} onEn={(v) => set("titleEn", v)} onRu={(v) => set("titleRu", v)} errorKa={err("titleKa")} errorEn={err("titleEn")} errorRu={err("titleRu")} />
+          <BiField label="Summary" required maxLength={200} hint="One line for cards" ka={d.summaryKa} en={d.summaryEn} ru={d.summaryRu} onKa={(v) => set("summaryKa", v)} onEn={(v) => set("summaryEn", v)} onRu={(v) => set("summaryRu", v)} errorKa={err("summaryKa")} errorEn={err("summaryEn")} errorRu={err("summaryRu")} />
+          <BiField label="Description" required multiline rows={4} maxLength={2000} ka={d.descriptionKa} en={d.descriptionEn} ru={d.descriptionRu} onKa={(v) => set("descriptionKa", v)} onEn={(v) => set("descriptionEn", v)} onRu={(v) => set("descriptionRu", v)} errorKa={err("descriptionKa")} errorEn={err("descriptionEn")} errorRu={err("descriptionRu")} />
+          <BiField label="What's included" multiline rows={4} hint="One item per line, up to 12" ka={d.featuresKa} en={d.featuresEn} ru={d.featuresRu} onKa={(v) => set("featuresKa", v)} onEn={(v) => set("featuresEn", v)} onRu={(v) => set("featuresRu", v)} errorKa={err("featuresKa")} errorEn={err("featuresEn")} errorRu={err("featuresRu")} />
           <Field label="Web address" error={err("slug")} hint="Optional. Made from the title when empty.">
             {(a) => <Input {...a} value={d.slug} placeholder="e.g. house-construction" onChange={(ev) => set("slug", ev.target.value.toLowerCase())} />}
           </Field>
@@ -325,4 +347,4 @@ function ServiceEditor({ item, onClose, onSaved }: { item: AdminService | null; 
   );
 }
 
-const KNOWN = new Set(["slug", "titleKa", "titleEn", "summaryKa", "summaryEn", "descriptionKa", "descriptionEn", "featuresKa", "featuresEn", "imageId", "image", "visible"]);
+const KNOWN = new Set(["slug", "titleKa", "titleEn", "titleRu", "summaryKa", "summaryEn", "summaryRu", "descriptionKa", "descriptionEn", "descriptionRu", "featuresKa", "featuresEn", "featuresRu", "imageId", "image", "visible"]);

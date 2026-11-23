@@ -41,7 +41,7 @@ export function ProjectsAdmin() {
       (p) =>
         (status === "all" || p.status === status) &&
         (category === "all" || p.category === category) &&
-        (!s || `${p.titleKa} ${p.titleEn ?? ""} ${p.locationKa} ${p.locationEn ?? ""} ${p.slug}`.toLowerCase().includes(s)),
+        (!s || `${p.titleKa} ${p.titleEn ?? ""} ${p.titleRu ?? ""} ${p.locationKa} ${p.locationEn ?? ""} ${p.locationRu ?? ""} ${p.slug}`.toLowerCase().includes(s)),
     );
     const order = { planning: 0, "in-progress": 1, "on-hold": 2, completed: 3 };
     const cmp = (a: AdminProject, b: AdminProject) => {

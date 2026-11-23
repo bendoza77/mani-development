@@ -20,12 +20,15 @@ type Draft = {
   companyName: string;
   taglineKa: string;
   taglineEn: string;
+  taglineRu: string;
   email: string;
   phone: string;
   addressKa: string;
   addressEn: string;
+  addressRu: string;
   hoursKa: string;
   hoursEn: string;
+  hoursRu: string;
   instagramUrl: string;
   linkedinUrl: string;
   facebookUrl: string;
@@ -36,6 +39,7 @@ type Draft = {
   longitude: string;
   defaultSeoDescriptionKa: string;
   defaultSeoDescriptionEn: string;
+  defaultSeoDescriptionRu: string;
   defaultOgImage: ApiImage | null;
   googleSiteVerification: string;
   gtmContainerId: string;
@@ -45,12 +49,15 @@ const toDraft = (s: AdminSettings): Draft => ({
   companyName: s.companyName,
   taglineKa: s.taglineKa,
   taglineEn: s.taglineEn ?? "",
+  taglineRu: s.taglineRu ?? "",
   email: s.email,
   phone: s.phone,
   addressKa: s.addressKa,
   addressEn: s.addressEn ?? "",
+  addressRu: s.addressRu ?? "",
   hoursKa: s.hoursKa,
   hoursEn: s.hoursEn ?? "",
+  hoursRu: s.hoursRu ?? "",
   instagramUrl: s.instagramUrl,
   linkedinUrl: s.linkedinUrl,
   facebookUrl: s.facebookUrl,
@@ -61,6 +68,7 @@ const toDraft = (s: AdminSettings): Draft => ({
   longitude: s.longitude === null ? "" : String(s.longitude),
   defaultSeoDescriptionKa: s.defaultSeoDescriptionKa,
   defaultSeoDescriptionEn: s.defaultSeoDescriptionEn ?? "",
+  defaultSeoDescriptionRu: s.defaultSeoDescriptionRu ?? "",
   defaultOgImage: s.defaultOgImage,
   googleSiteVerification: s.googleSiteVerification,
   gtmContainerId: s.gtmContainerId,
@@ -72,12 +80,15 @@ const toInput = (d: Draft): SettingsInput => ({
   companyName: d.companyName.trim(),
   taglineKa: d.taglineKa.trim(),
   taglineEn: orNull(d.taglineEn),
+  taglineRu: orNull(d.taglineRu),
   email: d.email.trim(),
   phone: d.phone.trim(),
   addressKa: d.addressKa.trim(),
   addressEn: orNull(d.addressEn),
+  addressRu: orNull(d.addressRu),
   hoursKa: d.hoursKa.trim(),
   hoursEn: orNull(d.hoursEn),
+  hoursRu: orNull(d.hoursRu),
   instagramUrl: d.instagramUrl.trim(),
   linkedinUrl: d.linkedinUrl.trim(),
   facebookUrl: d.facebookUrl.trim(),
@@ -89,6 +100,7 @@ const toInput = (d: Draft): SettingsInput => ({
   longitude: num(d.longitude),
   defaultSeoDescriptionKa: d.defaultSeoDescriptionKa.trim(),
   defaultSeoDescriptionEn: orNull(d.defaultSeoDescriptionEn),
+  defaultSeoDescriptionRu: orNull(d.defaultSeoDescriptionRu),
   defaultOgImageId: d.defaultOgImage?.id ?? null,
   googleSiteVerification: d.googleSiteVerification.trim(),
   gtmContainerId: d.gtmContainerId.trim(),
@@ -104,6 +116,7 @@ function validate(d: Draft): Record<string, string> {
   else if (i.companyName.length > 24) e.companyName = "At most 24 characters, so it fits the header.";
   if (i.taglineKa.length > 40) e.taglineKa = "At most 40 characters.";
   if ((i.taglineEn ?? "").length > 40) e.taglineEn = "At most 40 characters.";
+  if ((i.taglineRu ?? "").length > 40) e.taglineRu = "At most 40 characters.";
   if (!EMAIL.test(i.email)) e.email = "Enter a valid email address.";
   if (!/^[\d\s+()-]+$/.test(i.phone) || i.phone.replace(/\D/g, "").length < 7) e.phone = describeIssue({ code: "invalid_phone" });
   if (i.addressKa.length < 5) e.addressKa = "Address is required (5+ characters).";
@@ -115,15 +128,16 @@ function validate(d: Draft): Record<string, string> {
   if ((i.latitude === null) !== (i.longitude === null)) e[i.latitude === null ? "latitude" : "longitude"] = "Fill in both, or leave both empty.";
   if (i.defaultSeoDescriptionKa.length > 300) e.defaultSeoDescriptionKa = "At most 300 characters.";
   if ((i.defaultSeoDescriptionEn ?? "").length > 300) e.defaultSeoDescriptionEn = "At most 300 characters.";
+  if ((i.defaultSeoDescriptionRu ?? "").length > 300) e.defaultSeoDescriptionRu = "At most 300 characters.";
   if (i.googleSiteVerification && !/^[A-Za-z0-9_-]+$/.test(i.googleSiteVerification)) e.googleSiteVerification = describeIssue({ code: "invalid_token" });
   if (i.gtmContainerId && !/^GTM-[A-Z0-9]+$/.test(i.gtmContainerId)) e.gtmContainerId = describeIssue({ code: "invalid_gtm_id" });
   return e;
 }
 
 const KNOWN = new Set<string>([
-  "companyName", "taglineKa", "taglineEn", "email", "phone", "addressKa", "addressEn", "hoursKa", "hoursEn",
+  "companyName", "taglineKa", "taglineEn", "taglineRu", "email", "phone", "addressKa", "addressEn", "addressRu", "hoursKa", "hoursEn", "hoursRu",
   "instagramUrl", "linkedinUrl", "facebookUrl", "whatsappNumber", "messengerUsername", "mapUrl", "latitude", "longitude",
-  "defaultSeoDescriptionKa", "defaultSeoDescriptionEn", "defaultOgImageId", "googleSiteVerification", "gtmContainerId",
+  "defaultSeoDescriptionKa", "defaultSeoDescriptionEn", "defaultSeoDescriptionRu", "defaultOgImageId", "googleSiteVerification", "gtmContainerId",
 ]);
 
 export function SettingsAdmin() {
@@ -222,14 +236,14 @@ function SettingsForm({ saved, onSaved }: { saved: AdminSettings; onSaved: (s: A
           {general && <ServerErrors message={general} fields={server} known={KNOWN} />}
           <Panel title="Brand" bodyClassName="grid gap-5 p-5 sm:grid-cols-2">
             {text("companyName", "Company name", { required: true, hint: `${d.companyName.length}/24` })}
-            <BiField label="Tagline" maxLength={40} ka={d.taglineKa} en={d.taglineEn} onKa={(v) => set("taglineKa", v)} onEn={(v) => set("taglineEn", v)} errorKa={err("taglineKa")} errorEn={err("taglineEn")} />
+            <BiField label="Tagline" maxLength={40} ka={d.taglineKa} en={d.taglineEn} ru={d.taglineRu} onKa={(v) => set("taglineKa", v)} onEn={(v) => set("taglineEn", v)} onRu={(v) => set("taglineRu", v)} errorKa={err("taglineKa")} errorEn={err("taglineEn")} errorRu={err("taglineRu")} />
           </Panel>
 
           <Panel title="Contact" bodyClassName="grid gap-5 p-5 sm:grid-cols-2">
             {text("email", "Email", { required: true, type: "email", hint: "Contact form messages are sent here." })}
             {text("phone", "Phone", { required: true, type: "tel" })}
-            <BiField label="Address" required maxLength={200} ka={d.addressKa} en={d.addressEn} onKa={(v) => set("addressKa", v)} onEn={(v) => set("addressEn", v)} errorKa={err("addressKa")} errorEn={err("addressEn")} />
-            <BiField label="Opening hours" maxLength={100} ka={d.hoursKa} en={d.hoursEn} onKa={(v) => set("hoursKa", v)} onEn={(v) => set("hoursEn", v)} errorKa={err("hoursKa")} errorEn={err("hoursEn")} />
+            <BiField label="Address" required maxLength={200} ka={d.addressKa} en={d.addressEn} ru={d.addressRu} onKa={(v) => set("addressKa", v)} onEn={(v) => set("addressEn", v)} onRu={(v) => set("addressRu", v)} errorKa={err("addressKa")} errorEn={err("addressEn")} errorRu={err("addressRu")} />
+            <BiField label="Opening hours" maxLength={100} ka={d.hoursKa} en={d.hoursEn} ru={d.hoursRu} onKa={(v) => set("hoursKa", v)} onEn={(v) => set("hoursEn", v)} onRu={(v) => set("hoursRu", v)} errorKa={err("hoursKa")} errorEn={err("hoursEn")} errorRu={err("hoursRu")} />
           </Panel>
 
           <Panel title="Chat buttons" bodyClassName="grid gap-5 p-5 sm:grid-cols-2">
@@ -258,10 +272,13 @@ function SettingsForm({ saved, onSaved }: { saved: AdminSettings; onSaved: (s: A
               hint="Used when a page has no description of its own"
               ka={d.defaultSeoDescriptionKa}
               en={d.defaultSeoDescriptionEn}
+              ru={d.defaultSeoDescriptionRu}
               onKa={(v) => set("defaultSeoDescriptionKa", v)}
               onEn={(v) => set("defaultSeoDescriptionEn", v)}
+              onRu={(v) => set("defaultSeoDescriptionRu", v)}
               errorKa={err("defaultSeoDescriptionKa")}
               errorEn={err("defaultSeoDescriptionEn")}
+              errorRu={err("defaultSeoDescriptionRu")}
             />
             <div className="sm:col-span-2">
               <p className="text-[0.82rem] font-medium text-ink-soft">Default share image</p>

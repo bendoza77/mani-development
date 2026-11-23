@@ -17,20 +17,25 @@ import { useApiData } from "@/hooks/useApiData";
 import { api, errorsFrom, type AdminProject, type ApiImage, type ProjectCategory, type ProjectInput, type ProjectStatus } from "@/lib/api";
 import { CATEGORY_LABEL, STATUS_LABEL, slugify } from "@/lib/format";
 
-type SpecRow = { key: string; labelKa: string; labelEn: string; valueKa: string; valueEn: string };
+type SpecRow = { key: string; labelKa: string; labelEn: string; labelRu: string; valueKa: string; valueEn: string; valueRu: string };
 
 type Draft = {
   slug: string;
   titleKa: string;
   titleEn: string;
+  titleRu: string;
   summaryKa: string;
   summaryEn: string;
+  summaryRu: string;
   descriptionKa: string;
   descriptionEn: string;
+  descriptionRu: string;
   locationKa: string;
   locationEn: string;
+  locationRu: string;
   cityKa: string;
   cityEn: string;
+  cityRu: string;
   category: ProjectCategory;
   status: ProjectStatus;
   progress: number;
@@ -55,14 +60,19 @@ const blank = (): Draft => ({
   slug: "",
   titleKa: "",
   titleEn: "",
+  titleRu: "",
   summaryKa: "",
   summaryEn: "",
+  summaryRu: "",
   descriptionKa: "",
   descriptionEn: "",
+  descriptionRu: "",
   locationKa: "",
   locationEn: "",
+  locationRu: "",
   cityKa: "",
   cityEn: "",
+  cityRu: "",
   category: "residential",
   status: "planning",
   progress: 0,
@@ -83,14 +93,19 @@ function fromProject(p: AdminProject): Draft {
     slug: p.slug,
     titleKa: p.titleKa,
     titleEn: p.titleEn ?? "",
+    titleRu: p.titleRu ?? "",
     summaryKa: p.summaryKa,
     summaryEn: p.summaryEn ?? "",
+    summaryRu: p.summaryRu ?? "",
     descriptionKa: p.descriptionKa,
     descriptionEn: p.descriptionEn ?? "",
+    descriptionRu: p.descriptionRu ?? "",
     locationKa: p.locationKa,
     locationEn: p.locationEn ?? "",
+    locationRu: p.locationRu ?? "",
     cityKa: p.cityKa,
     cityEn: p.cityEn ?? "",
+    cityRu: p.cityRu ?? "",
     category: p.category,
     status: p.status,
     progress: p.progress,
@@ -102,7 +117,7 @@ function fromProject(p: AdminProject): Draft {
     isPublished: p.isPublished,
     cover: p.cover,
     gallery: p.gallery,
-    specs: p.specs.map((s) => ({ key: specKey(), labelKa: s.labelKa, labelEn: s.labelEn ?? "", valueKa: s.valueKa, valueEn: s.valueEn ?? "" })),
+    specs: p.specs.map((s) => ({ key: specKey(), labelKa: s.labelKa, labelEn: s.labelEn ?? "", labelRu: s.labelRu ?? "", valueKa: s.valueKa, valueEn: s.valueEn ?? "", valueRu: s.valueRu ?? "" })),
     seo: seoDraftFrom(p.seo),
   };
 }
@@ -114,14 +129,19 @@ function toInput(d: Draft): ProjectInput {
     slug: d.slug,
     titleKa: d.titleKa.trim(),
     titleEn: orNull(d.titleEn),
+    titleRu: orNull(d.titleRu),
     summaryKa: d.summaryKa.trim(),
     summaryEn: orNull(d.summaryEn),
+    summaryRu: orNull(d.summaryRu),
     descriptionKa: d.descriptionKa.trim(),
     descriptionEn: orNull(d.descriptionEn),
+    descriptionRu: orNull(d.descriptionRu),
     locationKa: d.locationKa.trim(),
     locationEn: orNull(d.locationEn),
+    locationRu: orNull(d.locationRu),
     cityKa: d.cityKa.trim(),
     cityEn: orNull(d.cityEn),
+    cityRu: orNull(d.cityRu),
     category: d.category,
     status: d.status,
     progress: d.status === "completed" ? 100 : Math.round(d.progress),
@@ -135,7 +155,7 @@ function toInput(d: Draft): ProjectInput {
     galleryIds: d.gallery.map((g) => g.id),
     specs: d.specs
       .filter((s) => s.labelKa.trim() || s.valueKa.trim())
-      .map((s) => ({ labelKa: s.labelKa.trim(), labelEn: orNull(s.labelEn), valueKa: s.valueKa.trim(), valueEn: orNull(s.valueEn) })),
+      .map((s) => ({ labelKa: s.labelKa.trim(), labelEn: orNull(s.labelEn), labelRu: orNull(s.labelRu), valueKa: s.valueKa.trim(), valueEn: orNull(s.valueEn), valueRu: orNull(s.valueRu) })),
     seo: seoInputFrom(d.seo),
   };
 }
@@ -225,6 +245,7 @@ export function ProjectForm({ projectId }: { projectId?: string }) {
     setDraft((d) => ({ ...d, titleKa, slug: slugTouched ? d.slug : slugify(d.titleEn || titleKa) }));
   const setTitleEn = (titleEn: string) =>
     setDraft((d) => ({ ...d, titleEn, slug: slugTouched ? d.slug : slugify(titleEn || d.titleKa) }));
+  const setTitleRu = (titleRu: string) => setDraft((d) => ({ ...d, titleRu }));
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -304,8 +325,8 @@ export function ProjectForm({ projectId }: { projectId?: string }) {
 
       <div className="grid gap-6 xl:grid-cols-[1fr_20rem]">
         <div className="min-w-0 space-y-6">
-          <Section title="Basics" description="Georgian is the main language. English is optional; empty English fields show the Georgian text.">
-            <BiField label="Title" required maxLength={120} ka={draft.titleKa} en={draft.titleEn} onKa={setTitleKa} onEn={setTitleEn} errorKa={err("titleKa")} errorEn={err("titleEn")} />
+          <Section title="Basics" description="Georgian is the main language. English and Russian are optional; empty English fields show the Georgian text, empty Russian fields the English (or Georgian) text.">
+            <BiField label="Title" required maxLength={120} ka={draft.titleKa} en={draft.titleEn} ru={draft.titleRu} onKa={setTitleKa} onEn={setTitleEn} onRu={setTitleRu} errorKa={err("titleKa")} errorEn={err("titleEn")} errorRu={err("titleRu")} />
             <div className="sm:col-span-2">
               <Field label="URL slug" required error={err("slug")} hint={`/projects/${draft.slug || "your-project"} · Latin letters, numbers and hyphens`}>
                 {(a) => (
@@ -320,13 +341,13 @@ export function ProjectForm({ projectId }: { projectId?: string }) {
                 )}
               </Field>
             </div>
-            <BiField label="Short description" required maxLength={180} hint="Shown on project cards" ka={draft.summaryKa} en={draft.summaryEn} onKa={(v) => set("summaryKa", v)} onEn={(v) => set("summaryEn", v)} errorKa={err("summaryKa")} errorEn={err("summaryEn")} />
-            <BiField label="Full description" required multiline rows={7} hint="Separate paragraphs with a blank line." ka={draft.descriptionKa} en={draft.descriptionEn} onKa={(v) => set("descriptionKa", v)} onEn={(v) => set("descriptionEn", v)} errorKa={err("descriptionKa")} errorEn={err("descriptionEn")} />
+            <BiField label="Short description" required maxLength={180} hint="Shown on project cards" ka={draft.summaryKa} en={draft.summaryEn} ru={draft.summaryRu} onKa={(v) => set("summaryKa", v)} onEn={(v) => set("summaryEn", v)} onRu={(v) => set("summaryRu", v)} errorKa={err("summaryKa")} errorEn={err("summaryEn")} errorRu={err("summaryRu")} />
+            <BiField label="Full description" required multiline rows={7} hint="Separate paragraphs with a blank line." ka={draft.descriptionKa} en={draft.descriptionEn} ru={draft.descriptionRu} onKa={(v) => set("descriptionKa", v)} onEn={(v) => set("descriptionEn", v)} onRu={(v) => set("descriptionRu", v)} errorKa={err("descriptionKa")} errorEn={err("descriptionEn")} errorRu={err("descriptionRu")} />
           </Section>
 
           <Section title="Details">
-            <BiField label="Location" required maxLength={120} hint="e.g. Vake, Tbilisi" ka={draft.locationKa} en={draft.locationEn} onKa={(v) => set("locationKa", v)} onEn={(v) => set("locationEn", v)} errorKa={err("locationKa")} errorEn={err("locationEn")} />
-            <BiField label="City" required maxLength={80} ka={draft.cityKa} en={draft.cityEn} onKa={(v) => set("cityKa", v)} onEn={(v) => set("cityEn", v)} errorKa={err("cityKa")} errorEn={err("cityEn")} />
+            <BiField label="Location" required maxLength={120} hint="e.g. Vake, Tbilisi" ka={draft.locationKa} en={draft.locationEn} ru={draft.locationRu} onKa={(v) => set("locationKa", v)} onEn={(v) => set("locationEn", v)} onRu={(v) => set("locationRu", v)} errorKa={err("locationKa")} errorEn={err("locationEn")} errorRu={err("locationRu")} />
+            <BiField label="City" required maxLength={80} ka={draft.cityKa} en={draft.cityEn} ru={draft.cityRu} onKa={(v) => set("cityKa", v)} onEn={(v) => set("cityEn", v)} onRu={(v) => set("cityRu", v)} errorKa={err("cityKa")} errorEn={err("cityEn")} errorRu={err("cityRu")} />
             <Field label="Category" error={err("category")}>
               {(a) => (
                 <Select {...a} value={draft.category} onChange={(e) => set("category", e.target.value as ProjectCategory)}>
@@ -444,11 +465,11 @@ export function ProjectForm({ projectId }: { projectId?: string }) {
             </div>
           </Section>
 
-          <Section title="Specifications" description="Shown as a key facts list on the project page. Georgian label and value are required; English is optional.">
+          <Section title="Specifications" description="Shown as a key facts list on the project page. Georgian label and value are required; English and Russian are optional.">
             <div className="min-w-0 space-y-3 sm:col-span-2">
               {draft.specs.map((s, i) => {
                 const update = (patch: Partial<SpecRow>) => set("specs", draft.specs.map((x) => (x.key === s.key ? { ...x, ...patch } : x)));
-                const rowError = err(`specs.${i}.labelKa`) ?? err(`specs.${i}.valueKa`) ?? err(`specs.${i}.labelEn`) ?? err(`specs.${i}.valueEn`);
+                const rowError = err(`specs.${i}.labelKa`) ?? err(`specs.${i}.valueKa`) ?? err(`specs.${i}.labelEn`) ?? err(`specs.${i}.valueEn`) ?? err(`specs.${i}.labelRu`) ?? err(`specs.${i}.valueRu`);
                 return (
                   <div key={s.key} className="rounded-[3px] border border-line p-3">
                     <div className="grid gap-2 sm:grid-cols-2">
@@ -456,6 +477,8 @@ export function ProjectForm({ projectId }: { projectId?: string }) {
                       <SpecInput label={`Specification ${i + 1} value (Georgian)`} placeholder="Value · ქართ." value={s.valueKa} onChange={(v) => update({ valueKa: v })} lang="ka" />
                       <SpecInput label={`Specification ${i + 1} label (English)`} placeholder="Label · English (optional)" value={s.labelEn} onChange={(v) => update({ labelEn: v })} lang="en" />
                       <SpecInput label={`Specification ${i + 1} value (English)`} placeholder="Value · English (optional)" value={s.valueEn} onChange={(v) => update({ valueEn: v })} lang="en" />
+                      <SpecInput label={`Specification ${i + 1} label (Russian)`} placeholder="Label · рус." value={s.labelRu} onChange={(v) => update({ labelRu: v })} lang="ru" />
+                      <SpecInput label={`Specification ${i + 1} value (Russian)`} placeholder="Value · рус." value={s.valueRu} onChange={(v) => update({ valueRu: v })} lang="ru" />
                     </div>
                     <div className="mt-2 flex items-center justify-between">
                       {rowError ? (
@@ -470,7 +493,7 @@ export function ProjectForm({ projectId }: { projectId?: string }) {
                   </div>
                 );
               })}
-              <Button type="button" variant="ghost" size="sm" onClick={() => set("specs", [...draft.specs, { key: specKey(), labelKa: "", labelEn: "", valueKa: "", valueEn: "" }])}>
+              <Button type="button" variant="ghost" size="sm" onClick={() => set("specs", [...draft.specs, { key: specKey(), labelKa: "", labelEn: "", labelRu: "", valueKa: "", valueEn: "", valueRu: "" }])}>
                 <Plus aria-hidden className="size-4" /> Add specification
               </Button>
             </div>
@@ -535,8 +558,8 @@ export function ProjectForm({ projectId }: { projectId?: string }) {
 }
 
 const KNOWN_FIELDS = new Set([
-  "slug", "titleKa", "titleEn", "summaryKa", "summaryEn", "descriptionKa", "descriptionEn", "locationKa", "locationEn",
-  "cityKa", "cityEn", "category", "status", "progress", "startDate", "estimatedCompletion", "completionDate", "architect",
+  "slug", "titleKa", "titleEn", "titleRu", "summaryKa", "summaryEn", "summaryRu", "descriptionKa", "descriptionEn", "descriptionRu", "locationKa", "locationEn", "locationRu",
+  "cityKa", "cityEn", "cityRu", "category", "status", "progress", "startDate", "estimatedCompletion", "completionDate", "architect",
   "coverId", "galleryIds",
 ]);
 
