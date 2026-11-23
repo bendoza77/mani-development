@@ -40,7 +40,9 @@ export function publicReviewRoutes({
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: PUBLIC_LIMIT,
     });
-    res.json(reviews.map((r) => ({ id: r.id, fullName: r.fullName, text: r.text, rating: r.rating, createdAt: r.createdAt.toISOString() })));
+    res.json({
+      items: reviews.map((r) => ({ id: r.id, fullName: r.fullName, text: r.text, rating: r.rating, createdAt: r.createdAt.toISOString() })),
+    });
   });
 
   router.post("/", ...limiters, async (req, res) => {

@@ -199,7 +199,7 @@ type AdminUser = { id: string; name: string; email: string };
 | GET | `/api/public/testimonials` | F-06 | `{ items: Testimonial[] }` | Published only, newest first |
 | POST | `/api/public/inquiries` | F-07 | `201 { "received": true }` | See below |
 | POST | `/api/public/reviews` | — | `201 { "received": true }` | See §6.3a |
-| GET | `/api/public/reviews` | — | `PublicReview[]` | Approved only, newest first, at most 30 |
+| GET | `/api/public/reviews` | — | `{ items: PublicReview[] }` | Approved only, newest first, at most 30 |
 
 ### `POST /api/public/inquiries`
 
@@ -315,7 +315,7 @@ Visitors send a review; it stays hidden until an admin approves it.
 | Method | Path | Body | Success |
 |---|---|---|---|
 | POST | `/api/public/reviews` | `{ fullName, text, rating, locale?, turnstileToken?, website }` | `201 { "received": true }` |
-| GET | `/api/public/reviews` | — | `[{ id, fullName, text, rating, createdAt }]`, approved only, newest first, at most 30 |
+| GET | `/api/public/reviews` | — | `{ items: [{ id, fullName, text, rating, createdAt }] }`, approved only, newest first, at most 30 |
 
 - **Validation:** `fullName` 2–100; `text` 20–1000; `rating` a whole number 1–5 (a string or decimal is `400`); `locale` `ka`\|`en`\|`ru`, optional (default `ka`).
 - **Limits:** 3 per hour and 10 per day for each address (`429` after that).

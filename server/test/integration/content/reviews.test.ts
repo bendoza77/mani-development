@@ -100,9 +100,9 @@ describe("GET /api/public/reviews", () => {
     const res = await request(app).get("/api/public/reviews");
 
     expect(res.status).toBe(200);
-    expect(res.body.map((r: { fullName: string }) => r.fullName)).toEqual(["New", "Old"]);
-    expect(Object.keys(res.body[0]).sort()).toEqual(["createdAt", "fullName", "id", "rating", "text"]);
-    expect(res.body[0].createdAt).toBe("2026-11-04T00:00:00.000Z");
+    expect(res.body.items.map((r: { fullName: string }) => r.fullName)).toEqual(["New", "Old"]);
+    expect(Object.keys(res.body.items[0]).sort()).toEqual(["createdAt", "fullName", "id", "rating", "text"]);
+    expect(res.body.items[0].createdAt).toBe("2026-11-04T00:00:00.000Z");
   });
 
   it("returns at most 30", async () => {
@@ -119,9 +119,9 @@ describe("GET /api/public/reviews", () => {
 
     const res = await request(app).get("/api/public/reviews");
 
-    expect(res.body).toHaveLength(30);
-    expect(res.body[0].fullName).toBe("Visitor 30");
-    expect(res.body[29].fullName).toBe("Visitor 1");
+    expect(res.body.items).toHaveLength(30);
+    expect(res.body.items[0].fullName).toBe("Visitor 30");
+    expect(res.body.items[29].fullName).toBe("Visitor 1");
   });
 });
 
@@ -169,11 +169,11 @@ describe("admin reviews", () => {
     expect(approved.status).toBe(200);
     expect(approved.body).toMatchObject({ id: p1.id, status: "approved", reviewedAt: "2026-11-24T09:00:00.000Z" });
     const publicList = await request(app).get("/api/public/reviews");
-    expect(publicList.body.map((r: { fullName: string }) => r.fullName)).toContain("P1");
+    expect(publicList.body.items.map((r: { fullName: string }) => r.fullName)).toContain("P1");
 
     const hidden = await api(app, "patch", `/api/admin/reviews/${p1.id}`, cookie, { status: "rejected" });
     expect(hidden.body.status).toBe("rejected");
-    expect((await request(app).get("/api/public/reviews")).body.map((r: { fullName: string }) => r.fullName)).not.toContain("P1");
+    expect((await request(app).get("/api/public/reviews")).body.items.map((r: { fullName: string }) => r.fullName)).not.toContain("P1");
 
     await api(app, "patch", `/api/admin/reviews/${p1.id}`, cookie, { status: "pending" });
     const messages = (await prisma.activityLog.findMany({ where: { kind: "review" }, orderBy: { createdAt: "asc" } })).map((a) => a.message);

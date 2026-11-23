@@ -95,9 +95,7 @@ export async function getReviews(): Promise<PublicReview[]> {
   "use cache";
   cacheLife(LIFE);
   cacheTag("reviews");
-  // Unlike the other lists, this endpoint answers with a bare array (API_CONTRACTS §6.3a).
-  const data = await getJson<PublicReview[]>("/api/public/reviews");
-  return Array.isArray(data) ? data : [];
+  return getItems<PublicReview>("/api/public/reviews");
 }
 
 export async function getSlides(locale: Locale): Promise<PublicSlide[]> {
