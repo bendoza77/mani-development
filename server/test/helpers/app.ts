@@ -27,6 +27,8 @@ const GENEROUS_LIMITS: RateLimits = {
   admin: { limit: 10_000, windowMs: 60_000 },
   inquiry: { limit: 10_000, windowMs: 60_000 },
   inquiryDaily: { limit: 10_000, windowMs: 60_000 },
+  review: { limit: 10_000, windowMs: 60_000 },
+  reviewDaily: { limit: 10_000, windowMs: 60_000 },
 };
 
 /** Configuration for integration tests: the test database, one allowed origin, silent logs. */

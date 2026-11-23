@@ -28,6 +28,7 @@ import { publicNavigationRoutes } from "./modules/pages/menu.js";
 import { adminPageRoutes, publicPageRoutes } from "./modules/pages/pages.routes.js";
 import { adminProjectRoutes, publicProjectRoutes } from "./modules/projects/projects.routes.js";
 import { adminNavigationRoutes } from "./modules/site/navigation.routes.js";
+import { publicReviewRoutes } from "./modules/site/reviews.routes.js";
 import { adminServiceRoutes, publicServiceRoutes } from "./modules/site/services.routes.js";
 import { adminSettingsRoutes, publicSettingsRoutes } from "./modules/site/settings.routes.js";
 import { adminSlideRoutes, publicSlideRoutes } from "./modules/site/slides.routes.js";
@@ -124,14 +125,16 @@ export function createApp({ config, logger, db, mailer, clock = systemClock, lim
   app.use("/api/public/testimonials", publicTestimonialRoutes({ prisma }));
   app.use("/api/public/slides", publicSlideRoutes({ config, prisma }));
   app.use("/api/public/settings", publicSettingsRoutes({ config, prisma }));
+  // One spam check shared by the contact form and the review form.
+  const formSpamCheck =
+    spamCheck !== undefined ? spamCheck : config.turnstileSecret ? createTurnstileCheck(config.turnstileSecret, logger) : null;
   app.use(
     "/api/public/inquiries",
-    publicInquiryRoutes({
-      prisma,
-      clock,
-      spamCheck: spamCheck !== undefined ? spamCheck : config.turnstileSecret ? createTurnstileCheck(config.turnstileSecret, logger) : null,
-      limiters: [limiters.inquiry, limiters.inquiryDaily],
-    }),
+    publicInquiryRoutes({ prisma, clock, spamCheck: formSpamCheck, limiters: [limiters.inquiry, limiters.inquiryDaily] }),
+  );
+  app.use(
+    "/api/public/reviews",
+    publicReviewRoutes({ prisma, clock, spamCheck: formSpamCheck, limiters: [limiters.review, limiters.reviewDaily] }),
   );
 
   app.use(COOKIE_ROUTES, noStore, originCheck(config.corsOrigins), limiters.admin);

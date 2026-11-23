@@ -19,6 +19,9 @@ export type RateLimits = {
   /** Contact-form submissions per IP: per hour and per day (SECURITY_PLAN §9). */
   inquiry: Limit;
   inquiryDaily: Limit;
+  /** Visitor review submissions per IP: per hour and per day. */
+  review: Limit;
+  reviewDaily: Limit;
 };
 
 const MINUTE = 60_000;
@@ -31,6 +34,8 @@ export const DEFAULT_RATE_LIMITS: RateLimits = {
   admin: { limit: 600, windowMs: 15 * MINUTE },
   inquiry: { limit: 5, windowMs: 60 * MINUTE },
   inquiryDaily: { limit: 20, windowMs: 24 * 60 * MINUTE },
+  review: { limit: 3, windowMs: 60 * MINUTE },
+  reviewDaily: { limit: 10, windowMs: 24 * 60 * MINUTE },
 };
 
 const tooManyRequests = (_req: Request, _res: Response, next: NextFunction) =>
@@ -66,5 +71,7 @@ export function createRateLimiters(limits: RateLimits) {
     admin: limiter(limits.admin),
     inquiry: limiter(limits.inquiry),
     inquiryDaily: limiter(limits.inquiryDaily),
+    review: limiter(limits.review),
+    reviewDaily: limiter(limits.reviewDaily),
   };
 }

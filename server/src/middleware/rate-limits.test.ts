@@ -13,6 +13,8 @@ describe("DEFAULT_RATE_LIMITS", () => {
       admin: { limit: 600, windowMs: minutes(15) },
       inquiry: { limit: 5, windowMs: minutes(60) },
       inquiryDaily: { limit: 20, windowMs: minutes(24 * 60) },
+      review: { limit: 3, windowMs: minutes(60) },
+      reviewDaily: { limit: 10, windowMs: minutes(24 * 60) },
     });
   });
 });
