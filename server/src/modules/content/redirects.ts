@@ -77,19 +77,21 @@ export function publicPathRoutes({ prisma }: { prisma: PrismaClient }) {
     const [pages, projects] = await Promise.all([
       prisma.page.findMany({
         where: { isPublished: true, robotsIndex: true },
-        select: { systemKey: true, slug: true, titleEn: true, updatedAt: true },
+        select: { systemKey: true, slug: true, titleEn: true, titleRu: true, updatedAt: true },
       }),
       prisma.project.findMany({
         where: { isPublished: true, robotsIndex: true },
-        select: { slug: true, titleEn: true, updatedAt: true },
+        select: { slug: true, titleEn: true, titleRu: true, updatedAt: true },
         orderBy: { updatedAt: "desc" },
       }),
     ]);
-    const locales = (titleEn: string | null) => (titleEn ? ["ka", "en"] : ["ka"]);
+    // A language is listed only once the page has its own title in it, so search engines never
+    // see a fallback copy as a separate page.
+    const locales = (p: { titleEn: string | null; titleRu: string | null }) => ["ka", ...(p.titleEn ? ["en"] : []), ...(p.titleRu ? ["ru"] : [])];
     res.json({
       items: [
-        ...pages.map((p) => ({ path: pageHref(p), lastModified: p.updatedAt.toISOString(), locales: locales(p.titleEn) })),
-        ...projects.map((p) => ({ path: projectPath(p.slug), lastModified: p.updatedAt.toISOString(), locales: locales(p.titleEn) })),
+        ...pages.map((p) => ({ path: pageHref(p), lastModified: p.updatedAt.toISOString(), locales: locales(p) })),
+        ...projects.map((p) => ({ path: projectPath(p.slug), lastModified: p.updatedAt.toISOString(), locales: locales(p) })),
       ],
     });
   });

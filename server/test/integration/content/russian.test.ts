@@ -1,6 +1,6 @@
 import request from "supertest";
 import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
-import { buildTestApp } from "../../helpers/app.js";
+import { ALLOWED_ORIGIN, buildTestApp } from "../../helpers/app.js";
 import { createTestAdmin, signIn } from "../../helpers/auth.js";
 import { api, paragraph, projectInput, uploadImage } from "../../helpers/content.js";
 import { resetDb } from "../../helpers/db.js";
@@ -312,5 +312,45 @@ describe("admin saves Russian for projects and pages", () => {
 
     const nav = await api(app, "get", "/api/admin/navigation", cookie);
     expect(nav.body.header.find((i: { pageId: string | null }) => i.pageId === created.body.id).labelRu).toBe("Гарантии");
+  });
+});
+
+describe("Russian around the site", () => {
+  it("lists a page for Russian in the sitemap only when it has a Russian title", async () => {
+    await api(app, "post", "/api/admin/projects", cookie, projectInput(imageId, { slug: "with-ru", titleRu: "Дом" }));
+    await api(app, "post", "/api/admin/projects", cookie, projectInput(imageId, { slug: "without-ru" }));
+
+    const items = (await pub("/api/public/sitemap")).body.items as { path: string; locales: string[] }[];
+
+    expect(items.find((i) => i.path.endsWith("/with-ru"))!.locales).toEqual(["ka", "en", "ru"]);
+    expect(items.find((i) => i.path.endsWith("/without-ru"))!.locales).toEqual(["ka", "en"]);
+  });
+
+  it("finds a project by its Russian title in the admin search", async () => {
+    await api(app, "post", "/api/admin/projects", cookie, projectInput(imageId, { titleRu: "Терраса в Ваке" }));
+
+    const res = await api(app, "get", "/api/admin/search?q=Терраса", cookie);
+
+    expect(res.body.items.map((i: { type: string }) => i.type)).toEqual(["project"]);
+  });
+
+  it("keeps the /ru address free for the Russian site", async () => {
+    const res = await api(app, "post", "/api/admin/pages", cookie, { slug: "ru", titleKa: "გვერდი", introKa: "", isPublished: true, blocks: [] });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.details.fieldErrors.slug[0].code).toBe("reserved_slug");
+  });
+
+  it("accepts a contact form sent from the Russian site", async () => {
+    const res = await request(app).post("/api/public/inquiries").set("Origin", ALLOWED_ORIGIN).send({
+      name: "Наталья",
+      email: "natalia@example.com",
+      subject: "Дом в Цхнети",
+      message: "У нас участок 900 м², хотим двухэтажный дом.",
+      website: "",
+      locale: "ru",
+    });
+
+    expect(res.status).toBe(201);
   });
 });

@@ -7,6 +7,7 @@ import type { Clock } from "../../lib/clock.js";
 import { inquiryStatus } from "../../lib/enum-map.js";
 import { AppError } from "../../lib/errors.js";
 import { parse } from "../../lib/validate.js";
+import { LOCALES } from "../media/media.serialize.js";
 import { INQUIRY_NOTIFICATION } from "./emails.js";
 
 /** The contact form (docs/API_CONTRACTS.md §5) and the admin inbox (§6.5). */
@@ -25,7 +26,7 @@ const inquiryInput = z.object({
     .transform((v) => v || null),
   subject: text(3, 120),
   message: text(20, 5000),
-  locale: z.enum(["ka", "en"]).default("ka"),
+  locale: z.enum(LOCALES).default("ka"),
   turnstileToken: z.string().max(2048).optional(),
 });
 

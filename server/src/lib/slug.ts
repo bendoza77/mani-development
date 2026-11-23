@@ -15,7 +15,7 @@ const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 /** Slugs that would collide with fixed routes or framework paths. */
 const RESERVED = new Set([
-  "admin", "api", "en", "ka", "home", "projects", "services", "about", "contact",
+  "admin", "api", "en", "ka", "ru", "home", "projects", "services", "about", "contact",
   "preview", "sitemap", "robots", "_next",
 ]);
 

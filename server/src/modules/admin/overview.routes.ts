@@ -151,7 +151,7 @@ export function searchRoutes({ prisma }: { prisma: PrismaClient }) {
     const has = { contains: q, mode: "insensitive" as const };
     const [projects, inquiries, services, team] = await Promise.all([
       prisma.project.findMany({
-        where: { OR: [{ titleKa: has }, { titleEn: has }, { slug: has }, { locationKa: has }, { cityKa: has }] },
+        where: { OR: [{ titleKa: has }, { titleEn: has }, { titleRu: has }, { slug: has }, { locationKa: has }, { cityKa: has }] },
         orderBy: { updatedAt: "desc" },
         take: MAX_RESULTS,
       }),
@@ -160,8 +160,8 @@ export function searchRoutes({ prisma }: { prisma: PrismaClient }) {
         orderBy: { createdAt: "desc" },
         take: MAX_RESULTS,
       }),
-      prisma.service.findMany({ where: { OR: [{ titleKa: has }, { titleEn: has }] }, orderBy: { position: "asc" }, take: MAX_RESULTS }),
-      prisma.teamMember.findMany({ where: { OR: [{ nameKa: has }, { nameEn: has }] }, orderBy: { position: "asc" }, take: MAX_RESULTS }),
+      prisma.service.findMany({ where: { OR: [{ titleKa: has }, { titleEn: has }, { titleRu: has }] }, orderBy: { position: "asc" }, take: MAX_RESULTS }),
+      prisma.teamMember.findMany({ where: { OR: [{ nameKa: has }, { nameEn: has }, { nameRu: has }] }, orderBy: { position: "asc" }, take: MAX_RESULTS }),
     ]);
     const items = [
       ...projects.map((p) => ({ type: "project", id: p.id, label: p.titleKa, meta: p.cityKa, href: `/admin/projects/${p.id}/edit` })),
