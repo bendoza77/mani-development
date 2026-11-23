@@ -55,9 +55,9 @@ const toAdmin = (s: Row, config: Config) => ({
 const toPublic = (s: Row, config: Config, locale: Locale) => ({
   id: s.id,
   image: toImage(s.image, config, locale),
-  heading: pick(s.headingKa, s.headingEn, locale),
-  text: pick(s.textKa, s.textEn, locale),
-  cta: s.ctaUrl ? { label: pick(s.ctaLabelKa, s.ctaLabelEn, locale), href: s.ctaUrl } : null,
+  heading: pick(s.headingKa, s.headingEn, s.headingRu, locale),
+  text: pick(s.textKa, s.textEn, s.textRu, locale),
+  cta: s.ctaUrl ? { label: pick(s.ctaLabelKa, s.ctaLabelEn, s.ctaLabelRu, locale), href: s.ctaUrl } : null,
 });
 
 const notFound = () => new AppError(404, "NOT_FOUND", "That slide doesn't exist.");

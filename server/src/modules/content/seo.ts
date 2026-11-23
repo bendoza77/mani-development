@@ -11,8 +11,10 @@ import { optionalText } from "./fields.js";
 export const seoInput = z.strictObject({
   titleKa: z.string().trim().max(70).default(""),
   titleEn: optionalText(70),
+  titleRu: optionalText(70),
   descriptionKa: z.string().trim().max(200).default(""),
   descriptionEn: optionalText(200),
+  descriptionRu: optionalText(200),
   ogImageId: z.uuid().nullable().default(null),
   robotsIndex: z.boolean().default(true),
   robotsFollow: z.boolean().default(true),
@@ -23,8 +25,10 @@ export type SeoInput = z.output<typeof seoInput>;
 type SeoColumns = {
   seoTitleKa: string;
   seoTitleEn: string | null;
+  seoTitleRu: string | null;
   seoDescriptionKa: string;
   seoDescriptionEn: string | null;
+  seoDescriptionRu: string | null;
   ogImageId: string | null;
   robotsIndex: boolean;
   robotsFollow: boolean;
@@ -33,8 +37,10 @@ type SeoColumns = {
 export const seoColumns = (seo: SeoInput): SeoColumns => ({
   seoTitleKa: seo.titleKa,
   seoTitleEn: seo.titleEn,
+  seoTitleRu: seo.titleRu,
   seoDescriptionKa: seo.descriptionKa,
   seoDescriptionEn: seo.descriptionEn,
+  seoDescriptionRu: seo.descriptionRu,
   ogImageId: seo.ogImageId,
   robotsIndex: seo.robotsIndex,
   robotsFollow: seo.robotsFollow,
@@ -44,8 +50,10 @@ export const seoColumns = (seo: SeoInput): SeoColumns => ({
 export const adminSeo = (row: SeoColumns): SeoInput => ({
   titleKa: row.seoTitleKa,
   titleEn: row.seoTitleEn,
+  titleRu: row.seoTitleRu,
   descriptionKa: row.seoDescriptionKa,
   descriptionEn: row.seoDescriptionEn,
+  descriptionRu: row.seoDescriptionRu,
   ogImageId: row.ogImageId,
   robotsIndex: row.robotsIndex,
   robotsFollow: row.robotsFollow,
@@ -65,8 +73,8 @@ export function publicSeo(
 ): { title: string; description: string; image: Image | null; index: boolean; follow: boolean } {
   const image = row.ogImage ?? fallback.image;
   return {
-    title: pick(row.seoTitleKa, row.seoTitleEn, locale) || fallback.title,
-    description: pick(row.seoDescriptionKa, row.seoDescriptionEn, locale) || fallback.description,
+    title: pick(row.seoTitleKa, row.seoTitleEn, row.seoTitleRu, locale) || fallback.title,
+    description: pick(row.seoDescriptionKa, row.seoDescriptionEn, row.seoDescriptionRu, locale) || fallback.description,
     image: image ? toImage(image, config, locale) : null,
     index: row.robotsIndex,
     follow: row.robotsFollow,

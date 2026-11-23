@@ -22,7 +22,7 @@ const testimonialInput = z.strictObject({
   published: z.boolean(),
 });
 
-const include = { project: { select: { id: true, slug: true, titleKa: true, titleEn: true, isPublished: true } } } as const;
+const include = { project: { select: { id: true, slug: true, titleKa: true, titleEn: true, titleRu: true, isPublished: true } } } as const;
 type Row = Prisma.TestimonialGetPayload<{ include: typeof include }>;
 
 const toAdmin = (t: Row) => ({
@@ -117,10 +117,10 @@ export function publicTestimonialRoutes({ prisma }: { prisma: PrismaClient }) {
     res.json({
       items: items.map((t) => ({
         id: t.id,
-        quote: pick(t.quoteKa, t.quoteEn, locale),
-        author: pick(t.authorKa, t.authorEn, locale),
-        role: pick(t.roleKa, t.roleEn, locale),
-        project: t.project?.isPublished ? { slug: t.project.slug, title: pick(t.project.titleKa, t.project.titleEn, locale) } : null,
+        quote: pick(t.quoteKa, t.quoteEn, t.quoteRu, locale),
+        author: pick(t.authorKa, t.authorEn, t.authorRu, locale),
+        role: pick(t.roleKa, t.roleEn, t.roleRu, locale),
+        project: t.project?.isPublished ? { slug: t.project.slug, title: pick(t.project.titleKa, t.project.titleEn, t.project.titleRu, locale) } : null,
       })),
     });
   });

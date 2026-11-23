@@ -28,6 +28,8 @@ const seo = {
   titleEn: "Vake House — MANI",
   descriptionKa: "ორსართულიანი სახლი ვაკეში.",
   descriptionEn: null,
+  titleRu: null,
+  descriptionRu: null,
   ogImageId: null as string | null,
   robotsIndex: true,
   robotsFollow: true,

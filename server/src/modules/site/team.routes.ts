@@ -42,9 +42,9 @@ const toAdmin = (m: Row, config: Config) => ({
 
 const toPublic = (m: Row, config: Config, locale: Locale) => ({
   id: m.id,
-  name: pick(m.nameKa, m.nameEn, locale),
-  role: pick(m.roleKa, m.roleEn, locale),
-  bio: pick(m.bioKa, m.bioEn, locale),
+  name: pick(m.nameKa, m.nameEn, m.nameRu, locale),
+  role: pick(m.roleKa, m.roleEn, m.roleRu, locale),
+  bio: pick(m.bioKa, m.bioEn, m.bioRu, locale),
   photo: toImage(m.photo, config, locale),
 });
 

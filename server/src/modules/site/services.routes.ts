@@ -17,7 +17,7 @@ import {
   slugTaken,
   writePositions,
 } from "../content/fields.js";
-import { pick, toImage, type Locale } from "../media/media.serialize.js";
+import { pick, pickList, toImage, type Locale } from "../media/media.serialize.js";
 
 /** Company services (docs/API_CONTRACTS.md §6.2), shown on the services page and the homepage. */
 
@@ -61,10 +61,10 @@ const toAdmin = (s: Row, config: Config) => ({
 const toPublic = (s: Row, config: Config, locale: Locale) => ({
   id: s.id,
   slug: s.slug,
-  title: pick(s.titleKa, s.titleEn, locale),
-  summary: pick(s.summaryKa, s.summaryEn, locale),
-  description: pick(s.descriptionKa, s.descriptionEn, locale),
-  features: locale === "en" && s.featuresEn.length ? s.featuresEn : s.featuresKa,
+  title: pick(s.titleKa, s.titleEn, s.titleRu, locale),
+  summary: pick(s.summaryKa, s.summaryEn, s.summaryRu, locale),
+  description: pick(s.descriptionKa, s.descriptionEn, s.descriptionRu, locale),
+  features: pickList(s.featuresKa, s.featuresEn, s.featuresRu, locale),
   image: toImage(s.image, config, locale),
 });
 

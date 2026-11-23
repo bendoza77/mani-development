@@ -131,10 +131,10 @@ function toCard(p: ProjectRow, config: Config, locale: Locale) {
   return {
     id: p.id,
     slug: p.slug,
-    title: pick(p.titleKa, p.titleEn, locale),
-    summary: pick(p.summaryKa, p.summaryEn, locale),
-    location: pick(p.locationKa, p.locationEn, locale),
-    city: pick(p.cityKa, p.cityEn, locale),
+    title: pick(p.titleKa, p.titleEn, p.titleRu, locale),
+    summary: pick(p.summaryKa, p.summaryEn, p.summaryRu, locale),
+    location: pick(p.locationKa, p.locationEn, p.locationRu, locale),
+    city: pick(p.cityKa, p.cityEn, p.cityRu, locale),
     category: p.category,
     status: projectStatus.toApi(p.status),
     progress: p.progress,
@@ -150,14 +150,14 @@ function toCard(p: ProjectRow, config: Config, locale: Locale) {
 function toDetail(p: ProjectRow, config: Config, locale: Locale) {
   return {
     ...toCard(p, config, locale),
-    description: pick(p.descriptionKa, p.descriptionEn, locale),
+    description: pick(p.descriptionKa, p.descriptionEn, p.descriptionRu, locale),
     architect: p.architect,
-    specs: p.specs.map((s) => ({ id: s.id, label: pick(s.labelKa, s.labelEn, locale), value: pick(s.valueKa, s.valueEn, locale) })),
+    specs: p.specs.map((s) => ({ id: s.id, label: pick(s.labelKa, s.labelEn, s.labelRu, locale), value: pick(s.valueKa, s.valueEn, s.valueRu, locale) })),
     gallery: p.gallery.map((g) => toImage(g.media, config, locale)),
     seo: publicSeo(
       p,
       locale,
-      { title: pick(p.titleKa, p.titleEn, locale), description: pick(p.summaryKa, p.summaryEn, locale), image: p.cover },
+      { title: pick(p.titleKa, p.titleEn, p.titleRu, locale), description: pick(p.summaryKa, p.summaryEn, p.summaryRu, locale), image: p.cover },
       config,
     ),
   };

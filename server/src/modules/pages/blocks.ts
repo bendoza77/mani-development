@@ -4,7 +4,7 @@ import type { BlockType, Prisma } from "../../generated/prisma/client.js";
 import { optionalText, requiredText } from "../content/fields.js";
 import { richTextDoc, SAFE_HREF } from "../content/rich-text.js";
 import { blockStyle, blockStyleInput } from "../content/style.js";
-import { pick, toImage, type Locale } from "../media/media.serialize.js";
+import { pick, pickDoc, toImage, type Locale } from "../media/media.serialize.js";
 
 /**
  * Page sections ("blocks", docs/API_CONTRACTS.md §8.1). Each one is stored as a content_blocks row:
@@ -158,7 +158,7 @@ export function toAdminBlock(block: BlockRow, config: Config) {
   }
 }
 
-/** For the website: one language, English falling back to Georgian. Broken sections are dropped. */
+/** For the website: one language (Russian → English → Georgian fallback). Broken sections are dropped. */
 export function toPublicBlock(block: BlockRow, config: Config, locale: Locale) {
   const out = publicContent(block, config, locale);
   return out ? { ...out, style: blockStyle((block.data as BlockData).style) } : null;
@@ -166,8 +166,9 @@ export function toPublicBlock(block: BlockRow, config: Config, locale: Locale) {
 
 function publicContent(block: BlockRow, config: Config, locale: Locale) {
   const data = block.data as BlockData;
-  const t = (ka: unknown, en: unknown) => pick(String(ka ?? ""), (en as string | null) ?? null, locale);
-  const doc = (ka: unknown, en: unknown) => (locale === "en" && en ? en : ka);
+  const t = (ka: unknown, en: unknown, ru: unknown) =>
+    pick(String(ka ?? ""), (en as string | null) ?? null, (ru as string | null) ?? null, locale);
+  const doc = (ka: unknown, en: unknown, ru: unknown) => pickDoc(ka, en, ru, locale);
   const image = (position: number) => {
     const m = mediaAt(block, position);
     return m ? toImage(m, config, locale) : null;
@@ -175,20 +176,20 @@ function publicContent(block: BlockRow, config: Config, locale: Locale) {
   const id = block.id;
   switch (block.type) {
     case "heading":
-      return { id, type: "heading", level: data.level, text: t(data.textKa, data.textEn) };
+      return { id, type: "heading", level: data.level, text: t(data.textKa, data.textEn, data.textRu) };
     case "text":
-      return { id, type: "text", doc: doc(data.docKa, data.docEn) };
+      return { id, type: "text", doc: doc(data.docKa, data.docEn, data.docRu) };
     case "image":
-      return image(0) && { id, type: "image", image: image(0), caption: t(data.captionKa, data.captionEn) };
+      return image(0) && { id, type: "image", image: image(0), caption: t(data.captionKa, data.captionEn, data.captionRu) };
     case "banner":
       return (
         image(0) && {
           id,
           type: "banner",
           image: image(0),
-          title: t(data.titleKa, data.titleEn),
-          text: t(data.textKa, data.textEn),
-          button: data.buttonHref ? { label: t(data.buttonLabelKa, data.buttonLabelEn), href: data.buttonHref } : null,
+          title: t(data.titleKa, data.titleEn, data.titleRu),
+          text: t(data.textKa, data.textEn, data.textRu),
+          button: data.buttonHref ? { label: t(data.buttonLabelKa, data.buttonLabelEn, data.buttonLabelRu), href: data.buttonHref } : null,
         }
       );
     case "gallery":
@@ -200,18 +201,18 @@ function publicContent(block: BlockRow, config: Config, locale: Locale) {
           type: "textImage",
           image: image(0),
           imageSide: data.imageSide,
-          title: t(data.titleKa, data.titleEn),
-          doc: doc(data.docKa, data.docEn),
+          title: t(data.titleKa, data.titleEn, data.titleRu),
+          doc: doc(data.docKa, data.docEn, data.docRu),
         }
       );
     case "cards":
       return {
         id,
         type: "cards",
-        title: t(data.titleKa, data.titleEn),
+        title: t(data.titleKa, data.titleEn, data.titleRu),
         items: ((data.items as BlockData[] | undefined) ?? []).map((item, i) => ({
-          title: t(item.titleKa, item.titleEn),
-          text: t(item.textKa, item.textEn),
+          title: t(item.titleKa, item.titleEn, item.titleRu),
+          text: t(item.textKa, item.textEn, item.textRu),
           image: image(i),
         })),
       };

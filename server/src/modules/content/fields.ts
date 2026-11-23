@@ -2,6 +2,7 @@ import { z } from "zod";
 import { Prisma, type PrismaClient } from "../../generated/prisma/client.js";
 import { AppError } from "../../lib/errors.js";
 import { isReservedSlug } from "../../lib/slug.js";
+import { LOCALES } from "../media/media.serialize.js";
 
 /** Field rules shared by projects and pages (docs/DATABASE_DESIGN.md §3 limits). */
 
@@ -51,7 +52,7 @@ export async function writePositions(ids: string[], setPosition: (id: string, po
   for (const [position, id] of ids.entries()) await setPosition(id, position);
 }
 
-export const localeQuery =z.object({ locale: z.enum(["ka", "en"]).default("ka") });
+export const localeQuery = z.object({ locale: z.enum(LOCALES).default("ka") });
 
 export const toDate = (value: string) => new Date(`${value}T00:00:00Z`);
 export const fromDate = (value: Date) => value.toISOString().slice(0, 10);

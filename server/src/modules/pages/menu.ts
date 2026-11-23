@@ -106,7 +106,7 @@ export function publicNavigationRoutes({ prisma }: { prisma: PrismaClient }) {
     const links = (location: NavLocation) =>
       items
         .filter((i) => i.location === location)
-        .map((i) => ({ label: pick(i.labelKa, i.labelEn, locale), href: i.page ? pageHref(i.page) : i.url!, newTab: i.newTab }));
+        .map((i) => ({ label: pick(i.labelKa, i.labelEn, i.labelRu, locale), href: i.page ? pageHref(i.page) : i.url!, newTab: i.newTab }));
     res.json({ header: links("HEADER"), footer: links("FOOTER") });
   });
   return router;

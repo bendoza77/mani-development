@@ -204,8 +204,8 @@ export function publicPageRoutes({ config, prisma }: { config: Config; prisma: P
     });
     if (!page) throw notFound();
     const settings = await prisma.siteSettings.findUniqueOrThrow({ where: { id: 1 }, include: { defaultOgImage: true } });
-    const title = pick(page.titleKa, page.titleEn, locale);
-    const intro = pick(page.introKa, page.introEn, locale);
+    const title = pick(page.titleKa, page.titleEn, page.titleRu, locale);
+    const intro = pick(page.introKa, page.introEn, page.introRu, locale);
     res.json({
       id: page.id,
       slug: page.slug,
@@ -216,7 +216,7 @@ export function publicPageRoutes({ config, prisma }: { config: Config; prisma: P
         locale,
         {
           title,
-          description: intro || pick(settings.defaultSeoDescriptionKa, settings.defaultSeoDescriptionEn, locale),
+          description: intro || pick(settings.defaultSeoDescriptionKa, settings.defaultSeoDescriptionEn, settings.defaultSeoDescriptionRu, locale),
           image: settings.defaultOgImage,
         },
         config,

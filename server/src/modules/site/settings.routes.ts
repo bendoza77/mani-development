@@ -98,11 +98,11 @@ export function publicSettingsRoutes({ config, prisma }: { config: Config; prism
     const s = await load(prisma);
     res.json({
       companyName: s.companyName,
-      tagline: pick(s.taglineKa, s.taglineEn, locale),
+      tagline: pick(s.taglineKa, s.taglineEn, s.taglineRu, locale),
       email: s.email,
       phone: s.phone,
-      address: pick(s.addressKa, s.addressEn, locale),
-      hours: pick(s.hoursKa, s.hoursEn, locale),
+      address: pick(s.addressKa, s.addressEn, s.addressRu, locale),
+      hours: pick(s.hoursKa, s.hoursEn, s.hoursRu, locale),
       instagramUrl: s.instagramUrl,
       linkedinUrl: s.linkedinUrl,
       facebookUrl: s.facebookUrl,
@@ -111,7 +111,7 @@ export function publicSettingsRoutes({ config, prisma }: { config: Config; prism
       mapUrl: s.mapUrl,
       latitude: s.latitude === null ? null : Number(s.latitude),
       longitude: s.longitude === null ? null : Number(s.longitude),
-      defaultSeoDescription: pick(s.defaultSeoDescriptionKa, s.defaultSeoDescriptionEn, locale),
+      defaultSeoDescription: pick(s.defaultSeoDescriptionKa, s.defaultSeoDescriptionEn, s.defaultSeoDescriptionRu, locale),
       defaultOgImage: s.defaultOgImage ? toImage(s.defaultOgImage, config, locale) : null,
       googleSiteVerification: s.googleSiteVerification,
       gtmContainerId: s.gtmContainerId,
