@@ -20,11 +20,11 @@ const resolve = createResolver(RESOLVE_API_BASE);
 
 /**
  * Locale routing (see i18n/config.ts):
- *  - `/ka/...`          → served as is; remembers Georgian in a cookie.
+ *  - `/ka/...`, `/ru/...` → served as is; remembers Georgian or Russian in a cookie.
  *  - `/en/...`          → redirected to the unprefixed URL (one canonical English URL).
- *  - `/...` (no prefix) → rewritten to `/en/...`, unless the visitor chose Georgian, then
- *                         redirected to `/ka/...`.
- *  - `/admin...`        → always English (`/ka/admin` redirects to `/admin`).
+ *  - `/...` (no prefix) → rewritten to `/en/...`, unless the visitor chose Georgian or Russian,
+ *                         then redirected to `/ka/...` or `/ru/...`.
+ *  - `/admin...`        → always English (`/ka/admin`, `/ru/admin` redirect to `/admin`).
  * Unknown prefixes (`/fr/x`) fall through to English and render the localized 404.
  * Every redirect target is handled by a non-redirecting branch, so there are no loops.
  *

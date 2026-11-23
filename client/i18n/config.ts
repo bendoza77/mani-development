@@ -3,10 +3,10 @@
  * Keep this file free of server-only or client-only imports.
  *
  * URL strategy: English (the default) lives at unprefixed paths (`/projects`), Georgian
- * under `/ka` (`/ka/projects`). Internally every route sits under `app/[lang]`, and the
+ * under `/ka` (`/ka/projects`) and Russian under `/ru` (`/ru/projects`). Internally every route sits under `app/[lang]`, and the
  * proxy rewrites unprefixed requests to `/en/...`.
  */
-export const LOCALES = ["en", "ka"] as const;
+export const LOCALES = ["en", "ka", "ru"] as const;
 export type Locale = (typeof LOCALES)[number];
 
 export const DEFAULT_LOCALE: Locale = "en";
@@ -19,6 +19,7 @@ export const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 export const LOCALE_LABELS: Record<Locale, { native: string; short: string; htmlLang: string; ogLocale: string }> = {
   en: { native: "English", short: "EN", htmlLang: "en", ogLocale: "en_GB" },
   ka: { native: "ქართული", short: "ქა", htmlLang: "ka", ogLocale: "ka_GE" },
+  ru: { native: "Русский", short: "RU", htmlLang: "ru", ogLocale: "ru_RU" },
 };
 
 /** Sections that are never localized (internal CMS). */

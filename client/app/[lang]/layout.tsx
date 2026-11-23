@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Newsreader, Noto_Sans_Georgian, Noto_Serif_Georgian } from "next/font/google";
+import { Geist, Geist_Mono, Newsreader, Noto_Sans_Georgian, Noto_Serif_Georgian, Source_Serif_4 } from "next/font/google";
 import { notFound } from "next/navigation";
 import { lang as rootLang } from "next/root-params";
 import { SiteSettingsProvider } from "@/components/layout/SiteSettings";
@@ -22,8 +22,9 @@ const newsreader = Newsreader({
   display: "swap",
 });
 
-const geist = Geist({ variable: "--font-geist", subsets: ["latin"], display: "swap" });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"], display: "swap" });
+// Geist covers Cyrillic itself, so Russian body text needs no companion face.
+const geist = Geist({ variable: "--font-geist", subsets: ["latin", "cyrillic"], display: "swap" });
+const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin", "cyrillic"], display: "swap" });
 
 // Georgian companions for the Latin faces. They only cover the Georgian block (unicode-range), so
 // the browser downloads them only when Georgian text is on the page. No metric fallback face is
@@ -38,6 +39,18 @@ const kaSerif = Noto_Serif_Georgian({
 const kaSans = Noto_Sans_Georgian({
   variable: "--font-ka-sans",
   subsets: ["georgian"],
+  display: "swap",
+  preload: false,
+  adjustFontFallback: false,
+});
+
+// Russian companion for Newsreader, which has no Cyrillic: same approach as the Georgian faces
+// (Cyrillic block only, not preloaded). Source Serif 4 has an optical-size axis like Newsreader.
+const ruSerif = Source_Serif_4({
+  variable: "--font-ru-serif",
+  subsets: ["cyrillic"],
+  style: ["normal", "italic"],
+  axes: ["opsz"],
   display: "swap",
   preload: false,
   adjustFontFallback: false,
@@ -84,7 +97,7 @@ export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
       lang={LOCALE_LABELS[lang].htmlLang}
       data-theme="light"
       suppressHydrationWarning
-      className={`${newsreader.variable} ${geist.variable} ${geistMono.variable} ${kaSerif.variable} ${kaSans.variable} antialiased`}
+      className={`${newsreader.variable} ${geist.variable} ${geistMono.variable} ${kaSerif.variable} ${kaSans.variable} ${ruSerif.variable} antialiased`}
     >
       <head>
         <InlineScript html={themeScript} />

@@ -88,9 +88,9 @@
   --color-danger-soft: var(--danger-soft);
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
-  /* Georgian faces come first but only cover the Georgian block (unicode-range), so Latin text still
-     uses Newsreader / Geist and Georgian text never falls back to a system font. */
-  --font-display: var(--font-ka-serif), var(--font-newsreader), "Iowan Old Style", Georgia, serif;
+  /* Georgian and Russian faces come first but only cover their own blocks (unicode-range), so Latin
+     text still uses Newsreader / Geist and neither script falls back to a system font. */
+  --font-display: var(--font-ka-serif), var(--font-ru-serif), var(--font-newsreader), "Iowan Old Style", Georgia, serif;
   --font-sans: var(--font-ka-sans), var(--font-geist), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-ka-sans), var(--font-geist-mono), ui-monospace, monospace;
   --ease-arch: cubic-bezier(0.22, 0.7, 0.12, 1);
@@ -112,14 +112,16 @@ body {
   overflow-x: clip;
 }
 
-/* English running text gets more generous leading: the default body line height, and the
+/* English and Russian running text get more generous leading: the default body line height, and the
    `leading-snug` / `leading-relaxed` steps used for paragraphs, cards and lists. Georgian keeps
    its own values (set per element below). */
-:root:lang(en) {
+:root:lang(en),
+:root:lang(ru) {
   --leading-snug: 1.5;
   --leading-relaxed: 1.8;
 }
-body:lang(en) {
+body:lang(en),
+body:lang(ru) {
   line-height: 1.65;
 }
 

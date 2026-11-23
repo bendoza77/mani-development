@@ -12,7 +12,7 @@ const FIXED_PATHS = ["/", "/projects", "/services", "/about", "/contact"];
  * The feed is a cached read, refreshed about once a minute.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const feed = (await getSitemap()) ?? FIXED_PATHS.map((path) => ({ path, lastModified: undefined, locales: ["ka", "en"] }));
+  const feed = (await getSitemap()) ?? FIXED_PATHS.map((path) => ({ path, lastModified: undefined, locales: ["ka", "en", "ru"] }));
   return feed.flatMap((entry) => {
     const locales = entry.locales.filter(hasLocale) as Locale[];
     const languages = Object.fromEntries(

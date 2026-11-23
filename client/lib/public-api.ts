@@ -22,8 +22,7 @@ import {
   type SitemapEntry,
 } from "./public-types";
 import type { Project } from "./types";
-
-type Locale = "ka" | "en";
+import type { Locale } from "@/i18n/config";
 
 /** Server-to-API address. API_INTERNAL_URL lets a deployment use a private network address. */
 export const API_BASE = (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000").replace(/\/+$/, "");
