@@ -204,6 +204,7 @@ describe("page menu settings", () => {
     expect(created.body.menu).toEqual({
       labelKa: null,
       labelEn: null,
+      labelRu: null,
       header: { show: true, position: 2 },
       footer: { show: true, position: 6 },
     });
