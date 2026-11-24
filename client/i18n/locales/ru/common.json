@@ -22,7 +22,8 @@
     "contact": "Контакты"
   },
   "header": {
-    "cta": "Обсудить проект"
+    "cta": "Обсудить проект",
+    "call": "Позвонить: {{phone}}"
   },
   "language": {
     "label": "Язык"
@@ -76,5 +77,10 @@
     "accept": "Принять",
     "decline": "Отклонить",
     "settings": "Настройки cookie"
+  },
+  "chat": {
+    "region": "Напишите нам",
+    "whatsapp": "Написать в WhatsApp",
+    "messenger": "Написать в Messenger"
   }
 }

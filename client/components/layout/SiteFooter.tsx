@@ -121,7 +121,8 @@ export function SiteFooter({ menus, analytics = false }: { menus?: Menus | null;
         )}
       </div>
 
-      <div className="shell flex flex-col gap-2 border-t border-white/10 py-6 text-[0.78rem] text-night-muted sm:flex-row sm:justify-between">
+      {/* Leaves room on the right for the floating chat buttons so they never cover this row. */}
+      <div className="shell flex flex-col gap-2 border-t border-white/10 pt-6 pb-36 text-[0.78rem] text-night-muted sm:flex-row sm:justify-between sm:pe-20 sm:pb-6">
         <span>{t("footer.copyright", { company: s.companyName })}</span>
         <span className="flex flex-wrap gap-x-5 gap-y-2">
           {analytics && (

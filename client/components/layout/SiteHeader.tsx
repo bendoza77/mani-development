@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, Phone, X } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { ContactLink } from "@/components/contact/ContactLink";
 import { ButtonLink } from "@/components/ui/Button";
@@ -10,6 +10,7 @@ import { useTranslation } from "@/i18n/client";
 import { splitLocale } from "@/i18n/config";
 import { LanguageSwitcher } from "@/i18n/LanguageSwitcher";
 import { LocaleLink as Link } from "@/i18n/LocaleLink";
+import { formatPhone } from "@/lib/contact";
 import { cx } from "@/lib/format";
 import { isExternal, useNavigation, type Menus, type NavLink } from "@/lib/navigation";
 import { contactHref } from "@/lib/public-types";
@@ -109,7 +110,7 @@ export function SiteHeader({ menus }: { menus?: Menus | null }) {
           "[body:has(.page-has-colors)_&]:border-line [body:has(.page-has-colors)_&]:bg-paper/[0.97]",
         )}
       >
-        <div className="shell flex h-(--header-h) items-center justify-between gap-3 sm:gap-6">
+        <div className="shell flex h-(--header-h) items-center justify-between gap-3 sm:gap-6 lg:max-xl:gap-4">
           <Link href="/" className="rounded-[2px]" aria-label={t("brand.home", { name: settings.companyName })}>
             <Logo />
           </Link>
@@ -135,6 +136,19 @@ export function SiteHeader({ menus }: { menus?: Menus | null }) {
 
           <div className="flex items-center gap-2">
             <LanguageSwitcher className="max-xl:hidden max-2xl:[:lang(ka)_&]:hidden" />
+            {/* Icon-only below xl (44px tap target on phones); the full number shows on wide screens.
+                Under 360px the brand name needs the room, and the number stays in the menu. */}
+            {tel && (
+              <ContactLink
+                channel="phone"
+                href={tel}
+                aria-label={t("header.call", { phone: formatPhone(settings.phone) })}
+                className="inline-flex size-11 items-center max-[359px]:hidden justify-center gap-2 rounded-[3px] text-[0.82rem] font-medium whitespace-nowrap text-ink transition-colors duration-300 hover:bg-paper-2 hover:text-accent sm:size-9 xl:w-auto xl:px-3"
+              >
+                <Phone aria-hidden strokeWidth={1.75} className="size-4.5" />
+                <span className="tabular-nums max-xl:hidden">{formatPhone(settings.phone)}</span>
+              </ContactLink>
+            )}
             <ButtonLink
               href="/contact"
               size="sm"

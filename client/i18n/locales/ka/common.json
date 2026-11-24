@@ -22,7 +22,8 @@
     "contact": "კონტაქტი"
   },
   "header": {
-    "cta": "დაიწყეთ პროექტი"
+    "cta": "დაიწყეთ პროექტი",
+    "call": "დარეკვა: {{phone}}"
   },
   "language": {
     "label": "ენა"
@@ -76,5 +77,10 @@
     "accept": "თანხმობა",
     "decline": "უარი",
     "settings": "ქუქი-ფაილების პარამეტრები"
+  },
+  "chat": {
+    "region": "მოგვწერეთ",
+    "whatsapp": "მოგვწერეთ WhatsApp-ში",
+    "messenger": "მოგვწერეთ Messenger-ში"
   }
 }

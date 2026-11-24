@@ -22,7 +22,8 @@
     "contact": "Contact"
   },
   "header": {
-    "cta": "Start a project"
+    "cta": "Start a project",
+    "call": "Call {{phone}}"
   },
   "language": {
     "label": "Language"
@@ -76,5 +77,10 @@
     "accept": "Accept",
     "decline": "Decline",
     "settings": "Cookie settings"
+  },
+  "chat": {
+    "region": "Chat with us",
+    "whatsapp": "Chat on WhatsApp",
+    "messenger": "Message us on Messenger"
   }
 }

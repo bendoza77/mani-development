@@ -7,18 +7,20 @@
     "formTitle": "Send us a message"
   },
   "map": {
-    "label": "Stylised map showing the studio in Vake, Tbilisi, near the Mtkvari river",
-    "studio": "OUR STUDIO",
-    "district": "VAKE · TBILISI",
-    "river": "MTKVARI",
-    "caption": "Illustrative map, not to scale",
+    "title": "Our office on the map",
+    "iframeTitle": "Google Map showing the {{company}} office",
+    "expand": "Enlarge map",
     "open": "Open in Google Maps"
   },
   "details": {
     "email": "Email",
     "phone": "Phone",
     "studio": "Studio",
-    "hours": "Hours"
+    "hours": "Hours",
+    "viewOnMap": "View on Google Maps"
+  },
+  "actions": {
+    "whatsappMessage": "Hello {{company}}, I would like to ask about building a house."
   },
   "form": {
     "name": "Full name",
