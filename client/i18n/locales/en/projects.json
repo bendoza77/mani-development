@@ -25,7 +25,8 @@
     "clear": "Clear filters",
     "emptyTitle": "No projects match those filters.",
     "emptyBody": "Try a different category or status, or clear your search.",
-    "reset": "Reset filters"
+    "reset": "Reset filters",
+    "none": "No projects have been published yet. Please check back soon."
   },
   "card": {
     "imageAlt": "{{title}}, {{location}}"
@@ -50,14 +51,20 @@
       "in-progress": "On site now"
     },
     "progress": "Overall progress",
-    "stages": ["Groundworks", "Structure", "Envelope", "Interiors", "Handover"],
+    "stages": [
+      "Groundworks",
+      "Structure",
+      "Envelope",
+      "Interiors",
+      "Handover"
+    ],
     "stageState": {
       "done": "Complete",
       "active": "In progress",
       "upcoming": "Upcoming"
     },
-    "gallery_one": "Gallery · {{count}} image",
-    "gallery_other": "Gallery · {{count}} images",
+    "gallery_one": "Gallery ({{count}} image)",
+    "gallery_other": "Gallery ({{count}} images)",
     "ctaTitle": "Planning something like {{title}}?",
     "ctaButton": "Talk to our team",
     "ctaSubject": "Project like {{title}}",
@@ -65,7 +72,7 @@
     "loading": "Loading project",
     "titleTemplate": "{{title}} — {{company}}",
     "missing": {
-      "eyebrow": "404 · Project not found",
+      "eyebrow": "404: project not found",
       "title": "This project isn’t in our portfolio.",
       "body": "It may have been renamed or removed in the admin demo.",
       "cta": "Browse all projects"

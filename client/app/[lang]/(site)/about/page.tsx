@@ -4,16 +4,26 @@ import { TeamGrid } from "@/components/sections/TeamGrid";
 import { Img } from "@/components/ui/Img";
 import { Trans } from "react-i18next/TransWithoutContext";
 import { IMAGES } from "@/data/images";
-import { getT, pageMetadata } from "@/i18n/server";
+import { getT } from "@/i18n/server";
+import { getPageSeo, getTeam } from "@/lib/public-api";
+import { routeMetadata } from "@/lib/seo/route";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return pageMetadata("about", "/about");
+  const { t, locale } = await getT("meta");
+  return routeMetadata({
+    path: "/about",
+    title: t("about.title"),
+    description: t("about.description"),
+    seo: await getPageSeo("about", locale),
+  });
 }
 
 export default async function AboutPage() {
-  const { t, i18n } = await getT("about");
+  const { t, i18n, locale } = await getT("about");
+  // Same cached read as TeamGrid: the team section is left out when nobody is listed.
+  const hasTeam = (await getTeam(locale)).length > 0;
   const { t: tc } = await getT("company");
-  const em = { em: <em className="text-accent" /> };
+  const em = { em: <span /> };
   const stats = tc("stats", { returnObjects: true });
   return (
     <>
@@ -54,10 +64,9 @@ export default async function AboutPage() {
             <p className="t-lead mt-6 text-night-muted">{t("mission.lead")}</p>
           </div>
           <ol className="grid gap-px overflow-hidden rounded-[2px] bg-white/10 sm:grid-cols-2 lg:col-span-7">
-            {t("mission.values", { returnObjects: true }).map((v, i) => (
+            {t("mission.values", { returnObjects: true }).map((v) => (
               <li key={v.title} className="bg-night p-7">
-                <p className="t-meta text-accent">0{i + 1}</p>
-                <h3 className="mt-4 text-[1.1rem] font-semibold">{v.title}</h3>
+                <h3 className="text-[1.1rem] font-semibold">{v.title}</h3>
                 <p className="mt-2 text-[0.95rem] leading-relaxed text-night-muted">{v.body}</p>
               </li>
             ))}
@@ -112,15 +121,17 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <section className="shell py-[clamp(4rem,9vw,7rem)]" aria-labelledby="team-title">
-        <div className="mb-12 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="t-eyebrow text-muted">{t("team.eyebrow")}</p>
-            <h2 id="team-title" className="t-h2 mt-4">{t("team.title")}</h2>
+      {hasTeam && (
+        <section className="shell py-[clamp(4rem,9vw,7rem)]" aria-labelledby="team-title">
+          <div className="mb-12 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="t-eyebrow text-muted">{t("team.eyebrow")}</p>
+              <h2 id="team-title" className="t-h2 mt-4">{t("team.title")}</h2>
+            </div>
           </div>
-        </div>
-        <TeamGrid />
-      </section>
+          <TeamGrid />
+        </section>
+      )}
     </>
   );
 }

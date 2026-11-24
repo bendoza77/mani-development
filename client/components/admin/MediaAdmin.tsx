@@ -1,133 +1,85 @@
 "use client";
 
-import { useMemo, useRef, useState, type DragEvent } from "react";
-import { Check, Copy, ImageOff, Search, Trash2, Upload, X } from "lucide-react";
-import { EmptyState, FilterTabs, PageHeader } from "@/components/admin/ui";
+import { useEffect, useMemo, useRef, useState, type DragEvent } from "react";
+import Link from "next/link";
+import { Copy, ImageOff, Search, Trash2, Upload, X } from "lucide-react";
+import { LoadError } from "@/components/admin/parts";
+import { EmptyState, PageHeader } from "@/components/admin/ui";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/Dialog";
 import { Field, Input, Select } from "@/components/ui/Field";
 import { Img } from "@/components/ui/Img";
 import { useToast } from "@/components/ui/Toast";
-import { StorageFullError, mediaDB, nowISO, uid, useDB } from "@/lib/store";
+import { useApiData } from "@/hooks/useApiData";
+import { api, errorMessage, orNull, type MediaAsset, type MediaUsage } from "@/lib/api";
+import { IMAGE_TYPES, uploadImage } from "@/lib/media";
 import { MEDIA_CATEGORY_LABEL, cx, formatBytes, formatDate } from "@/lib/format";
-import type { DB, MediaAsset, MediaCategory } from "@/lib/types";
-
-const CATEGORIES = Object.keys(MEDIA_CATEGORY_LABEL) as MediaCategory[];
-const MAX_EDGE = 1600;
-const MAX_INPUT_BYTES = 15 * 1024 * 1024;
-
-/** Downscale an image file in the browser and return a JPEG data URL (simulated upload, nothing leaves the device). */
-async function processUpload(file: File): Promise<Omit<MediaAsset, "id" | "category" | "createdAt">> {
-  if (!file.type.startsWith("image/")) throw new Error(`${file.name} is not an image.`);
-  if (file.size > MAX_INPUT_BYTES) throw new Error(`${file.name} is larger than 15 MB.`);
-  const bitmap = await createImageBitmap(file).catch(() => {
-    throw new Error(`${file.name} could not be decoded.`);
-  });
-  const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
-  const w = Math.round(bitmap.width * scale);
-  const h = Math.round(bitmap.height * scale);
-  const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
-  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, w, h);
-  bitmap.close();
-  const src = canvas.toDataURL("image/jpeg", 0.8);
-  const base = file.name.replace(/\.[^.]+$/, "");
-  return { name: file.name, src, alt: base.replace(/[-_]+/g, " "), width: w, height: h, size: Math.round((src.length - 23) * 0.75) };
-}
-
-function usages(db: Pick<DB, "projects" | "services" | "team">, src: string) {
-  const out: string[] = [];
-  for (const p of db.projects) if (p.cover === src || p.gallery.includes(src)) out.push(`Project: ${p.title}`);
-  for (const s of db.services) if (s.image === src) out.push(`Service: ${s.title}`);
-  for (const m of db.team) if (m.photo === src) out.push(`Team: ${m.name}`);
-  return out;
-}
 
 export function MediaAdmin() {
-  const media = useDB((d) => d.media);
-  const projects = useDB((d) => d.projects);
-  const services = useDB((d) => d.services);
-  const team = useDB((d) => d.team);
+  const { data, error, reload, update } = useApiData<{ items: MediaAsset[] }>("/api/admin/media");
+  const media = useMemo(() => data?.items ?? [], [data]);
   const toast = useToast();
   const fileInput = useRef<HTMLInputElement>(null);
   const [q, setQ] = useState("");
-  const [cat, setCat] = useState<MediaCategory | "all">("all");
-  const [selected, setSelected] = useState<string[]>([]);
   const [focusId, setFocusId] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [uploading, setUploading] = useState(0);
   const [dragging, setDragging] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState<string[] | null>(null);
 
   const items = useMemo(() => {
     const s = q.trim().toLowerCase();
-    return media.filter((m) => (cat === "all" || m.category === cat) && (!s || `${m.name} ${m.alt}`.toLowerCase().includes(s)));
-  }, [media, q, cat]);
-
-  const counts = useMemo(() => {
-    const c: Record<string, number> = { all: media.length };
-    for (const m of media) c[m.category] = (c[m.category] ?? 0) + 1;
-    return c;
-  }, [media]);
+    return media.filter((m) => !s || `${m.filename} ${m.alt}`.toLowerCase().includes(s));
+  }, [media, q]);
 
   const focused = media.find((m) => m.id === focusId) ?? null;
-  const toggle = (id: string) => setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
 
   async function upload(files: FileList | File[]) {
     const list = Array.from(files);
     if (!list.length) return;
-    setUploading(true);
+    setUploading((n) => n + list.length);
     let added = 0;
     for (const file of list) {
       try {
-        const processed = await processUpload(file);
-        const asset: MediaAsset = { id: uid("md"), category: "uploads", createdAt: nowISO(), ...processed };
-        mediaDB.add(asset, `${file.name} uploaded`);
-        added++;
+        const asset = await uploadImage(file);
+        update((d) => ({ items: [asset, ...d.items] }));
         setFocusId(asset.id);
+        added++;
       } catch (err) {
-        toast({
-          tone: "error",
-          title: err instanceof StorageFullError ? "Storage full" : "Upload failed",
-          body: err instanceof Error ? err.message : "Unknown error",
-        });
-        if (err instanceof StorageFullError) break;
+        toast({ tone: "error", title: "Upload failed", body: err instanceof Error ? err.message : file.name });
+      } finally {
+        setUploading((n) => n - 1);
       }
     }
-    setUploading(false);
     if (added) {
-      setCat("all");
-      toast({ tone: "success", title: `${added} image${added > 1 ? "s" : ""} added`, body: "Stored in this browser only (simulated upload)." });
+      setQ("");
+      toast({ tone: "success", title: `${added} image${added > 1 ? "s" : ""} uploaded` });
     }
   }
 
   const onDrop = (e: DragEvent) => {
     e.preventDefault();
     setDragging(false);
-    if (e.dataTransfer.files.length) upload(e.dataTransfer.files);
+    if (e.dataTransfer.files.length) void upload(e.dataTransfer.files);
   };
-
-  const deleteIds = (ids: string[]) => {
-    for (const id of ids) {
-      const m = media.find((x) => x.id === id);
-      if (m) mediaDB.remove(id, `${m.name} deleted from media`);
-    }
-    setSelected((s) => s.filter((x) => !ids.includes(x)));
-    if (focusId && ids.includes(focusId)) setFocusId(null);
-    toast({ tone: "success", title: `${ids.length} file${ids.length > 1 ? "s" : ""} deleted` });
-  };
-
-  const inUse = confirmDelete ? confirmDelete.flatMap((id) => usages({ projects, services, team }, media.find((m) => m.id === id)?.src ?? "")) : [];
 
   return (
     <>
       <PageHeader
         title="Media library"
-        description="Images available to projects, services and team profiles. Uploads are resized in your browser and kept in local storage."
+        description="Images available to projects, pages, services, team profiles and the slider."
         actions={
           <>
-            <input ref={fileInput} type="file" accept="image/*" multiple hidden onChange={(e) => e.target.files && upload(e.target.files).then(() => (e.target.value = ""))} />
-            <Button size="sm" loading={uploading} onClick={() => fileInput.current?.click()}>
+            <input
+              ref={fileInput}
+              type="file"
+              accept={IMAGE_TYPES.join(",")}
+              multiple
+              hidden
+              onChange={(e) => {
+                const files = e.target.files;
+                if (files) void upload(files).then(() => (e.target.value = ""));
+              }}
+            />
+            <Button size="sm" loading={uploading > 0} onClick={() => fileInput.current?.click()}>
               <Upload aria-hidden className="size-4" /> Upload images
             </Button>
           </>
@@ -141,42 +93,36 @@ export function MediaAdmin() {
         }}
         onDragLeave={(e) => e.currentTarget === e.target && setDragging(false)}
         onDrop={onDrop}
-        className={cx("relative grid gap-6 xl:grid-cols-[1fr_20rem]", dragging && "after:pointer-events-none after:absolute after:inset-0 after:rounded-md after:border-2 after:border-dashed after:border-accent after:bg-accent-soft/40")}
+        className={cx(
+          "relative grid gap-6 xl:grid-cols-[1fr_20rem]",
+          dragging && "after:pointer-events-none after:absolute after:inset-0 after:rounded-md after:border-2 after:border-dashed after:border-accent after:bg-accent-soft/40",
+        )}
       >
         <div className="min-w-0 rounded-md border border-line bg-card">
-          <div className="flex flex-col gap-3 border-b border-line p-3 lg:flex-row lg:items-center lg:justify-between">
-            <FilterTabs
-              label="Filter by category"
-              value={cat}
-              onChange={setCat}
-              options={[{ value: "all", label: "All", count: counts.all }, ...CATEGORIES.map((c) => ({ value: c, label: MEDIA_CATEGORY_LABEL[c], count: counts[c] ?? 0 }))]}
-            />
-            <label className="relative lg:w-60">
+          <div className="flex flex-col gap-3 border-b border-line p-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="px-1 text-[0.85rem] text-muted">{data ? `${media.length} image${media.length === 1 ? "" : "s"}` : "Loading…"}</p>
+            <label className="relative sm:w-64">
               <span className="sr-only">Search media</span>
               <Search aria-hidden className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted" />
-              <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name or alt text" className="h-9 w-full rounded-[3px] border border-line-strong bg-card pr-3 pl-9 text-[0.85rem] focus:border-ink focus:outline-none" />
+              <input
+                type="search"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Search by file name or alt text"
+                className="h-9 w-full rounded-[3px] border border-line-strong bg-card pr-3 pl-9 text-[0.85rem] focus:border-ink focus:outline-none"
+              />
             </label>
           </div>
 
-          {selected.length > 0 && (
-            <div className="flex items-center justify-between gap-3 border-b border-line bg-paper-2 px-4 py-2 text-[0.85rem]" role="status">
-              <span>{selected.length} selected</span>
-              <div className="flex gap-1">
-                <Button variant="ghost" size="sm" onClick={() => setSelected([])}>
-                  <X aria-hidden className="size-4" /> Clear
-                </Button>
-                <Button variant="ghost" size="sm" className="text-danger" onClick={() => setConfirmDelete(selected)}>
-                  <Trash2 aria-hidden className="size-4" /> Delete
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {items.length === 0 ? (
+          {error ? (
+            <LoadError message={error.message} onRetry={reload} />
+          ) : !data ? (
+            <div className="h-64 animate-pulse bg-paper-2/50" aria-busy="true" />
+          ) : items.length === 0 ? (
             <EmptyState
               icon={ImageOff}
               title={media.length ? "No images match" : "Library is empty"}
-              body={media.length ? "Try a different category or search." : "Upload images or drop them here."}
+              body={media.length ? "Try a different search." : "Upload images or drop them here."}
               action={
                 <Button variant="outline" size="sm" onClick={() => fileInput.current?.click()}>
                   Upload images
@@ -185,30 +131,24 @@ export function MediaAdmin() {
             />
           ) : (
             <ul className="grid grid-cols-2 gap-3 p-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
-              {items.map((m) => {
-                const isSel = selected.includes(m.id);
-                return (
-                  <li key={m.id} className="group relative">
-                    <button
-                      type="button"
-                      onClick={() => setFocusId(m.id)}
-                      aria-label={`Details for ${m.name}`}
-                      className={cx("relative block aspect-square w-full overflow-hidden rounded-[3px] bg-paper-2 ring-offset-2 ring-offset-card", focusId === m.id && "ring-2 ring-ink", isSel && "ring-2 ring-accent")}
-                    >
-                      <Img src={m.src} alt="" sizes="(min-width: 1280px) 15vw, (min-width: 640px) 30vw, 45vw" />
-                    </button>
-                    <label className={cx("absolute top-2 left-2 grid size-7 cursor-pointer place-items-center rounded-[3px] border transition-opacity", isSel ? "border-accent bg-accent text-accent-ink" : "border-white/70 bg-black/30 text-transparent opacity-100 sm:opacity-0 sm:group-focus-within:opacity-100 sm:group-hover:opacity-100")}>
-                      <input type="checkbox" className="sr-only" checked={isSel} onChange={() => toggle(m.id)} aria-label={`Select ${m.name}`} />
-                      <Check aria-hidden className="size-4" />
-                    </label>
-                    <p className="mt-1.5 truncate text-[0.78rem]">{m.name}</p>
-                    <p className="t-meta text-muted">{MEDIA_CATEGORY_LABEL[m.category]}</p>
-                  </li>
-                );
-              })}
+              {items.map((m) => (
+                <li key={m.id}>
+                  <button
+                    type="button"
+                    onClick={() => setFocusId(m.id)}
+                    aria-label={`Details for ${m.filename}`}
+                    aria-pressed={focusId === m.id}
+                    className={cx("relative block aspect-square w-full overflow-hidden rounded-[3px] bg-paper-2 ring-offset-2 ring-offset-card", focusId === m.id && "ring-2 ring-ink")}
+                  >
+                    <Img src={m.src} alt="" sizes="(min-width: 1280px) 15vw, (min-width: 640px) 30vw, 45vw" />
+                  </button>
+                  <p className="mt-1.5 truncate text-[0.78rem]">{m.filename}</p>
+                  <p className="t-meta text-muted">{formatDate(m.createdAt)}</p>
+                </li>
+              ))}
             </ul>
           )}
-          <p className="border-t border-line px-4 py-3 text-[0.78rem] text-muted">Tip: drag image files anywhere onto this area to upload. Large images are downscaled to {MAX_EDGE}px.</p>
+          <p className="border-t border-line px-4 py-3 text-[0.78rem] text-muted">Tip: drag image files onto this area to upload. JPEG, PNG, WebP or AVIF, up to 10 MB each.</p>
         </div>
 
         <aside className="xl:sticky xl:top-24 xl:self-start" aria-label="Media details">
@@ -216,50 +156,101 @@ export function MediaAdmin() {
             <MediaDetails
               key={focused.id}
               asset={focused}
-              usedBy={usages({ projects, services, team }, focused.src)}
               onClose={() => setFocusId(null)}
-              onDelete={() => setConfirmDelete([focused.id])}
+              onSaved={(saved) => update((d) => ({ items: d.items.map((m) => (m.id === saved.id ? saved : m)) }))}
+              onDeleted={(id) => {
+                setFocusId(null);
+                update((d) => ({ items: d.items.filter((m) => m.id !== id) }));
+              }}
               onCopy={() => {
-                navigator.clipboard?.writeText(focused.src.startsWith("data:") ? focused.name : focused.src).then(
-                  () => toast({ tone: "info", title: "Copied", body: focused.src.startsWith("data:") ? "File name copied (uploads are stored inline)." : focused.src }),
+                const url = new URL(focused.src, window.location.origin).href;
+                navigator.clipboard?.writeText(url).then(
+                  () => toast({ tone: "info", title: "Address copied", body: url }),
                   () => toast({ tone: "error", title: "Clipboard unavailable" }),
                 );
               }}
             />
           ) : (
-            <div className="rounded-md border border-dashed border-line-strong p-8 text-center text-[0.85rem] text-muted">Select an image to see its details, edit alt text or change its category.</div>
+            <div className="rounded-md border border-dashed border-line-strong p-8 text-center text-[0.85rem] text-muted">Select an image to see its details.</div>
           )}
         </aside>
       </div>
-
-      <ConfirmDialog
-        open={!!confirmDelete}
-        onClose={() => setConfirmDelete(null)}
-        title={`Delete ${confirmDelete?.length ?? 0} file${(confirmDelete?.length ?? 0) > 1 ? "s" : ""}?`}
-        description={
-          inUse.length
-            ? `Still in use by ${inUse.slice(0, 3).join(", ")}${inUse.length > 3 ? ` and ${inUse.length - 3} more` : ""}. Those pages will keep showing the image until you replace it, but it will no longer be in the library.`
-            : "The files will be removed from the library."
-        }
-        confirmLabel="Delete"
-        onConfirm={() => {
-          if (confirmDelete) deleteIds(confirmDelete);
-          setConfirmDelete(null);
-        }}
-      />
     </>
   );
 }
 
-function MediaDetails({ asset, usedBy, onClose, onDelete, onCopy }: { asset: MediaAsset; usedBy: string[]; onClose: () => void; onDelete: () => void; onCopy: () => void }) {
+function MediaDetails({
+  asset,
+  onClose,
+  onCopy,
+  onSaved,
+  onDeleted,
+}: {
+  asset: MediaAsset;
+  onClose: () => void;
+  onCopy: () => void;
+  onSaved: (a: MediaAsset) => void;
+  onDeleted: (id: string) => void;
+}) {
   const toast = useToast();
-  const [alt, setAlt] = useState(asset.alt);
-  const [category, setCategory] = useState(asset.category);
-  const dirty = alt !== asset.alt || category !== asset.category;
+  const [altKa, setAltKa] = useState(asset.altKa);
+  const [altEn, setAltEn] = useState(asset.altEn ?? "");
+  const [altRu, setAltRu] = useState(asset.altRu ?? "");
+  const [category, setCategory] = useState<MediaAsset["category"]>(asset.category);
+  const [saving, setSaving] = useState(false);
+  const [usedBy, setUsedBy] = useState<MediaUsage[] | null>(null);
+  const [usageError, setUsageError] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    const ctrl = new AbortController();
+    api<{ usedBy: MediaUsage[] }>(`/api/admin/media/${asset.id}/usage`, { signal: ctrl.signal }).then(
+      (r) => setUsedBy(r.usedBy),
+      (err) => !ctrl.signal.aborted && setUsageError(!!err),
+    );
+    return () => ctrl.abort();
+  }, [asset.id]);
+
+  const dirty = altKa.trim() !== asset.altKa || (altEn.trim() || null) !== asset.altEn || (altRu.trim() || null) !== asset.altRu || category !== asset.category;
+
+  async function save() {
+    setSaving(true);
+    try {
+      const saved = await api<MediaAsset>(`/api/admin/media/${asset.id}`, {
+        method: "PATCH",
+        body: { altKa: altKa.trim(), altEn: orNull(altEn), altRu: orNull(altRu), category },
+      });
+      onSaved(saved);
+      toast({ tone: "success", title: "Image details saved", body: saved.filename });
+    } catch (err) {
+      toast({ tone: "error", title: "Couldn't save", body: errorMessage(err) });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function remove() {
+    setDeleting(true);
+    try {
+      await api(`/api/admin/media/${asset.id}`, { method: "DELETE" });
+      setConfirming(false);
+      onDeleted(asset.id);
+      toast({ tone: "success", title: "Image deleted", body: asset.filename });
+    } catch (err) {
+      setConfirming(false);
+      toast({ tone: "error", title: "Couldn't delete", body: errorMessage(err) });
+      // Someone may have started using it meanwhile: refresh the list of places.
+      api<{ usedBy: MediaUsage[] }>(`/api/admin/media/${asset.id}/usage`).then((r) => setUsedBy(r.usedBy), () => {});
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <div className="rounded-md border border-line bg-card">
       <div className="flex items-center justify-between border-b border-line px-4 py-3">
-        <h2 className="truncate text-[0.92rem] font-semibold">{asset.name}</h2>
+        <h2 className="truncate text-[0.92rem] font-semibold">{asset.filename}</h2>
         <button type="button" onClick={onClose} className="grid size-8 place-items-center rounded-[3px] text-muted hover:bg-paper-2 hover:text-ink" aria-label="Close details">
           <X aria-hidden className="size-4" />
         </button>
@@ -271,7 +262,7 @@ function MediaDetails({ asset, usedBy, onClose, onDelete, onCopy }: { asset: Med
         <dl className="grid grid-cols-3 gap-2 text-[0.8rem]">
           <div>
             <dt className="t-meta text-muted">Size</dt>
-            <dd className="mt-0.5 tabular-nums">{formatBytes(asset.size)}</dd>
+            <dd className="mt-0.5 tabular-nums">{formatBytes(asset.bytes)}</dd>
           </div>
           <div>
             <dt className="t-meta text-muted">Pixels</dt>
@@ -284,51 +275,76 @@ function MediaDetails({ asset, usedBy, onClose, onDelete, onCopy }: { asset: Med
             <dd className="mt-0.5">{formatDate(asset.createdAt)}</dd>
           </div>
         </dl>
-        <Field label="Alt text" hint="Describes the image for screen readers.">
-          {(a) => <Input {...a} value={alt} onChange={(e) => setAlt(e.target.value)} />}
+        <Field label="Alt text · Georgian" hint="Describes the photo for screen readers and Google.">
+          {(p) => <Input {...p} value={altKa} maxLength={300} onChange={(e) => setAltKa(e.target.value)} />}
+        </Field>
+        <Field label="Alt text · English">
+          {(p) => <Input {...p} value={altEn} maxLength={300} onChange={(e) => setAltEn(e.target.value)} />}
+        </Field>
+        <Field label="Alt text · Russian">
+          {(p) => <Input {...p} value={altRu} maxLength={300} onChange={(e) => setAltRu(e.target.value)} />}
         </Field>
         <Field label="Category">
-          {(a) => (
-            <Select {...a} value={category} onChange={(e) => setCategory(e.target.value as MediaCategory)}>
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {MEDIA_CATEGORY_LABEL[c]}
+          {(p) => (
+            <Select {...p} value={category} onChange={(e) => setCategory(e.target.value as MediaAsset["category"])}>
+              {Object.entries(MEDIA_CATEGORY_LABEL).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
                 </option>
               ))}
             </Select>
           )}
         </Field>
-        <div>
-          <p className="t-meta text-muted">Used by</p>
-          {usedBy.length ? (
-            <ul className="mt-1 space-y-0.5 text-[0.82rem]">
-              {usedBy.map((u) => (
-                <li key={u}>{u}</li>
-              ))}
-            </ul>
-          ) : (
-            <p className="mt-1 text-[0.82rem] text-muted">Not used anywhere yet.</p>
-          )}
-        </div>
-        <div className="flex flex-wrap gap-2 pt-1">
-          <Button
-            size="sm"
-            disabled={!dirty || !alt.trim()}
-            onClick={() => {
-              mediaDB.update(asset.id, { alt: alt.trim(), category }, `${asset.name} details updated`);
-              toast({ tone: "success", title: "Media updated", body: asset.name });
-            }}
-          >
-            Save
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" disabled={!dirty} loading={saving} onClick={() => void save()}>
+            Save details
           </Button>
           <Button size="sm" variant="ghost" onClick={onCopy}>
-            <Copy aria-hidden className="size-4" /> Copy path
-          </Button>
-          <Button size="sm" variant="ghost" className="ml-auto text-danger" onClick={onDelete}>
-            <Trash2 aria-hidden className="size-4" /> Delete
+            <Copy aria-hidden className="size-4" /> Copy address
           </Button>
         </div>
+
+        <div className="border-t border-line pt-4">
+          <p className="t-meta text-muted">Used in</p>
+          {usageError ? (
+            <p className="mt-1 text-[0.85rem] text-muted">Couldn&apos;t check where this image is used.</p>
+          ) : usedBy === null ? (
+            <p className="mt-1 text-[0.85rem] text-muted">Checking…</p>
+          ) : usedBy.length === 0 ? (
+            <p className="mt-1 text-[0.85rem] text-muted">Not used anywhere.</p>
+          ) : (
+            <ul className="mt-1 space-y-1 text-[0.85rem]">
+              {usedBy.map((u) => (
+                <li key={`${u.type}:${u.id}`}>
+                  <Link href={u.href} className="underline underline-offset-2 hover:text-accent">
+                    {u.label}
+                  </Link>{" "}
+                  <span className="text-muted">({u.type})</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <Button
+            size="sm"
+            variant="danger"
+            className="mt-3"
+            disabled={usedBy === null || usedBy.length > 0}
+            onClick={() => setConfirming(true)}
+          >
+            <Trash2 aria-hidden className="size-4" /> Delete image
+          </Button>
+          {usedBy && usedBy.length > 0 && <p className="mt-1.5 text-[0.78rem] text-muted">Remove it from the places above before deleting.</p>}
+        </div>
       </div>
+      <ConfirmDialog
+        open={confirming}
+        onClose={() => setConfirming(false)}
+        title={`Delete "${asset.filename}"?`}
+        description="The image file is removed for good. This can't be undone."
+        confirmLabel="Delete image"
+        loading={deleting}
+        onConfirm={() => void remove()}
+      />
     </div>
   );
 }

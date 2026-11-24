@@ -1,19 +1,23 @@
 "use client";
 
-import Link from "next/link";
+import Script from "next/script";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { CircleCheck, TriangleAlert } from "lucide-react";
 import { Trans } from "react-i18next";
 import { Button } from "@/components/ui/Button";
 import { Field, Input, Textarea } from "@/components/ui/Field";
 import { useToast } from "@/components/ui/Toast";
-import { useTranslation } from "@/i18n/client";
-import { recordInquiry } from "@/lib/store";
+import { TURNSTILE_SCRIPT_SRC, useTurnstile } from "@/hooks/useTurnstile";
+import { useLocale, useTranslation } from "@/i18n/client";
+import { track } from "@/lib/analytics";
+import { api, ApiError } from "@/lib/api";
 
 type Values = { name: string; email: string; phone: string; subject: string; message: string };
+type Key = keyof Values;
 /** Which fields are invalid. Messages are looked up in contact:validation.<field>. */
-type Errors = Partial<Record<keyof Values, true>>;
+type Errors = Partial<Record<Key, true>>;
 const EMPTY: Values = { name: "", email: "", phone: "", subject: "", message: "" };
+const KEYS: Key[] = ["name", "email", "phone", "subject", "message"];
 
 export function validateContact(v: Values): Errors {
   const e: Errors = {};
@@ -25,14 +29,22 @@ export function validateContact(v: Values): Errors {
   return e;
 }
 
+type Failure = "failed" | "rateLimited" | "spam" | "verify";
+
+/** Sends the message to the API (POST /api/public/inquiries, API_CONTRACTS §5). */
 export function ContactForm() {
   const { t } = useTranslation("contact");
+  const locale = useLocale();
   const toast = useToast();
   const [values, setValues] = useState<Values>(EMPTY);
-  const [touched, setTouched] = useState<Partial<Record<keyof Values, boolean>>>({});
-  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "failed">("idle");
-  const [simulateFailure, setSimulateFailure] = useState(false);
+  const [touched, setTouched] = useState<Partial<Record<Key, boolean>>>({});
+  /** Fields the server rejected; cleared when the visitor edits them. */
+  const [serverErrors, setServerErrors] = useState<Errors>({});
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | Failure>("idle");
+  const [website, setWebsite] = useState(""); // honeypot: people never see or fill it
   const form = useRef<HTMLFormElement>(null);
+
+  const { enabled: turnstileOn, token, widgetRef, reset: resetTurnstile, onScriptLoad } = useTurnstile(locale);
 
   // Prefill the subject when arriving from a project page (?subject=...).
   useEffect(() => {
@@ -41,39 +53,78 @@ export function ContactForm() {
     if (subject) setValues((v) => ({ ...v, subject: subject.slice(0, 120) }));
   }, []);
 
-  const errors = validateContact(values);
-  const show = (k: keyof Values) =>
-    touched[k] && errors[k] ? t(`validation.${k}`, { length: values.message.trim().length }) : undefined;
-  const bind = (k: keyof Values) => ({
+  const errors = { ...validateContact(values), ...serverErrors };
+  const show = (k: Key) => ((touched[k] || serverErrors[k]) && errors[k] ? t(`validation.${k}`, { length: values.message.trim().length }) : undefined);
+  const bind = (k: Key) => ({
     name: k,
     value: values[k],
-    onChange: (e: { target: { value: string } }) => setValues((v) => ({ ...v, [k]: e.target.value })),
-    onBlur: () => setTouched((t) => ({ ...t, [k]: true })),
+    onChange: (e: { target: { value: string } }) => {
+      setValues((v) => ({ ...v, [k]: e.target.value }));
+      if (serverErrors[k]) {
+        setServerErrors((prev) => {
+          const next = { ...prev };
+          delete next[k];
+          return next;
+        });
+      }
+    },
+    onBlur: () => setTouched((x) => ({ ...x, [k]: true })),
   });
+
+  const focusField = (k: Key) => form.current?.querySelector<HTMLElement>(`[name="${k}"]`)?.focus();
+
+  function fail(kind: Failure) {
+    setStatus(kind);
+    if (kind === "failed") toast({ tone: "error", title: t("toast.failedTitle"), body: t("toast.failedBody") });
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
+    if (status === "sending") return;
     setTouched({ name: true, email: true, phone: true, subject: true, message: true });
-    const first = (Object.keys(errors) as (keyof Values)[])[0];
+    const first = KEYS.find((k) => errors[k]);
     if (first) {
-      form.current?.querySelector<HTMLElement>(`[name="${first}"]`)?.focus();
+      focusField(first);
+      return;
+    }
+    if (turnstileOn && !token) {
+      setStatus("verify");
       return;
     }
     setStatus("sending");
-    await new Promise((r) => setTimeout(r, 1100)); // simulated network latency
-    if (simulateFailure) {
-      setStatus("failed");
-      toast({ tone: "error", title: t("toast.failedTitle"), body: t("toast.failedBody") });
-      return;
+    try {
+      await api<{ received: true }>("/api/public/inquiries", {
+        method: "POST",
+        body: {
+          name: values.name.trim(),
+          email: values.email.trim(),
+          phone: values.phone.trim() || undefined,
+          subject: values.subject.trim(),
+          message: values.message.trim(),
+          locale,
+          website,
+          ...(token ? { turnstileToken: token } : {}),
+        },
+      });
+    } catch (error) {
+      // A Turnstile token works once: get a fresh one for the next attempt.
+      resetTurnstile();
+      if (error instanceof ApiError && error.status === 400 && Object.keys(error.fieldErrors).length) {
+        const rejected: Errors = {};
+        for (const k of KEYS) if (error.fieldErrors[k]?.length) rejected[k] = true;
+        if (Object.keys(rejected).length) {
+          setServerErrors(rejected);
+          setStatus("idle");
+          focusField(KEYS.find((k) => rejected[k])!);
+          return;
+        }
+      }
+      if (error instanceof ApiError && error.status === 429) return fail("rateLimited");
+      if (error instanceof ApiError && error.status === 403) return fail("spam");
+      return fail("failed");
     }
-    recordInquiry({
-      name: values.name.trim(),
-      email: values.email.trim(),
-      phone: values.phone.trim(),
-      subject: values.subject.trim(),
-      message: values.message.trim(),
-    });
     setStatus("sent");
+    track("generate_lead");
     toast({ tone: "success", title: t("toast.savedTitle"), body: t("toast.savedBody") });
   }
 
@@ -81,7 +132,7 @@ export function ContactForm() {
     return (
       <div className="flex flex-col items-start rounded-[3px] border border-line bg-card p-8 sm:p-10" role="status">
         <CircleCheck aria-hidden className="size-9 text-ok" strokeWidth={1.4} />
-        <h2 className="t-h3 mt-6">{t("success.title", { name: values.name.split(" ")[0] })}</h2>
+        <h2 className="t-h3 mt-6">{t("success.title", { name: values.name.trim().split(" ")[0] })}</h2>
         <p className="mt-3 max-w-md leading-relaxed text-ink-soft">
           <Trans
             t={t}
@@ -90,20 +141,14 @@ export function ContactForm() {
             components={{ strong: <strong className="font-medium text-ink" /> }}
           />
         </p>
-        <p className="mt-4 max-w-md rounded-[3px] bg-paper-2 px-4 py-3 text-[0.85rem] text-muted">
-          {/* The admin demo is English-only, so this link is never localized. */}
-          <Trans
-            t={t}
-            i18nKey="success.note"
-            components={{ link: <Link href="/admin/inquiries" className="underline hover:text-ink" /> }}
-          />
-        </p>
+        <p className="mt-4 max-w-md text-[0.9rem] text-muted">{t("success.note")}</p>
         <Button
           variant="outline"
           className="mt-8"
           onClick={() => {
             setValues(EMPTY);
             setTouched({});
+            setServerErrors({});
             setStatus("idle");
           }}
         >
@@ -114,43 +159,51 @@ export function ContactForm() {
   }
 
   const sending = status === "sending";
+  const problem = status === "failed" || status === "rateLimited" || status === "spam" || status === "verify" ? status : null;
 
   return (
     <form ref={form} onSubmit={onSubmit} noValidate className="grid gap-5 sm:grid-cols-2" aria-describedby="form-note">
-      {status === "failed" && (
+      {turnstileOn && <Script src={TURNSTILE_SCRIPT_SRC} strategy="afterInteractive" onReady={onScriptLoad} />}
+      {problem && (
         <div role="alert" className="flex items-start gap-3 rounded-[3px] border border-danger/30 bg-danger-soft px-4 py-3 text-[0.9rem] text-danger sm:col-span-2">
           <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
-          {t("form.failed")}
+          {t(`form.${problem}`)}
         </div>
       )}
       <Field label={t("form.name")} required error={show("name")}>
-        {(a) => <Input {...a} {...bind("name")} autoComplete="name" disabled={sending} />}
+        {(a) => <Input {...a} {...bind("name")} autoComplete="name" disabled={sending} maxLength={100} />}
       </Field>
       <Field label={t("form.email")} required error={show("email")}>
-        {(a) => <Input {...a} {...bind("email")} type="email" autoComplete="email" inputMode="email" disabled={sending} />}
+        {(a) => <Input {...a} {...bind("email")} type="email" autoComplete="email" inputMode="email" disabled={sending} maxLength={254} />}
       </Field>
       <Field label={t("form.phone")} error={show("phone")} hint={t("form.optional")}>
-        {(a) => <Input {...a} {...bind("phone")} type="tel" autoComplete="tel" inputMode="tel" disabled={sending} />}
+        {(a) => <Input {...a} {...bind("phone")} type="tel" autoComplete="tel" inputMode="tel" disabled={sending} maxLength={40} />}
       </Field>
       <Field label={t("form.subject")} required error={show("subject")}>
         {(a) => <Input {...a} {...bind("subject")} disabled={sending} maxLength={120} />}
       </Field>
       <Field label={t("form.message")} required error={show("message")} className="sm:col-span-2">
-        {(a) => <Textarea {...a} {...bind("message")} rows={6} disabled={sending} placeholder={t("form.messagePlaceholder")} />}
+        {(a) => <Textarea {...a} {...bind("message")} rows={6} disabled={sending} maxLength={5000} placeholder={t("form.messagePlaceholder")} />}
       </Field>
+
+      {/* Honeypot: hidden from people and screen readers; bots that fill it are quietly ignored by the API. */}
+      <div aria-hidden className="absolute -left-[10000px] h-px w-px overflow-hidden">
+        <label>
+          {t("form.website")}
+          <input type="text" name="website" tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
+        </label>
+      </div>
+
+      {turnstileOn && <div ref={widgetRef} className="min-h-[65px] sm:col-span-2" />}
 
       <div className="flex flex-col gap-4 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
         <p id="form-note" className="max-w-sm text-[0.8rem] text-muted">
           {t("form.note")}
         </p>
-        <Button type="submit" size="lg" loading={sending} arrow>
-          {sending ? t("form.sending") : status === "failed" ? t("form.retry") : t("form.submit")}
+        <Button type="submit" size="lg" loading={sending}>
+          {sending ? t("form.sending") : problem && problem !== "verify" ? t("form.retry") : t("form.submit")}
         </Button>
       </div>
-      <label className="flex items-center gap-2 text-[0.8rem] text-muted sm:col-span-2">
-        <input type="checkbox" checked={simulateFailure} onChange={(e) => setSimulateFailure(e.target.checked)} className="size-4 accent-(--accent)" />
-        {t("form.simulateFailure")}
-      </label>
     </form>
   );
 }

@@ -3,22 +3,24 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
-import { Building2, ExternalLink, Pencil, Plus, Search, Star, Trash2 } from "lucide-react";
+import { Building2, Eye, EyeOff, ExternalLink, Pencil, Plus, Search, Star, Trash2 } from "lucide-react";
 import { EmptyState, FilterTabs, IconButton, PageHeader, Panel, SortHeader, rowClass, tableClass, theadClass, type SortDir } from "@/components/admin/ui";
 import { ButtonLink, Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/Dialog";
 import { Img } from "@/components/ui/Img";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useToast } from "@/components/ui/Toast";
-import { nowISO, projectsDB, useDB } from "@/lib/store";
+import { useApiData } from "@/hooks/useApiData";
+import { api, errorMessage, type AdminProject, type ProjectCategory, type ProjectPatch, type ProjectStatus } from "@/lib/api";
 import { CATEGORY_LABEL, STATUS_LABEL, cx, formatDate } from "@/lib/format";
-import type { Project, ProjectCategory, ProjectStatus } from "@/lib/types";
 
 type SortKey = "title" | "status" | "progress" | "updatedAt";
 const STATUSES = Object.keys(STATUS_LABEL) as ProjectStatus[];
 
 export function ProjectsAdmin() {
-  const projects = useDB((d) => d.projects);
+  const { data, error: loadError, reload, update } = useApiData<{ items: AdminProject[] }>("/api/admin/projects");
+  const projects = data?.items ?? null;
+  const setProjects = (fn: (items: AdminProject[]) => AdminProject[]) => update((d) => ({ items: fn(d.items) }));
   const params = useSearchParams();
   const router = useRouter();
   const toast = useToast();
@@ -27,23 +29,25 @@ export function ProjectsAdmin() {
   const [q, setQ] = useState("");
   const [category, setCategory] = useState<ProjectCategory | "all">("all");
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: "updatedAt", dir: "desc" });
-  const [toDelete, setToDelete] = useState<Project | null>(null);
+  const [toDelete, setToDelete] = useState<AdminProject | null>(null);
 
   const setStatus = (s: ProjectStatus | "all") => router.replace(s === "all" ? "/admin/projects" : `/admin/projects?status=${s}`, { scroll: false });
 
+  const list = useMemo(() => projects ?? [], [projects]);
+
   const rows = useMemo(() => {
     const s = q.trim().toLowerCase();
-    const list = projects.filter(
+    const filtered = list.filter(
       (p) =>
         (status === "all" || p.status === status) &&
         (category === "all" || p.category === category) &&
-        (!s || `${p.title} ${p.location} ${p.slug}`.toLowerCase().includes(s)),
+        (!s || `${p.titleKa} ${p.titleEn ?? ""} ${p.titleRu ?? ""} ${p.locationKa} ${p.locationEn ?? ""} ${p.locationRu ?? ""} ${p.slug}`.toLowerCase().includes(s)),
     );
     const order = { planning: 0, "in-progress": 1, "on-hold": 2, completed: 3 };
-    const cmp = (a: Project, b: Project) => {
+    const cmp = (a: AdminProject, b: AdminProject) => {
       switch (sort.key) {
         case "title":
-          return a.title.localeCompare(b.title);
+          return a.titleKa.localeCompare(b.titleKa);
         case "status":
           return order[a.status] - order[b.status];
         case "progress":
@@ -52,36 +56,48 @@ export function ProjectsAdmin() {
           return a.updatedAt.localeCompare(b.updatedAt);
       }
     };
-    return [...list].sort((a, b) => (sort.dir === "asc" ? cmp(a, b) : -cmp(a, b)));
-  }, [projects, q, status, category, sort]);
+    return [...filtered].sort((a, b) => (sort.dir === "asc" ? cmp(a, b) : -cmp(a, b)));
+  }, [list, q, status, category, sort]);
 
   const toggleSort = (key: SortKey) => setSort((s) => ({ key, dir: s.key === key && s.dir === "desc" ? "asc" : "desc" }));
 
-  const changeStatus = (p: Project, next: ProjectStatus) => {
-    projectsDB.update(
-      p.id,
-      { status: next, progress: next === "completed" ? 100 : p.progress, updatedAt: nowISO() },
-      `${p.title} marked ${STATUS_LABEL[next].toLowerCase()}`,
-    );
-    toast({ tone: "success", title: "Status updated", body: `${p.title}: ${STATUS_LABEL[next]}` });
-  };
+  async function save(p: AdminProject, patch: ProjectPatch, success: string) {
+    try {
+      const updated = await api<AdminProject>(`/api/admin/projects/${p.id}`, { method: "PATCH", body: patch });
+      setProjects((items) => items.map((x) => (x.id === p.id ? updated : x)));
+      toast({ tone: "success", title: success, body: p.titleKa });
+    } catch (error) {
+      toast({ tone: "error", title: "Could not save", body: errorMessage(error, p.titleKa) });
+    }
+  }
 
-  const toggleFeatured = (p: Project) => {
-    projectsDB.update(p.id, { featured: !p.featured, updatedAt: nowISO() }, `${p.title} ${p.featured ? "removed from" : "featured on"} the homepage`);
-    toast({ tone: "info", title: p.featured ? "Removed from homepage" : "Featured on homepage", body: p.title });
-  };
+  // Marking a project completed sets it to 100% and, if missing, today's completion date (server side).
+  const changeStatus = (p: AdminProject, next: ProjectStatus) => void save(p, { status: next }, `Status: ${STATUS_LABEL[next]}`);
+
+  const toggleFeatured = (p: AdminProject) => void save(p, { featured: !p.featured }, p.featured ? "Removed from homepage" : "Featured on homepage");
+  const togglePublished = (p: AdminProject) => void save(p, { isPublished: !p.isPublished }, p.isPublished ? "Unpublished" : "Published");
+
+  async function remove(p: AdminProject) {
+    try {
+      await api(`/api/admin/projects/${p.id}`, { method: "DELETE" });
+      setProjects((items) => items.filter((x) => x.id !== p.id));
+      toast({ tone: "success", title: "Project deleted", body: p.titleKa });
+    } catch (error) {
+      toast({ tone: "error", title: "Could not delete", body: error instanceof Error ? error.message : p.titleKa });
+    }
+  }
 
   const counts = useMemo(() => {
-    const c: Record<string, number> = { all: projects.length };
-    for (const p of projects) c[p.status] = (c[p.status] ?? 0) + 1;
+    const c: Record<string, number> = { all: list.length };
+    for (const p of list) c[p.status] = (c[p.status] ?? 0) + 1;
     return c;
-  }, [projects]);
+  }, [list]);
 
   return (
     <>
       <PageHeader
         title="Projects"
-        description="Everything here drives the public Projects pages and the homepage selection."
+        description="Published projects appear on the public Projects pages and the homepage selection."
         actions={
           <ButtonLink href="/admin/projects/new" size="sm">
             <Plus aria-hidden className="size-4" /> New project
@@ -128,13 +144,22 @@ export function ProjectsAdmin() {
           </div>
         </div>
 
-        {rows.length === 0 ? (
+        {loadError ? (
+          <div className="px-6 py-14 text-center">
+            <p className="text-[0.9rem] text-danger">{loadError.message}</p>
+            <Button variant="outline" size="sm" className="mt-4" onClick={reload}>
+              Try again
+            </Button>
+          </div>
+        ) : projects === null ? (
+          <div className="h-64 animate-pulse bg-paper-2/50" aria-busy="true" />
+        ) : rows.length === 0 ? (
           <EmptyState
             icon={Building2}
-            title={projects.length ? "No projects match" : "No projects yet"}
-            body={projects.length ? "Try another status, category or search term." : "Create your first project to publish it on the website."}
+            title={list.length ? "No projects match" : "No projects yet"}
+            body={list.length ? "Try another status, category or search term." : "Create your first project, then publish it to show it on the website."}
             action={
-              projects.length ? (
+              list.length ? (
                 <Button
                   variant="outline"
                   size="sm"
@@ -155,7 +180,6 @@ export function ProjectsAdmin() {
           />
         ) : (
           <>
-            {/* Desktop table */}
             <div className="hidden overflow-x-auto md:block">
               <table className={tableClass}>
                 <caption className="sr-only">Projects, sortable by column</caption>
@@ -177,13 +201,15 @@ export function ProjectsAdmin() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <div className="relative size-11 shrink-0 overflow-hidden rounded-[3px]">
-                            <Img src={p.cover} alt="" sizes="44px" />
+                            <Img src={p.cover.src} alt="" sizes="44px" />
                           </div>
                           <div className="min-w-0">
                             <Link href={`/admin/projects/${p.id}/edit`} className="block truncate font-medium hover:text-accent">
-                              {p.title}
+                              {p.titleKa}
                             </Link>
-                            <span className="block truncate text-[0.8rem] text-muted">{p.location}</span>
+                            <span className="block truncate text-[0.8rem] text-muted">
+                              {p.isPublished ? "Published" : "Draft"} · {p.locationKa}
+                            </span>
                           </div>
                         </div>
                       </td>
@@ -201,7 +227,7 @@ export function ProjectsAdmin() {
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-muted max-lg:hidden">{formatDate(p.updatedAt)}</td>
                       <td className="px-4 py-3">
-                        <RowActions project={p} onFeature={toggleFeatured} onDelete={setToDelete} />
+                        <RowActions project={p} onFeature={toggleFeatured} onPublish={togglePublished} onDelete={setToDelete} />
                       </td>
                     </tr>
                   ))}
@@ -209,20 +235,19 @@ export function ProjectsAdmin() {
               </table>
             </div>
 
-            {/* Mobile cards */}
             <ul className="divide-y divide-line md:hidden">
               {rows.map((p) => (
                 <li key={p.id} className="p-4">
                   <div className="flex gap-3">
                     <div className="relative size-16 shrink-0 overflow-hidden rounded-[3px]">
-                      <Img src={p.cover} alt="" sizes="64px" />
+                      <Img src={p.cover.src} alt="" sizes="64px" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <Link href={`/admin/projects/${p.id}/edit`} className="block truncate font-medium">
-                        {p.title}
+                        {p.titleKa}
                       </Link>
                       <p className="truncate text-[0.8rem] text-muted">
-                        {p.location} · {CATEGORY_LABEL[p.category]}
+                        {p.isPublished ? "Published" : "Draft"} · {CATEGORY_LABEL[p.category]}
                       </p>
                       <div className="mt-2">
                         <StatusSelect project={p} onChange={changeStatus} />
@@ -233,7 +258,7 @@ export function ProjectsAdmin() {
                     <span className="t-meta text-muted">
                       {p.progress}% · {formatDate(p.updatedAt)}
                     </span>
-                    <RowActions project={p} onFeature={toggleFeatured} onDelete={setToDelete} />
+                    <RowActions project={p} onFeature={toggleFeatured} onPublish={togglePublished} onDelete={setToDelete} />
                   </div>
                 </li>
               ))}
@@ -245,13 +270,11 @@ export function ProjectsAdmin() {
       <ConfirmDialog
         open={!!toDelete}
         onClose={() => setToDelete(null)}
-        title={`Delete "${toDelete?.title}"?`}
-        description="The project will be removed from the website and the admin. This cannot be undone (except by resetting demo data)."
+        title={`Delete "${toDelete?.titleKa}"?`}
+        description="The project will be removed from the website and the admin. This cannot be undone."
         confirmLabel="Delete project"
         onConfirm={() => {
-          if (!toDelete) return;
-          projectsDB.remove(toDelete.id, `${toDelete.title} deleted`);
-          toast({ tone: "success", title: "Project deleted", body: toDelete.title });
+          if (toDelete) void remove(toDelete);
           setToDelete(null);
         }}
       />
@@ -259,12 +282,12 @@ export function ProjectsAdmin() {
   );
 }
 
-function StatusSelect({ project, onChange }: { project: Project; onChange: (p: Project, s: ProjectStatus) => void }) {
+function StatusSelect({ project, onChange }: { project: AdminProject; onChange: (p: AdminProject, s: ProjectStatus) => void }) {
   return (
     <div className="relative inline-flex">
       <StatusBadge status={project.status} className="pointer-events-none pr-6" />
       <label className="sr-only" htmlFor={`st-${project.id}`}>
-        Change status for {project.title}
+        Change status for {project.titleKa}
       </label>
       <select
         id={`st-${project.id}`}
@@ -285,26 +308,54 @@ function StatusSelect({ project, onChange }: { project: Project; onChange: (p: P
   );
 }
 
-function RowActions({ project: p, onFeature, onDelete }: { project: Project; onFeature: (p: Project) => void; onDelete: (p: Project) => void }) {
+function RowActions({
+  project: p,
+  onFeature,
+  onPublish,
+  onDelete,
+}: {
+  project: AdminProject;
+  onFeature: (p: AdminProject) => void;
+  onPublish: (p: AdminProject) => void;
+  onDelete: (p: AdminProject) => void;
+}) {
   return (
     <div className="flex items-center justify-end gap-0.5">
       <button
         type="button"
+        onClick={() => onPublish(p)}
+        aria-pressed={p.isPublished}
+        aria-label={p.isPublished ? `Unpublish ${p.titleKa}` : `Publish ${p.titleKa}`}
+        title={p.isPublished ? "Published (click to hide)" : "Draft (click to publish)"}
+        className={cx("grid size-9 place-items-center rounded-[3px] hover:bg-paper-2", p.isPublished ? "text-ok" : "text-muted")}
+      >
+        {p.isPublished ? <Eye aria-hidden className="size-4" /> : <EyeOff aria-hidden className="size-4" />}
+      </button>
+      <button
+        type="button"
         onClick={() => onFeature(p)}
         aria-pressed={p.featured}
-        aria-label={p.featured ? `Unfeature ${p.title}` : `Feature ${p.title} on homepage`}
+        aria-label={p.featured ? `Unfeature ${p.titleKa}` : `Feature ${p.titleKa} on homepage`}
         title={p.featured ? "Featured on homepage" : "Feature on homepage"}
         className={cx("grid size-9 place-items-center rounded-[3px] hover:bg-paper-2", p.featured ? "text-accent" : "text-muted")}
       >
         <Star aria-hidden className={cx("size-4", p.featured && "fill-current")} />
       </button>
-      <Link href={`/projects/${p.slug}`} target="_blank" className="grid size-9 place-items-center rounded-[3px] text-muted hover:bg-paper-2 hover:text-ink" aria-label={`View ${p.title} on website (new tab)`} title="View on website">
-        <ExternalLink aria-hidden className="size-4" />
-      </Link>
-      <Link href={`/admin/projects/${p.id}/edit`} className="grid size-9 place-items-center rounded-[3px] text-muted hover:bg-paper-2 hover:text-ink" aria-label={`Edit ${p.title}`} title="Edit">
+      {p.isPublished && (
+        <Link
+          href={`/projects/${p.slug}`}
+          target="_blank"
+          className="grid size-9 place-items-center rounded-[3px] text-muted hover:bg-paper-2 hover:text-ink"
+          aria-label={`View ${p.titleKa} on website (new tab)`}
+          title="View on website"
+        >
+          <ExternalLink aria-hidden className="size-4" />
+        </Link>
+      )}
+      <Link href={`/admin/projects/${p.id}/edit`} className="grid size-9 place-items-center rounded-[3px] text-muted hover:bg-paper-2 hover:text-ink" aria-label={`Edit ${p.titleKa}`} title="Edit">
         <Pencil aria-hidden className="size-4" />
       </Link>
-      <IconButton label={`Delete ${p.title}`} icon={Trash2} tone="danger" onClick={() => onDelete(p)} />
+      <IconButton label={`Delete ${p.titleKa}`} icon={Trash2} tone="danger" onClick={() => onDelete(p)} />
     </div>
   );
 }

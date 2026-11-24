@@ -2,23 +2,28 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Maximize2, X } from "lucide-react";
+import { ContactLink } from "@/components/contact/ContactLink";
+import { useSiteSettings } from "@/components/layout/SiteSettings";
 import { buttonClass } from "@/components/ui/Button";
-import { useContent, useTranslation } from "@/i18n/client";
+import { useTranslation } from "@/i18n/client";
 import { mapsEmbedSrc, mapsHref } from "@/lib/contact";
-import { useDB } from "@/lib/store";
 
 /**
  * Embedded Google Map of the office with an "Enlarge" view. The inline map loads lazily, and the
- * large map only loads when the visitor opens it.
+ * large map only loads when the visitor opens it. Placed from the coordinates or address in
+ * Admin → Settings; with neither set, nothing renders.
  */
 export function OfficeMap() {
   const { t, i18n } = useTranslation("contact");
   const { t: tc } = useTranslation("common");
-  const s = useContent().settings(useDB((d) => d.settings));
+  const s = useSiteSettings();
   const [open, setOpen] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const opener = useRef<HTMLButtonElement>(null);
   const iframeTitle = t("map.iframeTitle", { company: s.companyName });
+  const embed = mapsEmbedSrc(s, i18n.language);
+  const largeEmbed = mapsEmbedSrc(s, i18n.language, 17);
+  const href = mapsHref(s);
 
   useEffect(() => {
     const d = dialog.current;
@@ -40,11 +45,13 @@ export function OfficeMap() {
     };
   }, []);
 
+  if (!embed) return null;
+
   return (
     <>
       <figure className="overflow-hidden rounded-[3px] border border-line bg-paper-2">
         <iframe
-          src={mapsEmbedSrc(i18n.language)}
+          src={embed}
           title={iframeTitle}
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"
@@ -83,12 +90,14 @@ export function OfficeMap() {
               <h2 className="text-[1rem] font-semibold">{t("map.title")}</h2>
               <p className="truncate text-[0.82rem] text-muted">{s.address}</p>
             </div>
-            <a href={mapsHref()} target="_blank" rel="noopener noreferrer" className={buttonClass("outline", "sm", "max-sm:px-3")}>
-              <span className="max-sm:hidden">{t("map.open")}</span>
-              <span className="sm:hidden">Google Maps</span>
-              <ArrowUpRight aria-hidden className="size-4" />
-              <span className="sr-only"> {tc("a11y.opensInNewTab")}</span>
-            </a>
+            {href && (
+              <ContactLink channel="map" href={href} className={buttonClass("outline", "sm", "max-sm:px-3")}>
+                <span className="max-sm:hidden">{t("map.open")}</span>
+                <span className="sm:hidden">Google Maps</span>
+                <ArrowUpRight aria-hidden className="size-4" />
+                <span className="sr-only"> {tc("a11y.opensInNewTab")}</span>
+              </ContactLink>
+            )}
             <button
               type="button"
               onClick={() => setOpen(false)}
@@ -99,9 +108,9 @@ export function OfficeMap() {
             </button>
           </header>
           {/* Mounted only while open, so the large map costs nothing until it is asked for. */}
-          {open && (
+          {open && largeEmbed && (
             <iframe
-              src={mapsEmbedSrc(i18n.language, 17)}
+              src={largeEmbed}
               title={iframeTitle}
               referrerPolicy="no-referrer-when-downgrade"
               allowFullScreen

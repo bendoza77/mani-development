@@ -19,7 +19,7 @@ type Props = {
 
 /**
  * Fills its (positioned) parent. Local assets go through next/image for responsive
- * AVIF/WebP variants; uploaded data URLs from the media library render as plain <img>.
+ * AVIF/WebP variants; uploaded media (absolute API/CDN addresses) render as a plain, lazy <img>.
  * The dominant tone is painted underneath so nothing pops while loading.
  */
 export function Img({ src, alt, sizes, className, imgClassName, preload, quality = 70, noTone }: Props) {
@@ -38,8 +38,15 @@ export function Img({ src, alt, sizes, className, imgClassName, preload, quality
           className={cx("object-cover", imgClassName)}
         />
       ) : (
-        // eslint-disable-next-line @next/next/no-img-element -- user-uploaded data URL, nothing to optimise
-        <img src={src} alt={alt} className={cx("absolute inset-0 size-full object-cover", imgClassName)} />
+        // eslint-disable-next-line @next/next/no-img-element -- uploaded media served by the API/CDN, already sized
+        <img
+          src={src}
+          alt={alt}
+          loading={preload ? "eager" : "lazy"}
+          fetchPriority={preload ? "high" : undefined}
+          decoding="async"
+          className={cx("absolute inset-0 size-full object-cover", imgClassName)}
+        />
       )}
     </div>
   );

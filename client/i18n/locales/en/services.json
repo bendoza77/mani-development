@@ -38,7 +38,7 @@
   "models": {
     "eyebrow": "Ways to work with us",
     "title": "Three engagement models, one standard of work",
-    "bestFor": "Best for · {{audience}}",
+    "bestFor": "Best for: {{audience}}",
     "items": [
       {
         "name": "Design & build",

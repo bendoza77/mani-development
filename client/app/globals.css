@@ -88,13 +88,29 @@
   --color-danger-soft: var(--danger-soft);
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
-  /* Georgian faces come first but only cover the Georgian block (unicode-range), so Latin text still
-     uses Newsreader / Geist and Georgian text never falls back to a system font. */
-  --font-display: var(--font-ka-serif), var(--font-newsreader), "Iowan Old Style", Georgia, serif;
-  --font-sans: var(--font-ka-sans), var(--font-geist), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-ka-sans), var(--font-geist-mono), ui-monospace, monospace;
+  /* The font stacks live in --stack-* (below) so a page language can swap them. */
+  --font-display: var(--stack-display);
+  --font-sans: var(--stack-sans);
+  --font-mono: var(--stack-mono);
   --ease-arch: cubic-bezier(0.22, 0.7, 0.12, 1);
   --shadow-card: var(--shadow);
+}
+
+/* Georgian faces come first so Georgian text never falls back to a system font. */
+:root {
+  --stack-display: var(--font-ka-serif), var(--font-newsreader), "Iowan Old Style", Georgia, serif;
+  --stack-sans: var(--font-ka-sans), var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --stack-mono: var(--font-ka-sans), var(--font-geist-mono), ui-monospace, monospace;
+}
+
+/* Russian pages lead with faces that have Cyrillic. The Georgian faces (and their full-range
+   "Fallback" faces that next/font adds) would otherwise catch Cyrillic first and draw it in a
+   system font. Newsreader has no Cyrillic, so headings use Source Serif 4; Geist covers it.
+   The Georgian faces still follow, for content that only exists in Georgian (the last fallback). */
+:root:lang(ru) {
+  --stack-display: var(--font-ru-serif), var(--font-newsreader), var(--font-ka-serif), "Iowan Old Style", Georgia, serif;
+  --stack-sans: var(--font-geist), var(--font-ka-sans), ui-sans-serif, system-ui, sans-serif;
+  --stack-mono: var(--font-geist-mono), var(--font-ka-sans), ui-monospace, monospace;
 }
 
 /* ───────────── Base ───────────── */
@@ -112,14 +128,16 @@ body {
   overflow-x: clip;
 }
 
-/* English running text gets more generous leading: the default body line height, and the
+/* English and Russian running text get more generous leading: the default body line height, and the
    `leading-snug` / `leading-relaxed` steps used for paragraphs, cards and lists. Georgian keeps
    its own values (set per element below). */
-:root:lang(en) {
+:root:lang(en),
+:root:lang(ru) {
   --leading-snug: 1.5;
   --leading-relaxed: 1.8;
 }
-body:lang(en) {
+body:lang(en),
+body:lang(ru) {
   line-height: 1.65;
 }
 
@@ -141,6 +159,11 @@ body:lang(ka) {
 
 img {
   max-width: 100%;
+}
+
+/* Running text never ends a paragraph on a single stranded word. */
+p {
+  text-wrap: pretty;
 }
 
 /* ───────────── Layout & type utilities ───────────── */
@@ -223,25 +246,28 @@ img {
   }
 }
 
+/* Section names and small labels: set in the running face, sentence case, so they read as words
+   rather than as tracked-out capitals. The heading beside them carries the voice. */
 @utility t-eyebrow {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
   font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  /* Uppercasing Georgian switches to Mtavruli capitals, which are wide and hard to scan at this size. */
+  line-height: 1.4;
+  letter-spacing: 0;
   &:lang(ka) {
-    letter-spacing: 0.04em;
-    text-transform: none;
+    font-size: 0.82rem;
   }
 }
 
+/* Figures and short facts (dates, counts, captions): the running face with lining, even-width numerals. */
 @utility t-meta {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.04em;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums lining-nums;
   &:lang(ka) {
-    letter-spacing: 0;
+    font-size: 0.78rem;
   }
 }
 

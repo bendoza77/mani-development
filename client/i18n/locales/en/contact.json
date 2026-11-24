@@ -30,12 +30,15 @@
     "message": "Message",
     "optional": "Optional",
     "messagePlaceholder": "Where is the site, what are you planning, and when would you like to start?",
-    "note": "Prototype form: submissions are simulated and stored only in this browser.",
+    "note": "We use your details only to answer your message. We usually reply within two working days.",
     "submit": "Send message",
     "sending": "Sending…",
     "retry": "Try again",
-    "failed": "We couldn’t send your message (simulated failure). Nothing was lost: try again, or switch off the failure toggle below.",
-    "simulateFailure": "Demo control: simulate a failed send"
+    "failed": "We couldn’t send your message. Nothing was lost: please try again in a moment, or email or call us.",
+    "rateLimited": "You’ve sent several messages in a short time. Please wait a few minutes and try again.",
+    "spam": "Our spam check didn’t go through. Please complete the check again and resend.",
+    "verify": "Please complete the short check above the button first.",
+    "website": "Leave this field empty"
   },
   "validation": {
     "name": "Please enter your name.",
@@ -46,14 +49,23 @@
   },
   "toast": {
     "failedTitle": "Message not sent",
-    "failedBody": "Simulated failure. Your text is still in the form.",
-    "savedTitle": "Message saved",
-    "savedBody": "Stored in this browser’s demo inbox."
+    "failedBody": "Your text is still in the form.",
+    "savedTitle": "Message sent",
+    "savedBody": "We’ve received it and will reply soon."
   },
   "success": {
     "title": "Thank you, {{name}}.",
     "body": "Your message about <strong>{{subject}}</strong> has been recorded.",
-    "note": "Prototype: nothing was emailed or sent to a server. The inquiry is saved in this browser and appears in the <link>admin demo inbox</link>.",
+    "note": "We’ll reply to the email address you gave us. If it’s urgent, please call us.",
     "again": "Send another message"
+  },
+  "channels": {
+    "label": "Ways to reach us",
+    "phone": "Call",
+    "whatsapp": "WhatsApp",
+    "messenger": "Messenger",
+    "map": "Google Maps",
+    "email": "Email",
+    "newTab": "(opens in a new tab)"
   }
 }

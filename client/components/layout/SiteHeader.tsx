@@ -4,32 +4,57 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Menu, Phone, X } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
+import { ContactLink } from "@/components/contact/ContactLink";
 import { ButtonLink } from "@/components/ui/Button";
 import { useTranslation } from "@/i18n/client";
 import { splitLocale } from "@/i18n/config";
 import { LanguageSwitcher } from "@/i18n/LanguageSwitcher";
 import { LocaleLink as Link } from "@/i18n/LocaleLink";
-import { formatPhone, telHref } from "@/lib/contact";
-import { useDB } from "@/lib/store";
+import { formatPhone } from "@/lib/contact";
 import { cx } from "@/lib/format";
+import { isExternal, useNavigation, type Menus, type NavLink } from "@/lib/navigation";
+import { contactHref } from "@/lib/public-types";
+import { useSiteSettings } from "./SiteSettings";
 
-/** Primary navigation (labels are keys in common:nav). Contact is the header's call-to-action button. */
-export const NAV = [
-  { href: "/services", key: "services" },
-  { href: "/projects", key: "projects" },
-  { href: "/about", key: "about" },
-] as const;
+/** A menu link: site paths keep the visitor's language; outside addresses open as plain links. */
+export function MenuLink({ link, className, onClick, current }: { link: NavLink; className?: string; onClick?: () => void; current?: boolean }) {
+  if (isExternal(link.href)) {
+    return (
+      <a href={link.href} className={className} onClick={onClick} {...(link.newTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
+        {link.label}
+      </a>
+    );
+  }
+  return (
+    <Link
+      href={link.href}
+      className={className}
+      onClick={onClick}
+      aria-current={current ? "page" : undefined}
+      {...(link.newTab ? { target: "_blank", rel: "noopener" } : {})}
+    >
+      {link.label}
+    </Link>
+  );
+}
 
-/** Every public destination, used by the mobile menu and the footer. */
-export const SITE_LINKS = [{ href: "/", key: "home" }, ...NAV, { href: "/contact", key: "contact" }] as const;
-
-export function SiteHeader() {
+export function SiteHeader({ menus }: { menus?: Menus | null }) {
   const { t } = useTranslation("common");
+  // The top menu is edited per page in the admin (Pages → Menu). Contact is the call-to-action button.
+  const { header } = useNavigation(menus);
+  // The mobile menu lists every destination: home, the top menu, and contact.
+  const mobileLinks: NavLink[] = [
+    { href: "/", label: t("nav.home"), newTab: false },
+    ...header.filter((l) => l.href !== "/" && l.href !== "/contact"),
+    { href: "/contact", label: t("nav.contact"), newTab: false },
+  ];
   const rawPathname = usePathname();
   const pathname = splitLocale(rawPathname).path;
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const settings = useDB((d) => d.settings);
+  const settings = useSiteSettings();
+  const mail = contactHref("email", settings);
+  const tel = contactHref("phone", settings);
   const dialog = useRef<HTMLDialogElement>(null);
 
   // The header stays fixed at the top. Once the page scrolls it gets a solid background so
@@ -80,6 +105,9 @@ export function SiteHeader() {
         className={cx(
           "site-header fixed inset-x-0 top-0 z-50 border-b",
           scrolled ? "border-line bg-paper/[0.97]" : "border-transparent bg-transparent",
+          // A page with its own colors (admin "Page colors") could hide the transparent header's
+          // links, so on such pages the header is solid from the start.
+          "[body:has(.page-has-colors)_&]:border-line [body:has(.page-has-colors)_&]:bg-paper/[0.97]",
         )}
       >
         <div className="shell flex h-(--header-h) items-center justify-between gap-3 sm:gap-6 lg:max-xl:gap-4">
@@ -87,38 +115,40 @@ export function SiteHeader() {
             <Logo />
           </Link>
 
-          <nav aria-label={t("a11y.primaryNav")} className="hidden lg:block">
+          {/* The full menu needs xl. Georgian menu labels run long, so in Georgian the full menu waits for 2xl; below that the menu button covers it. */}
+          <nav aria-label={t("a11y.primaryNav")} className="hidden xl:block xl:max-2xl:[:lang(ka)_&]:hidden">
             <ul className="flex items-center gap-1">
-              {NAV.map((item) => (
+              {header.map((item) => (
                 <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    aria-current={isActive(item.href) ? "page" : undefined}
+                  <MenuLink
+                    link={item}
+                    current={isActive(item.href)}
                     className={cx(
-                      "relative inline-flex h-10 items-center px-3.5 text-[0.9rem] transition-colors",
+                      "relative inline-flex h-10 items-center px-3.5 text-[0.9rem] whitespace-nowrap transition-colors",
                       "after:absolute after:inset-x-3.5 after:bottom-1.5 after:h-px after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-500 after:ease-(--ease-arch) hover:after:scale-x-100",
                       isActive(item.href) ? "text-ink after:scale-x-100" : "text-ink-soft hover:text-ink",
                     )}
-                  >
-                    {t(`nav.${item.key}`)}
-                  </Link>
+                  />
                 </li>
               ))}
             </ul>
           </nav>
 
           <div className="flex items-center gap-2">
-            <LanguageSwitcher className="max-lg:hidden" />
+            <LanguageSwitcher className="max-xl:hidden max-2xl:[:lang(ka)_&]:hidden" />
             {/* Icon-only below xl (44px tap target on phones); the full number shows on wide screens.
                 Under 360px the brand name needs the room, and the number stays in the menu. */}
-            <a
-              href={telHref(settings.phone)}
-              aria-label={t("header.call", { phone: formatPhone(settings.phone) })}
-              className="inline-flex size-11 items-center max-[359px]:hidden justify-center gap-2 rounded-[3px] text-[0.82rem] font-medium whitespace-nowrap text-ink transition-colors duration-300 hover:bg-paper-2 hover:text-accent sm:size-9 xl:w-auto xl:px-3"
-            >
-              <Phone aria-hidden strokeWidth={1.75} className="size-4.5" />
-              <span className="tabular-nums max-xl:hidden">{formatPhone(settings.phone)}</span>
-            </a>
+            {tel && (
+              <ContactLink
+                channel="phone"
+                href={tel}
+                aria-label={t("header.call", { phone: formatPhone(settings.phone) })}
+                className="inline-flex size-11 items-center max-[359px]:hidden justify-center gap-2 rounded-[3px] text-[0.82rem] font-medium whitespace-nowrap text-ink transition-colors duration-300 hover:bg-paper-2 hover:text-accent sm:size-9 xl:w-auto xl:px-3"
+              >
+                <Phone aria-hidden strokeWidth={1.75} className="size-4.5" />
+                <span className="tabular-nums max-xl:hidden">{formatPhone(settings.phone)}</span>
+              </ContactLink>
+            )}
             <ButtonLink
               href="/contact"
               size="sm"
@@ -131,7 +161,7 @@ export function SiteHeader() {
             </ButtonLink>
             <button
               type="button"
-              className="-mr-2 grid size-11 place-items-center rounded-[3px] lg:hidden"
+              className="-mr-2 grid size-11 place-items-center rounded-[3px] xl:hidden xl:max-2xl:[:lang(ka)_&]:grid"
               aria-label={t("a11y.openMenu")}
               aria-haspopup="dialog"
               aria-expanded={menuOpen}
@@ -169,31 +199,34 @@ export function SiteHeader() {
           </div>
           <nav aria-label={t("a11y.mobileNav")} className="shell flex flex-1 flex-col justify-center">
             <ul className="flex flex-col">
-              {SITE_LINKS.map((item, i) => (
+              {mobileLinks.map((item, i) => (
                 <li
                   key={item.href}
                   className="border-b border-white/10"
                   style={{ animation: menuOpen ? `rise-in .7s var(--ease-arch) ${80 + i * 55}ms both` : undefined }}
                 >
-                  <Link
-                    href={item.href}
+                  <MenuLink
+                    link={item}
                     onClick={() => setMenuOpen(false)}
-                    aria-current={isActive(item.href) ? "page" : undefined}
-                    className="flex items-baseline justify-between py-4 font-display text-[clamp(2rem,9vw,3rem)] leading-none tracking-tight [&:lang(ka)]:text-[clamp(1.6rem,7vw,2.3rem)] [&:lang(ka)]:leading-tight [&:lang(ka)]:tracking-normal aria-[current=page]:text-accent"
-                  >
-                    {t(`nav.${item.key}`)}
-                    <span className="font-mono text-xs text-night-muted">0{i + 1}</span>
-                  </Link>
+                    current={isActive(item.href)}
+                    className="block py-4 font-display text-[clamp(2rem,9vw,3rem)] leading-none tracking-tight [&:lang(ka)]:text-[clamp(1.6rem,7vw,2.3rem)] [&:lang(ka)]:leading-tight [&:lang(ka)]:tracking-normal aria-[current=page]:text-accent"
+                  />
                 </li>
               ))}
             </ul>
           </nav>
           <div className="shell grid shrink-0 gap-1 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] text-sm text-night-muted">
             <LanguageSwitcher variant="full" className="mb-5" />
-            <a href={`mailto:${settings.email}`} className="text-night-ink">
-              {settings.email}
-            </a>
-            <a href={`tel:${settings.phone.replace(/\s/g, "")}`}>{settings.phone}</a>
+            {mail && (
+              <ContactLink channel="email" href={mail} className="text-night-ink">
+                {settings.email}
+              </ContactLink>
+            )}
+            {tel && (
+              <ContactLink channel="phone" href={tel}>
+                {settings.phone}
+              </ContactLink>
+            )}
           </div>
         </div>
       </dialog>

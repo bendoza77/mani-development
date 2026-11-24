@@ -1,0 +1,22 @@
+# dependencies
+/node_modules
+
+# build output
+/dist
+
+# generated Prisma client (rebuilt by `npm run prisma:generate`)
+/src/generated
+
+# test output
+/coverage
+
+# env files: real values never go into Git (SECURITY_PLAN §11)
+.env*
+!.env.example
+
+# logs and OS files
+*.log
+.DS_Store
+
+# photos uploaded during local development (MEDIA_PROVIDER=local)
+/uploads

@@ -18,7 +18,16 @@ import kaHouse from "./locales/ka/house.json";
 import kaMeta from "./locales/ka/meta.json";
 import kaProjects from "./locales/ka/projects.json";
 import kaServices from "./locales/ka/services.json";
-import kaContent from "./content/ka.json";
+import ruAbout from "./locales/ru/about.json";
+import ruCommon from "./locales/ru/common.json";
+import ruCompany from "./locales/ru/company.json";
+import ruContact from "./locales/ru/contact.json";
+import ruErrors from "./locales/ru/errors.json";
+import ruHome from "./locales/ru/home.json";
+import ruHouse from "./locales/ru/house.json";
+import ruMeta from "./locales/ru/meta.json";
+import ruProjects from "./locales/ru/projects.json";
+import ruServices from "./locales/ru/services.json";
 import type { Locale } from "./config";
 
 /** English is the source language: its shape defines every key the UI may use. */
@@ -54,26 +63,19 @@ const ka: UIResources = {
   meta: kaMeta,
 };
 
-export const UI_RESOURCES: Record<Locale, UIResources> = { en, ka };
 
-/**
- * Translations of the seeded demo content (projects, services, testimonials, team, settings),
- * keyed by record id. English needs none: the seed itself is English.
- */
-export type ContentOverlay = {
-  settings?: Partial<Record<"tagline" | "address" | "hours", string>>;
-  projects?: Record<
-    string,
-    Partial<Record<"title" | "summary" | "description" | "location" | "city", string>> & {
-      specs?: { label: string; value: string }[];
-    }
-  >;
-  services?: Record<string, Partial<Record<"title" | "summary" | "description", string>> & { features?: string[] }>;
-  testimonials?: Record<string, Partial<Record<"quote" | "author" | "role", string>>>;
-  team?: Record<string, Partial<Record<"name" | "role" | "bio", string>>>;
+/** Typed against English too, so a key missing from a Russian file fails `tsc`. */
+const ru: UIResources = {
+  common: ruCommon,
+  company: ruCompany,
+  home: ruHome,
+  house: ruHouse,
+  projects: ruProjects,
+  services: ruServices,
+  about: ruAbout,
+  contact: ruContact,
+  errors: ruErrors,
+  meta: ruMeta,
 };
 
-export const CONTENT_OVERLAYS: Record<Locale, ContentOverlay> = {
-  en: {},
-  ka: kaContent satisfies ContentOverlay,
-};
+export const UI_RESOURCES: Record<Locale, UIResources> = { en, ka, ru };

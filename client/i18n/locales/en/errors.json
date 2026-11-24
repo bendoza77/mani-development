@@ -1,6 +1,6 @@
 {
   "notFound": {
-    "eyebrow": "Error 404 · Drawing not found",
+    "eyebrow": "Error 404: drawing not found",
     "title": "This opening has <em>no lintel.</em>",
     "body": "The page you’re looking for doesn’t exist or has moved. Let’s get you back onto solid ground.",
     "home": "Back to home",
@@ -9,8 +9,13 @@
   "error": {
     "eyebrow": "Something went wrong",
     "title": "We hit an unexpected problem loading this page.",
-    "body": "Try again. If you edited demo data in the admin panel, resetting it from Settings will restore the defaults.",
+    "body": "Please try again. If the problem continues, come back in a few minutes.",
     "retry": "Try again",
     "home": "Back to home"
+  },
+  "unavailable": {
+    "eyebrow": "Temporarily unavailable",
+    "title": "This content can’t be loaded right now.",
+    "body": "Our content server isn’t answering. Please try again in a few minutes."
   }
 }

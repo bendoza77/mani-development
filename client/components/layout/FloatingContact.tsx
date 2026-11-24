@@ -2,46 +2,46 @@
 
 import type { ReactNode } from "react";
 import { MessengerIcon, WhatsAppIcon } from "@/components/brand/ChannelIcons";
+import { ContactLink } from "@/components/contact/ContactLink";
 import { useTranslation } from "@/i18n/client";
-import { CONTACT, messengerHref, whatsappHref } from "@/lib/contact";
 import { cx } from "@/lib/format";
-import { useDB } from "@/lib/store";
+import { contactHref } from "@/lib/public-types";
+import { useSiteSettings } from "./SiteSettings";
 
 const circle =
   "peer grid size-13 place-items-center rounded-full shadow-card transition-[transform,filter] duration-300 ease-(--ease-arch) hover:-translate-y-0.5 hover:brightness-110 active:translate-y-0";
 
 /**
- * WhatsApp and Messenger buttons fixed to the bottom-right corner of every public page.
- * WhatsApp uses the company phone number from Settings (the same number as the header's call
- * button) unless lib/contact.ts sets a separate WhatsApp number.
+ * WhatsApp and Messenger buttons fixed to the bottom-right corner of every public page. Each one
+ * appears only when its number or username is filled in under Admin → Settings.
  */
 export function FloatingContact() {
   const { t } = useTranslation("common");
   const { t: tc } = useTranslation("contact");
-  const settings = useDB((d) => d.settings);
-  const whatsappNumber = CONTACT.whatsapp ?? settings.phone;
+  const settings = useSiteSettings();
+  const whatsapp = contactHref("whatsapp", settings);
 
   const channels = [
     {
-      key: "whatsapp",
+      key: "whatsapp" as const,
       name: "WhatsApp",
       label: t("chat.whatsapp"),
       icon: <WhatsAppIcon className="size-6" strokeWidth={1.75} />,
       // Darker WhatsApp green keeps the white icon at 4:1 contrast.
       color: "bg-[#128c7e] text-white",
-      href: whatsappNumber
-        ? whatsappHref(whatsappNumber, tc("actions.whatsappMessage", { company: settings.companyName }))
-        : null,
+      href: whatsapp && `${whatsapp}?text=${encodeURIComponent(tc("actions.whatsappMessage", { company: settings.companyName }))}`,
     },
     {
-      key: "messenger",
+      key: "messenger" as const,
       name: "Messenger",
       label: t("chat.messenger"),
       icon: <MessengerIcon className="size-6" strokeWidth={1.75} />,
       color: "bg-[#0866ff] text-white",
-      href: CONTACT.messengerPage ? messengerHref(CONTACT.messengerPage) : null,
+      href: contactHref("messenger", settings),
     },
   ];
+
+  if (!channels.some((c) => c.href) && process.env.NODE_ENV !== "development") return null;
 
   return (
     <aside
@@ -51,13 +51,13 @@ export function FloatingContact() {
       {channels.map((c) => (
         <Item key={c.key} tooltip={c.label}>
           {c.href ? (
-            <a href={c.href} target="_blank" rel="noopener noreferrer" aria-label={`${c.label} ${t("a11y.opensInNewTab")}`} className={cx(circle, c.color)}>
+            <ContactLink channel={c.key} href={c.href} aria-label={`${c.label} ${t("a11y.opensInNewTab")}`} className={cx(circle, c.color)}>
               {c.icon}
-            </a>
+            </ContactLink>
           ) : process.env.NODE_ENV === "development" ? (
-            // Dev-only placeholder for a channel with no destination yet (see lib/contact.ts).
+            // Dev-only placeholder for a channel with no destination yet.
             <span
-              title={`Not configured: set ${c.name} in lib/contact.ts (hidden in production builds).`}
+              title={`Not configured: set ${c.name} in Admin → Settings (hidden in production builds).`}
               className={cx(circle, "border-2 border-dashed border-line-strong bg-card text-muted")}
             >
               {c.icon}

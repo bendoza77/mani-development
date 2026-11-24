@@ -1,0 +1,24 @@
+name: mani-development
+# Local PostgreSQL 18 for development and integration tests.
+# Host port 5434 because 5433 is already used by a local PostgreSQL on the development machine.
+# The test database (mani_test) is created automatically by the test setup.
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: mani_dev
+    ports:
+      - "5434:5432"
+    volumes:
+      # PostgreSQL 18 images keep their data under /var/lib/postgresql
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:

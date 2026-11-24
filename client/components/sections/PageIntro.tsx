@@ -17,10 +17,7 @@ export function PageIntro({
       <div aria-hidden className="drafting-grid absolute inset-0 -z-10 opacity-50 [mask-image:linear-gradient(to_bottom,black,transparent)]" />
       <div className="shell grid gap-8 lg:grid-cols-12 lg:items-end">
         <div className="lg:col-span-8">
-          <p className="t-eyebrow rise-in flex items-center gap-3 text-muted">
-            <span className="h-px w-8 bg-current" />
-            {eyebrow}
-          </p>
+          <p className="t-eyebrow rise-in text-muted">{eyebrow}</p>
           <h1 className="t-h1 rise-in mt-6 max-w-[18ch]" style={{ "--d": "80ms" } as React.CSSProperties}>
             {title}
           </h1>

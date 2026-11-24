@@ -3,10 +3,18 @@ import { Plus } from "lucide-react";
 import { Trans } from "react-i18next/TransWithoutContext";
 import { PageIntro } from "@/components/sections/PageIntro";
 import { ServicesList } from "@/components/sections/ServicesList";
-import { getT, pageMetadata } from "@/i18n/server";
+import { getT } from "@/i18n/server";
+import { getPageSeo } from "@/lib/public-api";
+import { routeMetadata } from "@/lib/seo/route";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return pageMetadata("services", "/services");
+  const { t, locale } = await getT("meta");
+  return routeMetadata({
+    path: "/services",
+    title: t("services.title"),
+    description: t("services.description"),
+    seo: await getPageSeo("services", locale),
+  });
 }
 
 export default async function ServicesPage() {
@@ -19,7 +27,7 @@ export default async function ServicesPage() {
     <>
       <PageIntro
         eyebrow={t("page.eyebrow")}
-        title={<Trans t={t} i18n={i18n} i18nKey="page.title" components={{ em: <em className="text-accent" /> }} />}
+        title={<Trans t={t} i18n={i18n} i18nKey="page.title" components={{ em: <span /> }} />}
         lead={t("page.lead")}
       />
       <ServicesList />
@@ -49,10 +57,9 @@ export default async function ServicesPage() {
             {t("models.title")}
           </h2>
           <div className="mt-12 grid gap-px overflow-hidden rounded-[2px] border border-line bg-line lg:grid-cols-3">
-            {models.map((m, i) => (
+            {models.map((m) => (
               <div key={m.name} className="flex flex-col bg-paper p-7 sm:p-9">
-                <p className="t-meta text-accent">0{i + 1}</p>
-                <h3 className="t-h3 mt-4">{m.name}</h3>
+                <h3 className="t-h3">{m.name}</h3>
                 <p className="mt-3 leading-relaxed text-ink-soft">{m.body}</p>
                 <p className="t-meta mt-auto border-t border-line pt-4 text-muted">{t("models.bestFor", { audience: m.best })}</p>
               </div>

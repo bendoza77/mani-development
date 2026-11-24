@@ -1,0 +1,2590 @@
+{
+  "source": "client/data/seed.ts and client/i18n/content/ka.json at commit 5d41491 (placeholder demo content)",
+  "images": {
+    "angular-glass": {
+      "src": "/images/angular-glass.jpg",
+      "width": 2000,
+      "height": 1333,
+      "tone": "#c6cfd5"
+    },
+    "apartment-dark": {
+      "src": "/images/apartment-dark.jpg",
+      "width": 2000,
+      "height": 2667,
+      "tone": "#5c7188"
+    },
+    "apartments-balconies": {
+      "src": "/images/apartments-balconies.jpg",
+      "width": 2000,
+      "height": 1333,
+      "tone": "#707075"
+    },
+    "apartments-timber": {
+      "src": "/images/apartments-timber.jpg",
+      "width": 2000,
+      "height": 1480,
+      "tone": "#716961"
+    },
+    "commercial-campus": {
+      "src": "/images/commercial-campus.jpg",
+      "width": 2000,
+      "height": 1552,
+      "tone": "#9b9a9b"
+    },
+    "curved-facade": {
+      "src": "/images/curved-facade.jpg",
+      "width": 2000,
+      "height": 2552,
+      "tone": "#6288a5"
+    },
+    "drawings": {
+      "src": "/images/drawings.jpg",
+      "width": 2000,
+      "height": 1125,
+      "tone": "#65605c"
+    },
+    "earthworks": {
+      "src": "/images/earthworks.jpg",
+      "width": 2000,
+      "height": 1499,
+      "tone": "#aa957a"
+    },
+    "facade-abstract": {
+      "src": "/images/facade-abstract.jpg",
+      "width": 2000,
+      "height": 1333,
+      "tone": "#434950"
+    },
+    "facade-brick-angle": {
+      "src": "/images/facade-brick-angle.jpg",
+      "width": 2000,
+      "height": 1339,
+      "tone": "#465879"
+    },
+    "house-dusk": {
+      "src": "/images/house-dusk.jpg",
+      "width": 2000,
+      "height": 1333,
+      "tone": "#565a5a"
+    },
+    "house-timber-black": {
+      "src": "/images/house-timber-black.jpg",
+      "width": 2000,
+      "height": 1677,
+      "tone": "#798186"
+    },
+    "house-timber-hill": {
+      "src": "/images/house-timber-hill.jpg",
+      "width": 2000,
+      "height": 1333,
+      "tone": "#7e807b"
+    },
+    "house-white-garden": {
+      "src": "/images/house-white-garden.jpg",
+      "width": 2000,
+      "height": 2000,
+      "tone": "#94a09b"
+    },
+    "interior-concrete": {
+      "src": "/images/interior-concrete.jpg",
+      "width": 2000,
+      "height": 1335,
+      "tone": "#686867"
+    },
+    "interior-living": {
+      "src": "/images/interior-living.jpg",
+      "width": 2000,
+      "height": 1360,
+      "tone": "#9a958e"
+    },
+    "office-interior": {
+      "src": "/images/office-interior.jpg",
+      "width": 2000,
+      "height": 1334,
+      "tone": "#696c6b"
+    },
+    "pavilion-pool": {
+      "src": "/images/pavilion-pool.jpg",
+      "width": 2000,
+      "height": 1333,
+      "tone": "#acb1a2"
+    },
+    "site-cranes": {
+      "src": "/images/site-cranes.jpg",
+      "width": 2000,
+      "height": 1333,
+      "tone": "#b0bbbc"
+    },
+    "site-rebar": {
+      "src": "/images/site-rebar.jpg",
+      "width": 2000,
+      "height": 1325,
+      "tone": "#718184"
+    },
+    "site-team": {
+      "src": "/images/site-team.jpg",
+      "width": 2000,
+      "height": 1333,
+      "tone": "#908f8c"
+    },
+    "terraces-green": {
+      "src": "/images/terraces-green.jpg",
+      "width": 2000,
+      "height": 1333,
+      "tone": "#778b68"
+    },
+    "towers-cloud": {
+      "src": "/images/towers-cloud.jpg",
+      "width": 2000,
+      "height": 1333,
+      "tone": "#63686d"
+    },
+    "towers-glass-up": {
+      "src": "/images/towers-glass-up.jpg",
+      "width": 2000,
+      "height": 1333,
+      "tone": "#666f78"
+    },
+    "villa-cantilever": {
+      "src": "/images/villa-cantilever.jpg",
+      "width": 2000,
+      "height": 1333,
+      "tone": "#798788"
+    },
+    "villa-modern-white": {
+      "src": "/images/villa-modern-white.jpg",
+      "width": 2000,
+      "height": 1334,
+      "tone": "#a7bcb7"
+    },
+    "villa-pool-terrace": {
+      "src": "/images/villa-pool-terrace.jpg",
+      "width": 2000,
+      "height": 1500,
+      "tone": "#8f9c9f"
+    },
+    "villa-white-palm": {
+      "src": "/images/villa-white-palm.jpg",
+      "width": 2000,
+      "height": 1333,
+      "tone": "#778984"
+    },
+    "villa-white-pool": {
+      "src": "/images/villa-white-pool.jpg",
+      "width": 2000,
+      "height": 1327,
+      "tone": "#8aa3b3"
+    },
+    "white-stacked-tower": {
+      "src": "/images/white-stacked-tower.jpg",
+      "width": 2000,
+      "height": 2831,
+      "tone": "#c1ccd2"
+    },
+    "team-t1": {
+      "src": "/images/team/t1.jpg",
+      "width": 640,
+      "height": 800,
+      "tone": "#99968f"
+    },
+    "team-t2": {
+      "src": "/images/team/t2.jpg",
+      "width": 640,
+      "height": 800,
+      "tone": "#847e7b"
+    },
+    "team-t3": {
+      "src": "/images/team/t3.jpg",
+      "width": 640,
+      "height": 800,
+      "tone": "#6d7076"
+    },
+    "team-t4": {
+      "src": "/images/team/t4.jpg",
+      "width": 640,
+      "height": 800,
+      "tone": "#56483d"
+    },
+    "team-t5": {
+      "src": "/images/team/t5.jpg",
+      "width": 640,
+      "height": 800,
+      "tone": "#959492"
+    },
+    "team-t6": {
+      "src": "/images/team/t6.jpg",
+      "width": 640,
+      "height": 800,
+      "tone": "#9a7657"
+    },
+    "team-t7": {
+      "src": "/images/team/t7.jpg",
+      "width": 640,
+      "height": 800,
+      "tone": "#605a4e"
+    },
+    "team-t8": {
+      "src": "/images/team/t8.jpg",
+      "width": 640,
+      "height": 800,
+      "tone": "#30271f"
+    }
+  },
+  "media": [
+    {
+      "id": "a-angular-glass",
+      "name": "angular-glass.jpg",
+      "src": "/images/angular-glass.jpg",
+      "alt": "Angular glass",
+      "category": "exterior",
+      "width": 2000,
+      "height": 1333,
+      "size": 180000,
+      "createdAt": "2026-01-10T09:00:00Z"
+    },
+    {
+      "id": "a-apartment-dark",
+      "name": "apartment-dark.jpg",
+      "src": "/images/apartment-dark.jpg",
+      "alt": "Apartment dark",
+      "category": "exterior",
+      "width": 2000,
+      "height": 2667,
+      "size": 253919,
+      "createdAt": "2026-02-11T09:00:00Z"
+    },
+    {
+      "id": "a-apartments-balconies",
+      "name": "apartments-balconies.jpg",
+      "src": "/images/apartments-balconies.jpg",
+      "alt": "Apartments balconies",
+      "category": "exterior",
+      "width": 2000,
+      "height": 1333,
+      "size": 327838,
+      "createdAt": "2026-03-12T09:00:00Z"
+    },
+    {
+      "id": "a-apartments-timber",
+      "name": "apartments-timber.jpg",
+      "src": "/images/apartments-timber.jpg",
+      "alt": "Apartments timber",
+      "category": "exterior",
+      "width": 2000,
+      "height": 1480,
+      "size": 401757,
+      "createdAt": "2026-04-13T09:00:00Z"
+    },
+    {
+      "id": "a-commercial-campus",
+      "name": "commercial-campus.jpg",
+      "src": "/images/commercial-campus.jpg",
+      "alt": "Commercial campus",
+      "category": "exterior",
+      "width": 2000,
+      "height": 1552,
+      "size": 475676,
+      "createdAt": "2026-05-14T09:00:00Z"
+    },
+    {
+      "id": "a-curved-facade",
+      "name": "curved-facade.jpg",
+      "src": "/images/curved-facade.jpg",
+      "alt": "Curved facade",
+      "category": "exterior",
+      "width": 2000,
+      "height": 2552,
+      "size": 549595,
+      "createdAt": "2026-06-15T09:00:00Z"
+    },
+    {
+      "id": "a-drawings",
+      "name": "drawings.jpg",
+      "src": "/images/drawings.jpg",
+      "alt": "Drawings",
+      "category": "construction",
+      "width": 2000,
+      "height": 1125,
+      "size": 623514,
+      "createdAt": "2026-07-16T09:00:00Z"
+    },
+    {
+      "id": "a-earthworks",
+      "name": "earthworks.jpg",
+      "src": "/images/earthworks.jpg",
+      "alt": "Earthworks",
+      "category": "construction",
+      "width": 2000,
+      "height": 1499,
+      "size": 697433,
+      "createdAt": "2026-08-17T09:00:00Z"
+    },
+    {
+      "id": "a-facade-abstract",
+      "name": "facade-abstract.jpg",
+      "src": "/images/facade-abstract.jpg",
+      "alt": "Facade abstract",
+      "category": "exterior",
+      "width": 2000,
+      "height": 1333,
+      "size": 771352,
+      "createdAt": "2026-09-18T09:00:00Z"
+    },
+    {
+      "id": "a-facade-brick-angle",
+      "name": "facade-brick-angle.jpg",
+      "src": "/images/facade-brick-angle.jpg",
+      "alt": "Facade brick angle",
+      "category": "exterior",
+      "width": 2000,
+      "height": 1339,
+      "size": 225271,
+      "createdAt": "2026-01-10T09:00:00Z"
+    },
+    {
+      "id": "a-house-dusk",
+      "name": "house-dusk.jpg",
+      "src": "/images/house-dusk.jpg",
+      "alt": "House dusk",
+      "category": "exterior",
+      "width": 2000,
+      "height": 1333,
+      "size": 299190,
+      "createdAt": "2026-02-11T09:00:00Z"
+    },
+    {
+      "id": "a-house-timber-black",
+      "name": "house-timber-black.jpg",
+      "src": "/images/house-timber-black.jpg",
+      "alt": "House timber black",
+      "category": "exterior",
+      "width": 2000,
+      "height": 1677,
+      "size": 373109,
+      "createdAt": "2026-03-12T09:00:00Z"
+    },
+    {
+      "id": "a-house-timber-hill",
+      "name": "house-timber-hill.jpg",
+      "src": "/images/house-timber-hill.jpg",
+      "alt": "House timber hill",
+      "category": "exterior",
+      "width": 2000,
+      "height": 1333,
+      "size": 447028,
+      "createdAt": "2026-04-13T09:00:00Z"
+    },
+    {
+      "id": "a-house-white-garden",
+      "name": "house-white-garden.jpg",
+      "src": "/images/house-white-garden.jpg",
+      "alt": "House white garden",
+      "category": "exterior",
+      "width": 2000,
+      "height": 2000,
+      "size": 520947,
+      "createdAt": "2026-05-14T09:00:00Z"
+    },
+    {
+      "id": "a-interior-concrete",
+      "name": "interior-concrete.jpg",
+      "src": "/images/interior-concrete.jpg",
+      "alt": "Interior concrete",
+      "category": "interior",
+      "width": 2000,
+      "height": 1335,
+      "size": 594866,
+      "createdAt": "2026-06-15T09:00:00Z"
+    },
+    {
+      "id": "a-interior-living",
+      "name": "interior-living.jpg",
+      "src": "/images/interior-living.jpg",
+      "alt": "Interior living",
+      "category": "interior",
+      "width": 2000,
+      "height": 1360,
+      "size": 668785,
+      "createdAt": "2026-07-16T09:00:00Z"
+    },
+    {
+      "id": "a-office-interior",
+      "name": "office-interior.jpg",
+      "src": "/images/office-interior.jpg",
+      "alt": "Office interior",
+      "category": "interior",
+      "width": 2000,
+      "height": 1334,
+      "size": 742704,
+      "createdAt": "2026-08-17T09:00:00Z"
+    },
+    {
+      "id": "a-pavilion-pool",
+      "name": "pavilion-pool.jpg",
+      "src": "/images/pavilion-pool.jpg",
+      "alt": "Pavilion pool",
+      "category": "exterior",
+      "width": 2000,
+      "height": 1333,
+      "size": 196623,
+      "createdAt": "2026-09-18T09:00:00Z"
+    },
+    {
+      "id": "a-site-cranes",
+      "name": "site-cranes.jpg",
+      "src": "/images/site-cranes.jpg",
+      "alt": "Site cranes",
+      "category": "construction",
+      "width": 2000,
+      "height": 1333,
+      "size": 270542,
+      "createdAt": "2026-01-10T09:00:00Z"
+    },
+    {
+      "id": "a-site-rebar",
+      "name": "site-rebar.jpg",
+      "src": "/images/site-rebar.jpg",
+      "alt": "Site rebar",
+      "category": "construction",
+      "width": 2000,
+      "height": 1325,
+      "size": 344461,
+      "createdAt": "2026-02-11T09:00:00Z"
+    },
+    {
+      "id": "a-site-team",
+      "name": "site-team.jpg",
+      "src": "/images/site-team.jpg",
+      "alt": "Site team",
+      "category": "construction",
+      "width": 2000,
+      "height": 1333,
+      "size": 418380,
+      "createdAt": "2026-03-12T09:00:00Z"
+    },
+    {
+      "id": "a-terraces-green",
+      "name": "terraces-green.jpg",
+      "src": "/images/terraces-green.jpg",
+      "alt": "Terraces green",
+      "category": "exterior",
+      "width": 2000,
+      "height": 1333,
+      "size": 492299,
+      "createdAt": "2026-04-13T09:00:00Z"
+    },
+    {
+      "id": "a-towers-cloud",
+      "name": "towers-cloud.jpg",
+      "src": "/images/towers-cloud.jpg",
+      "alt": "Towers cloud",
+      "category": "exterior",
+      "width": 2000,
+      "height": 1333,
+      "size": 566218,
+      "createdAt": "2026-05-14T09:00:00Z"
+    },
+    {
+      "id": "a-towers-glass-up",
+      "name": "towers-glass-up.jpg",
+      "src": "/images/towers-glass-up.jpg",
+      "alt": "Towers glass up",
+      "category": "exterior",
+      "width": 2000,
+      "height": 1333,
+      "size": 640137,
+      "createdAt": "2026-06-15T09:00:00Z"
+    },
+    {
+      "id": "a-villa-cantilever",
+      "name": "villa-cantilever.jpg",
+      "src": "/images/villa-cantilever.jpg",
+      "alt": "Villa cantilever",
+      "category": "exterior",
+      "width": 2000,
+      "height": 1333,
+      "size": 714056,
+      "createdAt": "2026-07-16T09:00:00Z"
+    },
+    {
+      "id": "a-villa-modern-white",
+      "name": "villa-modern-white.jpg",
+      "src": "/images/villa-modern-white.jpg",
+      "alt": "Villa modern white",
+      "category": "exterior",
+      "width": 2000,
+      "height": 1334,
+      "size": 787975,
+      "createdAt": "2026-08-17T09:00:00Z"
+    },
+    {
+      "id": "a-villa-pool-terrace",
+      "name": "villa-pool-terrace.jpg",
+      "src": "/images/villa-pool-terrace.jpg",
+      "alt": "Villa pool terrace",
+      "category": "exterior",
+      "width": 2000,
+      "height": 1500,
+      "size": 241894,
+      "createdAt": "2026-09-18T09:00:00Z"
+    },
+    {
+      "id": "a-villa-white-palm",
+      "name": "villa-white-palm.jpg",
+      "src": "/images/villa-white-palm.jpg",
+      "alt": "Villa white palm",
+      "category": "exterior",
+      "width": 2000,
+      "height": 1333,
+      "size": 315813,
+      "createdAt": "2026-01-10T09:00:00Z"
+    },
+    {
+      "id": "a-villa-white-pool",
+      "name": "villa-white-pool.jpg",
+      "src": "/images/villa-white-pool.jpg",
+      "alt": "Villa white pool",
+      "category": "exterior",
+      "width": 2000,
+      "height": 1327,
+      "size": 389732,
+      "createdAt": "2026-02-11T09:00:00Z"
+    },
+    {
+      "id": "a-white-stacked-tower",
+      "name": "white-stacked-tower.jpg",
+      "src": "/images/white-stacked-tower.jpg",
+      "alt": "White stacked tower",
+      "category": "exterior",
+      "width": 2000,
+      "height": 2831,
+      "size": 463651,
+      "createdAt": "2026-03-12T09:00:00Z"
+    },
+    {
+      "id": "a-team-t1",
+      "name": "t1.jpg",
+      "src": "/images/team/t1.jpg",
+      "alt": "Portrait t1",
+      "category": "team",
+      "width": 640,
+      "height": 800,
+      "size": 537570,
+      "createdAt": "2026-04-13T09:00:00Z"
+    },
+    {
+      "id": "a-team-t2",
+      "name": "t2.jpg",
+      "src": "/images/team/t2.jpg",
+      "alt": "Portrait t2",
+      "category": "team",
+      "width": 640,
+      "height": 800,
+      "size": 611489,
+      "createdAt": "2026-05-14T09:00:00Z"
+    },
+    {
+      "id": "a-team-t3",
+      "name": "t3.jpg",
+      "src": "/images/team/t3.jpg",
+      "alt": "Portrait t3",
+      "category": "team",
+      "width": 640,
+      "height": 800,
+      "size": 685408,
+      "createdAt": "2026-06-15T09:00:00Z"
+    },
+    {
+      "id": "a-team-t4",
+      "name": "t4.jpg",
+      "src": "/images/team/t4.jpg",
+      "alt": "Portrait t4",
+      "category": "team",
+      "width": 640,
+      "height": 800,
+      "size": 759327,
+      "createdAt": "2026-07-16T09:00:00Z"
+    },
+    {
+      "id": "a-team-t5",
+      "name": "t5.jpg",
+      "src": "/images/team/t5.jpg",
+      "alt": "Portrait t5",
+      "category": "team",
+      "width": 640,
+      "height": 800,
+      "size": 213246,
+      "createdAt": "2026-08-17T09:00:00Z"
+    },
+    {
+      "id": "a-team-t6",
+      "name": "t6.jpg",
+      "src": "/images/team/t6.jpg",
+      "alt": "Portrait t6",
+      "category": "team",
+      "width": 640,
+      "height": 800,
+      "size": 287165,
+      "createdAt": "2026-09-18T09:00:00Z"
+    },
+    {
+      "id": "a-team-t7",
+      "name": "t7.jpg",
+      "src": "/images/team/t7.jpg",
+      "alt": "Portrait t7",
+      "category": "team",
+      "width": 640,
+      "height": 800,
+      "size": 361084,
+      "createdAt": "2026-01-10T09:00:00Z"
+    },
+    {
+      "id": "a-team-t8",
+      "name": "t8.jpg",
+      "src": "/images/team/t8.jpg",
+      "alt": "Portrait t8",
+      "category": "team",
+      "width": 640,
+      "height": 800,
+      "size": 435003,
+      "createdAt": "2026-02-11T09:00:00Z"
+    }
+  ],
+  "projects": [
+    {
+      "id": "p-vake-terraces",
+      "slug": "vake-terraces",
+      "title": "Vake Terraces",
+      "summary": "Forty-two stepped residences on a planted hillside, each with its own garden terrace.",
+      "description": "Vake Terraces follows the slope of the hill instead of fighting it. Six stepped levels of residences sit on a single post-tensioned concrete frame, so every home opens onto a deep planted terrace and nobody looks into a neighbour's living room.\n\nThe structure was designed around the planting: soil depths, irrigation and drainage were fixed in the structural model before a single wall was drawn. The result is a building that will look better in ten years than on the day it is handed over.",
+      "location": "Vake, Tbilisi",
+      "city": "Tbilisi",
+      "category": "apartments",
+      "status": "in-progress",
+      "progress": 68,
+      "startDate": "2025-03-01",
+      "estimatedCompletion": "2027-06-30",
+      "featured": false,
+      "cover": "/images/terraces-green.jpg",
+      "gallery": [
+        "/images/terraces-green.jpg",
+        "/images/site-rebar.jpg",
+        "/images/interior-living.jpg",
+        "/images/apartments-balconies.jpg"
+      ],
+      "specs": [
+        {
+          "id": "p1-s0",
+          "label": "Built area",
+          "value": "14,800 m²"
+        },
+        {
+          "id": "p1-s1",
+          "label": "Storeys",
+          "value": "6 stepped levels"
+        },
+        {
+          "id": "p1-s2",
+          "label": "Residences",
+          "value": "42"
+        },
+        {
+          "id": "p1-s3",
+          "label": "Structure",
+          "value": "Post-tensioned concrete frame"
+        },
+        {
+          "id": "p1-s4",
+          "label": "Energy",
+          "value": "Ground-source heat pumps"
+        }
+      ],
+      "architect": "Studio Orbeli",
+      "updatedAt": "2026-11-12T09:30:00Z"
+    },
+    {
+      "id": "p-mtatsminda-house",
+      "slug": "mtatsminda-house",
+      "title": "Mtatsminda House",
+      "summary": "A cantilevered family house that frames the old city from a single ribbon window.",
+      "description": "A private residence on a steep plot below Mtatsminda. The upper floor cantilevers seven metres over the garden on two concealed steel transfer beams, leaving the ground floor almost entirely glazed.\n\nWe built the house in a tight footprint with crane access from one side only, sequencing the steelwork so that the cantilever was never propped from the neighbour's land.",
+      "location": "Mtatsminda, Tbilisi",
+      "city": "Tbilisi",
+      "category": "residential",
+      "status": "completed",
+      "progress": 100,
+      "startDate": "2022-09-01",
+      "estimatedCompletion": "2024-05-01",
+      "completionDate": "2024-04-18",
+      "featured": true,
+      "cover": "/images/villa-cantilever.jpg",
+      "gallery": [
+        "/images/villa-cantilever.jpg",
+        "/images/interior-living.jpg",
+        "/images/villa-modern-white.jpg",
+        "/images/drawings.jpg"
+      ],
+      "specs": [
+        {
+          "id": "p2-s0",
+          "label": "Built area",
+          "value": "640 m²"
+        },
+        {
+          "id": "p2-s1",
+          "label": "Storeys",
+          "value": "3"
+        },
+        {
+          "id": "p2-s2",
+          "label": "Cantilever",
+          "value": "7.2 m"
+        },
+        {
+          "id": "p2-s3",
+          "label": "Structure",
+          "value": "Concrete core, steel transfer beams"
+        },
+        {
+          "id": "p2-s4",
+          "label": "Glazing",
+          "value": "Triple-glazed, low-iron"
+        }
+      ],
+      "architect": "Nadia Kapanadze Architects",
+      "updatedAt": "2026-10-02T14:10:00Z"
+    },
+    {
+      "id": "p-batumi-shoreline",
+      "slug": "batumi-shoreline-residences",
+      "title": "Shoreline Residences",
+      "summary": "A twenty-two storey tower of stacked white volumes facing the Black Sea.",
+      "description": "Each apartment in Shoreline Residences is expressed as its own white volume, shifted slightly from the one below to create deep shaded loggias on the sea side.\n\nThe tower rises on a slipform core at roughly one floor every eight days. Facade modules are prefabricated off site and lifted into place, which keeps the coastal boulevard free of scaffolding through the summer season.",
+      "location": "New Boulevard, Batumi",
+      "city": "Batumi",
+      "category": "apartments",
+      "status": "in-progress",
+      "progress": 41,
+      "startDate": "2025-10-01",
+      "estimatedCompletion": "2028-03-31",
+      "featured": false,
+      "cover": "/images/white-stacked-tower.jpg",
+      "gallery": [
+        "/images/white-stacked-tower.jpg",
+        "/images/site-cranes.jpg",
+        "/images/facade-abstract.jpg",
+        "/images/villa-white-pool.jpg"
+      ],
+      "specs": [
+        {
+          "id": "p3-s0",
+          "label": "Built area",
+          "value": "31,200 m²"
+        },
+        {
+          "id": "p3-s1",
+          "label": "Storeys",
+          "value": "22"
+        },
+        {
+          "id": "p3-s2",
+          "label": "Residences",
+          "value": "164"
+        },
+        {
+          "id": "p3-s3",
+          "label": "Structure",
+          "value": "Slipform core, flat slabs"
+        },
+        {
+          "id": "p3-s4",
+          "label": "Facade",
+          "value": "Prefabricated GRC modules"
+        }
+      ],
+      "architect": "Atelier Kobuleti",
+      "updatedAt": "2026-11-15T08:00:00Z"
+    },
+    {
+      "id": "p-saburtalo-exchange",
+      "slug": "saburtalo-exchange",
+      "title": "Saburtalo Exchange",
+      "summary": "Grade-A workplace with a folded glass crown and a public ground-floor arcade.",
+      "description": "Saburtalo Exchange replaces a 1970s depot with eleven floors of flexible office space. The faceted glass crown hides plant equipment and catches the late sun over the city.\n\nAt street level the building gives back: a covered arcade, a café and a small public square run along the full length of the plot.",
+      "location": "Saburtalo, Tbilisi",
+      "city": "Tbilisi",
+      "category": "commercial",
+      "status": "completed",
+      "progress": 100,
+      "startDate": "2021-04-01",
+      "estimatedCompletion": "2023-09-30",
+      "completionDate": "2023-10-12",
+      "featured": false,
+      "cover": "/images/angular-glass.jpg",
+      "gallery": [
+        "/images/angular-glass.jpg",
+        "/images/towers-glass-up.jpg",
+        "/images/office-interior.jpg",
+        "/images/towers-cloud.jpg"
+      ],
+      "specs": [
+        {
+          "id": "p4-s0",
+          "label": "Built area",
+          "value": "22,400 m²"
+        },
+        {
+          "id": "p4-s1",
+          "label": "Storeys",
+          "value": "11 + 2 basement"
+        },
+        {
+          "id": "p4-s2",
+          "label": "Floor plates",
+          "value": "1,850 m² column-free"
+        },
+        {
+          "id": "p4-s3",
+          "label": "Structure",
+          "value": "Composite steel and concrete"
+        },
+        {
+          "id": "p4-s4",
+          "label": "Facade",
+          "value": "Unitised curtain wall"
+        }
+      ],
+      "architect": "Gorgasali Partnership",
+      "updatedAt": "2026-08-21T11:45:00Z"
+    },
+    {
+      "id": "p-kakheti-villa",
+      "slug": "kakheti-vineyard-villa",
+      "title": "Vineyard Villa",
+      "summary": "A low stone-and-plaster villa on the ridge above Sighnaghi's vineyards.",
+      "description": "Built for a winemaking family, the villa is organised around a long pool terrace that points straight down the valley. Local stone, lime plaster and oak were chosen for how they age in the Kakhetian sun.\n\nThe cellar beneath the terrace is cut into the hillside to keep a constant temperature without mechanical cooling.",
+      "location": "Sighnaghi, Kakheti",
+      "city": "Sighnaghi",
+      "category": "residential",
+      "status": "completed",
+      "progress": 100,
+      "startDate": "2021-02-01",
+      "estimatedCompletion": "2022-07-31",
+      "completionDate": "2022-08-20",
+      "featured": true,
+      "cover": "/images/villa-pool-terrace.jpg",
+      "gallery": [
+        "/images/villa-pool-terrace.jpg",
+        "/images/pavilion-pool.jpg",
+        "/images/interior-living.jpg"
+      ],
+      "specs": [
+        {
+          "id": "p5-s0",
+          "label": "Built area",
+          "value": "980 m²"
+        },
+        {
+          "id": "p5-s1",
+          "label": "Storeys",
+          "value": "2 + cellar"
+        },
+        {
+          "id": "p5-s2",
+          "label": "Materials",
+          "value": "Local stone, lime plaster, oak"
+        },
+        {
+          "id": "p5-s3",
+          "label": "Pool",
+          "value": "28 m infinity edge"
+        }
+      ],
+      "architect": "Studio Orbeli",
+      "updatedAt": "2026-05-14T10:00:00Z"
+    },
+    {
+      "id": "p-gudauri-lodge",
+      "slug": "gudauri-alpine-lodge",
+      "title": "Gudauri Alpine Lodge",
+      "summary": "A 36-room timber lodge designed for snow loads, short summers and long views.",
+      "description": "An alpine hotel at 2,200 metres, planned around a construction window of barely five months a year. The lodge uses a cross-laminated timber superstructure on a concrete plinth, so most of the building can be fabricated in the valley during winter and assembled quickly once the road opens.\n\nThe project is currently in design development and permitting.",
+      "location": "Gudauri, Kazbegi",
+      "city": "Gudauri",
+      "category": "hospitality",
+      "status": "planning",
+      "progress": 8,
+      "startDate": "2027-05-01",
+      "estimatedCompletion": "2028-12-15",
+      "featured": false,
+      "cover": "/images/house-timber-hill.jpg",
+      "gallery": [
+        "/images/house-timber-hill.jpg",
+        "/images/drawings.jpg",
+        "/images/house-timber-black.jpg"
+      ],
+      "specs": [
+        {
+          "id": "p6-s0",
+          "label": "Built area",
+          "value": "5,600 m²"
+        },
+        {
+          "id": "p6-s1",
+          "label": "Rooms",
+          "value": "36"
+        },
+        {
+          "id": "p6-s2",
+          "label": "Structure",
+          "value": "CLT on concrete plinth"
+        },
+        {
+          "id": "p6-s3",
+          "label": "Design snow load",
+          "value": "6.0 kN/m²"
+        }
+      ],
+      "architect": "Mestia Works",
+      "updatedAt": "2026-11-03T16:20:00Z"
+    },
+    {
+      "id": "p-sololaki-courtyard",
+      "slug": "sololaki-courtyard",
+      "title": "Sololaki Courtyard",
+      "summary": "Careful renovation of an 1890s courtyard house into nine apartments.",
+      "description": "A 19th-century Tbilisi courtyard house with timber balconies, brought back from structural failure. Every original balcony was surveyed, numbered and repaired off site, while a discreet new steel frame now carries the floors that the old brick walls no longer could.\n\nThe courtyard remains shared, as it always was.",
+      "location": "Sololaki, Tbilisi",
+      "city": "Tbilisi",
+      "category": "renovation",
+      "status": "completed",
+      "progress": 100,
+      "startDate": "2023-06-01",
+      "estimatedCompletion": "2025-02-28",
+      "completionDate": "2025-03-21",
+      "featured": false,
+      "cover": "/images/facade-brick-angle.jpg",
+      "gallery": [
+        "/images/facade-brick-angle.jpg",
+        "/images/interior-concrete.jpg",
+        "/images/drawings.jpg"
+      ],
+      "specs": [
+        {
+          "id": "p7-s0",
+          "label": "Built area",
+          "value": "1,450 m²"
+        },
+        {
+          "id": "p7-s1",
+          "label": "Apartments",
+          "value": "9"
+        },
+        {
+          "id": "p7-s2",
+          "label": "Original fabric retained",
+          "value": "84%"
+        },
+        {
+          "id": "p7-s3",
+          "label": "Structure",
+          "value": "New steel frame within masonry"
+        }
+      ],
+      "architect": "Heritage Workshop Tbilisi",
+      "updatedAt": "2026-07-09T12:00:00Z"
+    },
+    {
+      "id": "p-dighomi-quarter",
+      "slug": "dighomi-quarter",
+      "title": "Dighomi Quarter",
+      "summary": "Four mid-rise blocks of family apartments around a car-free garden.",
+      "description": "A new neighbourhood block of 210 apartments, a nursery and ground-floor shops. Parking is pushed underground so that the centre of the block is a garden with play spaces, orchards and a running loop.\n\nPhase one is structurally complete; facades and interiors are under way.",
+      "location": "Didi Dighomi, Tbilisi",
+      "city": "Tbilisi",
+      "category": "apartments",
+      "status": "in-progress",
+      "progress": 55,
+      "startDate": "2025-01-15",
+      "estimatedCompletion": "2027-09-30",
+      "featured": false,
+      "cover": "/images/apartments-timber.jpg",
+      "gallery": [
+        "/images/apartments-timber.jpg",
+        "/images/site-team.jpg",
+        "/images/earthworks.jpg",
+        "/images/apartments-balconies.jpg"
+      ],
+      "specs": [
+        {
+          "id": "p8-s0",
+          "label": "Built area",
+          "value": "26,700 m²"
+        },
+        {
+          "id": "p8-s1",
+          "label": "Apartments",
+          "value": "210"
+        },
+        {
+          "id": "p8-s2",
+          "label": "Blocks",
+          "value": "4 × 7 storeys"
+        },
+        {
+          "id": "p8-s3",
+          "label": "Parking",
+          "value": "Underground, 240 spaces"
+        }
+      ],
+      "architect": "Collective Mtkvari",
+      "updatedAt": "2026-11-10T07:40:00Z"
+    },
+    {
+      "id": "p-kutaisi-campus",
+      "slug": "kutaisi-innovation-campus",
+      "title": "Kutaisi Innovation Campus",
+      "summary": "Low-rise research labs and studios linked by a shaded public walk.",
+      "description": "Three linked buildings for research groups and start-ups. Long-span floors keep the labs adaptable, and a continuous brise-soleil shades the glazing from the west.\n\nThe campus is built in two phases so that the first tenants can move in while the second building is completed.",
+      "location": "Kutaisi, Imereti",
+      "city": "Kutaisi",
+      "category": "commercial",
+      "status": "in-progress",
+      "progress": 27,
+      "startDate": "2026-02-01",
+      "estimatedCompletion": "2028-01-31",
+      "featured": false,
+      "cover": "/images/commercial-campus.jpg",
+      "gallery": [
+        "/images/commercial-campus.jpg",
+        "/images/office-interior.jpg",
+        "/images/site-rebar.jpg"
+      ],
+      "specs": [
+        {
+          "id": "p9-s0",
+          "label": "Built area",
+          "value": "18,300 m²"
+        },
+        {
+          "id": "p9-s1",
+          "label": "Buildings",
+          "value": "3"
+        },
+        {
+          "id": "p9-s2",
+          "label": "Spans",
+          "value": "12 m column-free"
+        },
+        {
+          "id": "p9-s3",
+          "label": "Structure",
+          "value": "Precast concrete frame"
+        }
+      ],
+      "architect": "Gorgasali Partnership",
+      "updatedAt": "2026-10-28T15:05:00Z"
+    },
+    {
+      "id": "p-lisi-pavilion",
+      "slug": "lisi-lake-pavilion",
+      "title": "Lisi Lake Pavilion",
+      "summary": "A single-storey glass pavilion under a thin floating roof.",
+      "description": "A one-level house wrapped in sliding glass, sheltered by a 300 mm roof slab that oversails the terrace by four metres. All services run through a single central core so the perimeter can open completely in summer.",
+      "location": "Lisi Lake, Tbilisi",
+      "city": "Tbilisi",
+      "category": "residential",
+      "status": "completed",
+      "progress": 100,
+      "startDate": "2024-03-01",
+      "estimatedCompletion": "2025-06-30",
+      "completionDate": "2025-06-11",
+      "featured": true,
+      "cover": "/images/pavilion-pool.jpg",
+      "gallery": [
+        "/images/pavilion-pool.jpg",
+        "/images/interior-living.jpg",
+        "/images/villa-white-palm.jpg"
+      ],
+      "specs": [
+        {
+          "id": "p10-s0",
+          "label": "Built area",
+          "value": "420 m²"
+        },
+        {
+          "id": "p10-s1",
+          "label": "Storeys",
+          "value": "1"
+        },
+        {
+          "id": "p10-s2",
+          "label": "Roof overhang",
+          "value": "4.0 m"
+        },
+        {
+          "id": "p10-s3",
+          "label": "Structure",
+          "value": "Post-tensioned roof slab"
+        }
+      ],
+      "architect": "Nadia Kapanadze Architects",
+      "updatedAt": "2026-06-30T09:00:00Z"
+    },
+    {
+      "id": "p-tskneti-house",
+      "slug": "tskneti-forest-house",
+      "title": "Tskneti Forest House",
+      "summary": "Charred timber and concrete among the pines above the city.",
+      "description": "A compact house for a family of five, set between existing pines that the client wanted to keep. The foundation is a series of small pads positioned between root zones, and the timber cladding is charred for durability.",
+      "location": "Tskneti, Tbilisi",
+      "city": "Tbilisi",
+      "category": "residential",
+      "status": "on-hold",
+      "progress": 15,
+      "startDate": "2026-04-01",
+      "estimatedCompletion": "2027-08-31",
+      "featured": true,
+      "cover": "/images/house-timber-black.jpg",
+      "gallery": [
+        "/images/house-timber-black.jpg",
+        "/images/house-timber-hill.jpg",
+        "/images/drawings.jpg"
+      ],
+      "specs": [
+        {
+          "id": "p11-s0",
+          "label": "Built area",
+          "value": "310 m²"
+        },
+        {
+          "id": "p11-s1",
+          "label": "Storeys",
+          "value": "2"
+        },
+        {
+          "id": "p11-s2",
+          "label": "Cladding",
+          "value": "Charred larch"
+        },
+        {
+          "id": "p11-s3",
+          "label": "Foundation",
+          "value": "Pad footings between root zones"
+        }
+      ],
+      "architect": "Mestia Works",
+      "updatedAt": "2026-09-18T13:30:00Z"
+    },
+    {
+      "id": "p-boulevard-hotel",
+      "slug": "boulevard-hotel",
+      "title": "Boulevard Hotel",
+      "summary": "A curving fourteen-storey hotel whose balconies follow the line of the bay.",
+      "description": "Each floor plate is slightly different, generating the soft curve of the facade. We developed a reusable formwork system with the engineers so that the curved slab edges could be cast without bespoke shuttering on every floor.",
+      "location": "Old Boulevard, Batumi",
+      "city": "Batumi",
+      "category": "hospitality",
+      "status": "in-progress",
+      "progress": 82,
+      "startDate": "2024-08-01",
+      "estimatedCompletion": "2026-12-20",
+      "featured": false,
+      "cover": "/images/curved-facade.jpg",
+      "gallery": [
+        "/images/curved-facade.jpg",
+        "/images/towers-cloud.jpg",
+        "/images/interior-concrete.jpg"
+      ],
+      "specs": [
+        {
+          "id": "p12-s0",
+          "label": "Built area",
+          "value": "17,900 m²"
+        },
+        {
+          "id": "p12-s1",
+          "label": "Storeys",
+          "value": "14"
+        },
+        {
+          "id": "p12-s2",
+          "label": "Rooms",
+          "value": "188"
+        },
+        {
+          "id": "p12-s3",
+          "label": "Structure",
+          "value": "Flat slabs, adjustable edge formwork"
+        }
+      ],
+      "architect": "Atelier Kobuleti",
+      "updatedAt": "2026-11-16T10:15:00Z"
+    }
+  ],
+  "services": [
+    {
+      "id": "s-residential",
+      "title": "Private house construction",
+      "summary": "Private houses and villas built with the care of a workshop and the discipline of a large site.",
+      "description": "From steep urban plots to remote vineyards, we build single-family homes where tolerances matter. One project lead stays with you from groundwork to handover.",
+      "image": "/images/villa-modern-white.jpg",
+      "features": [
+        "Design-and-build or build-only",
+        "Fixed-price contracts",
+        "Detailed finishing packages",
+        "12-month aftercare"
+      ],
+      "visible": true
+    },
+    {
+      "id": "s-planning",
+      "title": "Architectural planning",
+      "summary": "Early-stage input on massing, buildability and budget before designs are fixed.",
+      "description": "We join architects at concept stage to test what a building will cost and how it will be built, so that design ambition survives contact with the site.",
+      "image": "/images/drawings.jpg",
+      "features": [
+        "Buildability reviews",
+        "Cost planning",
+        "Site and permit studies",
+        "BIM coordination"
+      ],
+      "visible": true
+    },
+    {
+      "id": "s-structural",
+      "title": "Structural engineering",
+      "summary": "In-house engineers who model, check and supervise every frame we build.",
+      "description": "Our engineering team works alongside external consultants to optimise structures for material use, speed and seismic performance.",
+      "image": "/images/site-rebar.jpg",
+      "features": [
+        "Seismic design review",
+        "Post-tensioned slabs",
+        "Temporary works design",
+        "Site supervision"
+      ],
+      "visible": true
+    },
+    {
+      "id": "s-renovation",
+      "title": "Renovation & reconstruction",
+      "summary": "Historic and existing buildings strengthened, adapted and brought back to life.",
+      "description": "We survey before we propose, retain what can be saved and add only what is needed, with methods agreed with heritage authorities where relevant.",
+      "image": "/images/facade-brick-angle.jpg",
+      "features": [
+        "Condition surveys",
+        "Structural strengthening",
+        "Heritage repairs",
+        "Occupied-building works"
+      ],
+      "visible": true
+    },
+    {
+      "id": "s-management",
+      "title": "Project management",
+      "summary": "Independent management of programme, cost and quality for owners and investors.",
+      "description": "For clients running their own projects, we provide experienced project managers who report honestly on time, cost and risk, every week.",
+      "image": "/images/site-team.jpg",
+      "features": [
+        "Programme control",
+        "Cost reporting",
+        "Contractor procurement",
+        "Weekly client dashboards"
+      ],
+      "visible": true
+    },
+    {
+      "id": "s-apartments",
+      "title": "Apartment development",
+      "summary": "Multi-residential buildings delivered phase by phase, with sales and handover in mind.",
+      "description": "We work with developers and landowners on everything from nine-unit infill to whole neighbourhood blocks, coordinating design, procurement and sequencing so residents can move in on time.",
+      "image": "/images/apartments-balconies.jpg",
+      "features": [
+        "Feasibility and phasing",
+        "Prefabricated facade systems",
+        "Show-apartment delivery",
+        "Defects management"
+      ],
+      "visible": true
+    },
+    {
+      "id": "s-commercial",
+      "title": "Commercial construction",
+      "summary": "Offices, labs and hospitality buildings designed to stay adaptable for decades.",
+      "description": "Long-span structures, complex services and occupied-site logistics. We plan commercial buildings around how tenants will use and change them.",
+      "image": "/images/towers-glass-up.jpg",
+      "features": [
+        "Shell-and-core and fit-out",
+        "MEP coordination",
+        "Phased occupancy",
+        "Tenant change management"
+      ],
+      "visible": true
+    }
+  ],
+  "testimonials": [
+    {
+      "id": "t-1",
+      "quote": "They treated the hillside as part of the building. Two winters in, the terraces have grown in exactly as the drawings promised.",
+      "author": "Eka Beridze",
+      "role": "Development Director",
+      "project": "Vake Terraces",
+      "published": true
+    },
+    {
+      "id": "t-2",
+      "quote": "The cantilever was the part everyone said couldn't be done on our plot. MANI DEVELOPMENT's engineers solved it before we had even signed the contract.",
+      "author": "Giorgi & Ana Lomidze",
+      "role": "Homeowners",
+      "project": "Mtatsminda House",
+      "published": true
+    },
+    {
+      "id": "t-3",
+      "quote": "Weekly reports that told us what was actually happening, including the bad news. That honesty is why we hired them again.",
+      "author": "Levan Tsereteli",
+      "role": "Asset Manager",
+      "project": "Saburtalo Exchange",
+      "published": true
+    },
+    {
+      "id": "t-4",
+      "quote": "They saved balconies other contractors wanted to demolish. The courtyard feels like 1890 again, only it no longer moves when you walk on it.",
+      "author": "Mariam Japaridze",
+      "role": "Residents' Association Chair",
+      "project": "Sololaki Courtyard",
+      "published": true
+    },
+    {
+      "id": "t-5",
+      "quote": "Calm, tidy sites and a team that answers the phone. Rarer than it should be.",
+      "author": "Nino Kvaratskhelia",
+      "role": "Hotel Operator",
+      "project": "Boulevard Hotel",
+      "published": false
+    }
+  ],
+  "team": [
+    {
+      "id": "m-1",
+      "name": "David Mchedlishvili",
+      "role": "Founder & Managing Director",
+      "bio": "Started MANI DEVELOPMENT in 2009 after fifteen years as a site engineer. Still visits every site on Fridays.",
+      "photo": "/images/team/t1.jpg",
+      "visible": true
+    },
+    {
+      "id": "m-2",
+      "name": "Tamar Gelashvili",
+      "role": "Head of Design Coordination",
+      "bio": "Architect by training; leads the team that turns drawings into buildable packages.",
+      "photo": "/images/team/t2.jpg",
+      "visible": true
+    },
+    {
+      "id": "m-3",
+      "name": "Irakli Abashidze",
+      "role": "Chief Structural Engineer",
+      "bio": "Specialist in seismic design and post-tensioned concrete.",
+      "photo": "/images/team/t3.jpg",
+      "visible": true
+    },
+    {
+      "id": "m-4",
+      "name": "Salome Natadze",
+      "role": "Director of Development",
+      "bio": "Works with landowners and investors from feasibility to sales strategy.",
+      "photo": "/images/team/t4.jpg",
+      "visible": true
+    },
+    {
+      "id": "m-5",
+      "name": "Nikoloz Chkheidze",
+      "role": "Head of Construction",
+      "bio": "Responsible for programme, safety and quality across all active sites.",
+      "photo": "/images/team/t5.jpg",
+      "visible": true
+    },
+    {
+      "id": "m-6",
+      "name": "Ketevan Dolidze",
+      "role": "Commercial Director",
+      "bio": "Cost planning, procurement and contracts. Believes a good budget is a design tool.",
+      "photo": "/images/team/t6.jpg",
+      "visible": true
+    },
+    {
+      "id": "m-7",
+      "name": "Lika Svanidze",
+      "role": "Sustainability Lead",
+      "bio": "Energy modelling, material choices and long-term performance of our buildings.",
+      "photo": "/images/team/t7.jpg",
+      "visible": false
+    },
+    {
+      "id": "m-8",
+      "name": "Sandro Kiknadze",
+      "role": "Senior Project Manager",
+      "bio": "Leads the Batumi projects; previously delivered hotels across the Black Sea coast.",
+      "photo": "/images/team/t8.jpg",
+      "visible": true
+    }
+  ],
+  "inquiries": [
+    {
+      "id": "q-1",
+      "name": "Natia Gogoladze",
+      "email": "natia.g@example.com",
+      "phone": "+995 555 21 44 10",
+      "subject": "Family house in Tskneti",
+      "message": "We own a 900 m² plot in Tskneti and are looking for a design-and-build partner for a two-storey family house. Could we arrange a site visit?",
+      "status": "new",
+      "createdAt": "2026-11-17T15:42:00Z",
+      "notes": []
+    },
+    {
+      "id": "q-2",
+      "name": "Alexander Petrov",
+      "email": "a.petrov@example.com",
+      "phone": "+995 599 30 12 77",
+      "subject": "Apartment development partnership",
+      "message": "Our fund is evaluating a 40-unit residential project in Batumi. We would like to discuss feasibility, phasing and an indicative budget.",
+      "status": "new",
+      "createdAt": "2026-11-16T10:05:00Z",
+      "notes": []
+    },
+    {
+      "id": "q-3",
+      "name": "Mariam Kurtanidze",
+      "email": "mariam.k@example.com",
+      "phone": "+995 577 88 01 23",
+      "subject": "Renovation of a historic apartment",
+      "message": "I have an apartment in a 1900s building in Sololaki with damaged timber floors. Do you take on renovations of this scale?",
+      "status": "in-progress",
+      "createdAt": "2026-11-12T09:18:00Z",
+      "notes": [
+        {
+          "id": "n-1",
+          "text": "Called back on 13 Nov. Survey visit booked for 20 Nov with Irakli.",
+          "createdAt": "2026-11-13T11:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "q-4",
+      "name": "Tornike Basilashvili",
+      "email": "tornike@example.com",
+      "phone": "+995 551 47 66 02",
+      "subject": "Office fit-out, 1,200 m²",
+      "message": "Looking for a contractor for a shell-and-core fit-out in Saburtalo, starting in February.",
+      "status": "in-progress",
+      "createdAt": "2026-11-08T14:30:00Z",
+      "notes": [
+        {
+          "id": "n-2",
+          "text": "Sent capability statement and two case studies.",
+          "createdAt": "2026-11-09T08:45:00Z"
+        }
+      ]
+    },
+    {
+      "id": "q-5",
+      "name": "Sophie Laurent",
+      "email": "s.laurent@example.com",
+      "phone": "+33 6 12 34 56 78",
+      "subject": "Boutique hotel in Kakheti",
+      "message": "We are exploring a 20-room boutique hotel near Telavi and would value an early buildability review.",
+      "status": "new",
+      "createdAt": "2026-11-05T17:12:00Z",
+      "notes": []
+    },
+    {
+      "id": "q-6",
+      "name": "Giorgi Maisuradze",
+      "email": "g.maisuradze@example.com",
+      "phone": "+995 593 11 22 33",
+      "subject": "Site visit request",
+      "message": "Is it possible to visit the Vake Terraces site with a group of architecture students?",
+      "status": "resolved",
+      "createdAt": "2026-10-29T12:00:00Z",
+      "notes": [
+        {
+          "id": "n-3",
+          "text": "Visit held on 6 Nov. Thank-you email received.",
+          "createdAt": "2026-11-06T16:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "q-7",
+      "name": "Elene Tsiklauri",
+      "email": "elene.t@example.com",
+      "phone": "+995 568 90 45 12",
+      "subject": "Careers: site engineer",
+      "message": "I am a structural engineer with four years of experience and would love to join your team.",
+      "status": "resolved",
+      "createdAt": "2026-10-21T08:20:00Z",
+      "notes": [
+        {
+          "id": "n-4",
+          "text": "Forwarded to HR.",
+          "createdAt": "2026-10-21T10:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "q-8",
+      "name": "Beka Jorbenadze",
+      "email": "beka.j@example.com",
+      "phone": "+995 595 02 03 04",
+      "subject": "Villa extension",
+      "message": "We would like to add a pool pavilion and guest house to our villa near Lisi Lake.",
+      "status": "new",
+      "createdAt": "2026-10-14T19:40:00Z",
+      "notes": []
+    },
+    {
+      "id": "q-9",
+      "name": "Anna Müller",
+      "email": "anna.mueller@example.com",
+      "phone": "+49 151 2345 6789",
+      "subject": "Investor information",
+      "message": "Do you sell apartments in Shoreline Residences directly, or through agents?",
+      "status": "resolved",
+      "createdAt": "2026-09-30T07:55:00Z",
+      "notes": []
+    },
+    {
+      "id": "q-10",
+      "name": "Luka Kobakhidze",
+      "email": "luka.k@example.com",
+      "phone": "+995 574 65 43 21",
+      "subject": "Warehouse conversion",
+      "message": "We have a 1960s warehouse in Kutaisi and want to convert it into studios. What would the first step be?",
+      "status": "in-progress",
+      "createdAt": "2026-09-18T11:10:00Z",
+      "notes": []
+    }
+  ],
+  "activity": [
+    {
+      "id": "ac-1",
+      "kind": "inquiry",
+      "message": "New inquiry from Natia Gogoladze",
+      "at": "2026-11-17T15:42:00Z"
+    },
+    {
+      "id": "ac-2",
+      "kind": "project",
+      "message": "Boulevard Hotel progress updated to 82%",
+      "at": "2026-11-16T10:15:00Z"
+    },
+    {
+      "id": "ac-3",
+      "kind": "inquiry",
+      "message": "New inquiry from Alexander Petrov",
+      "at": "2026-11-16T10:05:00Z"
+    },
+    {
+      "id": "ac-4",
+      "kind": "project",
+      "message": "Shoreline Residences gallery updated",
+      "at": "2026-11-15T08:00:00Z"
+    },
+    {
+      "id": "ac-5",
+      "kind": "inquiry",
+      "message": "Mariam Kurtanidze marked in progress",
+      "at": "2026-11-13T11:00:00Z"
+    },
+    {
+      "id": "ac-6",
+      "kind": "project",
+      "message": "Vake Terraces featured on the homepage",
+      "at": "2026-11-12T09:30:00Z"
+    },
+    {
+      "id": "ac-7",
+      "kind": "testimonial",
+      "message": "Testimonial from Nino Kvaratskhelia hidden",
+      "at": "2026-11-04T09:00:00Z"
+    }
+  ],
+  "notifications": [
+    {
+      "id": "nt-1",
+      "title": "New inquiry",
+      "body": "Natia Gogoladze: Family house in Tskneti",
+      "href": "/admin/inquiries?id=q-1",
+      "at": "2026-11-17T15:42:00Z",
+      "read": false
+    },
+    {
+      "id": "nt-2",
+      "title": "New inquiry",
+      "body": "Alexander Petrov: Apartment development partnership",
+      "href": "/admin/inquiries?id=q-2",
+      "at": "2026-11-16T10:05:00Z",
+      "read": false
+    },
+    {
+      "id": "nt-3",
+      "title": "Milestone approaching",
+      "body": "Boulevard Hotel handover due 20 Dec",
+      "href": "/admin/projects/p-boulevard-hotel/edit",
+      "at": "2026-11-15T09:00:00Z",
+      "read": true
+    }
+  ],
+  "ka": {
+    "settings": {
+      "tagline": "კერძო სახლების მშენებლობა",
+      "address": "ილია ჭავჭავაძის გამზ. 37მ, მე-5 სართული, Terminal, თბილისი",
+      "hours": "ორშ–პარ, 09:00–18:00"
+    },
+    "projects": {
+      "p-vake-terraces": {
+        "summary": "ორმოცდაორი საფეხურებრივი საცხოვრებელი გამწვანებულ ფერდობზე, თითოეული საკუთარი ბაღიანი ტერასით.",
+        "description": "Vake Terraces ფერდობს კი არ ებრძვის, არამედ მის რელიეფს მიჰყვება. საცხოვრებლების ექვსი საფეხურებრივი დონე ერთიან, წინასწარ დაძაბულ რკინაბეტონის კარკასს ეყრდნობა, ამიტომ ყოველი ბინა ღრმა, გამწვანებულ ტერასაზე გადის და არავის უწევს მეზობლის მისაღებში ჩახედვა.\n\nკონსტრუქცია გამწვანების გარშემო დაპროექტდა: ნიადაგის სისქე, მორწყვა და დრენაჟი კონსტრუქციულ მოდელში მანამდე განისაზღვრა, სანამ ერთი კედელიც კი დაიხაზებოდა. შედეგად, შენობა ათი წლის შემდეგ ჩაბარების დღეზე უკეთესად გამოიყურება.",
+        "location": "ვაკე, თბილისი",
+        "city": "თბილისი",
+        "specs": [
+          {
+            "label": "აშენებული ფართი",
+            "value": "14 800 მ²"
+          },
+          {
+            "label": "სართულიანობა",
+            "value": "6 საფეხურებრივი დონე"
+          },
+          {
+            "label": "ბინები",
+            "value": "42"
+          },
+          {
+            "label": "კონსტრუქცია",
+            "value": "წინასწარ დაძაბული რკინაბეტონის კარკასი"
+          },
+          {
+            "label": "ენერგია",
+            "value": "გეოთერმული თბური ტუმბოები"
+          }
+        ]
+      },
+      "p-mtatsminda-house": {
+        "summary": "საოჯახო სახლი კონსოლით, რომლის ერთი ლენტური ფანჯარა ძველ ქალაქს ჩარჩოში სვამს.",
+        "description": "კერძო რეზიდენცია მთაწმინდის ქვემოთ, ციცაბო ნაკვეთზე. ზედა სართული ბაღის თავზე შვიდი მეტრით არის გადმოწეული ორ ფარულ ფოლადის გადამცემ კოჭზე, ამიტომ პირველი სართული თითქმის მთლიანად მინითაა შემოსაზღვრული.\n\nსახლი შეზღუდულ ფართზე ავაშენეთ, ამწის მისადგომით მხოლოდ ერთი მხრიდან. ფოლადის კონსტრუქციის მონტაჟის თანმიმდევრობა ისე დავგეგმეთ, რომ კონსოლისთვის საყრდენი მეზობლის მიწაზე არასოდეს დაგვჭირვებოდა.",
+        "location": "მთაწმინდა, თბილისი",
+        "city": "თბილისი",
+        "specs": [
+          {
+            "label": "აშენებული ფართი",
+            "value": "640 მ²"
+          },
+          {
+            "label": "სართულიანობა",
+            "value": "3"
+          },
+          {
+            "label": "კონსოლი",
+            "value": "7,2 მ"
+          },
+          {
+            "label": "კონსტრუქცია",
+            "value": "ბეტონის ბირთვი, ფოლადის გადამცემი კოჭები"
+          },
+          {
+            "label": "მინა",
+            "value": "სამმაგი მინაპაკეტი, დაბალი რკინის შემცველობით"
+          }
+        ]
+      },
+      "p-batumi-shoreline": {
+        "summary": "ოცდაორსართულიანი კოშკი ერთმანეთზე დაწყობილი თეთრი მოცულობებით, შავი ზღვისკენ მიმართული.",
+        "description": "Shoreline Residences-ში ყოველი ბინა ცალკე თეთრ მოცულობადაა გამოხატული, რომელიც ქვედასთან შედარებით ოდნავ არის გადაწეული და ზღვის მხარეს ღრმა, დაჩრდილულ ლოჯიებს ქმნის.\n\nკოშკი მოცურებადი ყალიბით აგებულ ბირთვზე იზრდება, დაახლოებით ერთი სართული ყოველ რვა დღეში. ფასადის მოდულები ობიექტის გარეთ მზადდება და ადგილზე ამწით მონტაჟდება, რაც ზაფხულის სეზონზე სანაპირო ბულვარს ხარაჩოებისგან თავისუფალს ტოვებს.",
+        "location": "ახალი ბულვარი, ბათუმი",
+        "city": "ბათუმი",
+        "specs": [
+          {
+            "label": "აშენებული ფართი",
+            "value": "31 200 მ²"
+          },
+          {
+            "label": "სართულიანობა",
+            "value": "22"
+          },
+          {
+            "label": "ბინები",
+            "value": "164"
+          },
+          {
+            "label": "კონსტრუქცია",
+            "value": "მოცურებადი ყალიბით აგებული ბირთვი, უკოჭო ფილები"
+          },
+          {
+            "label": "ფასადი",
+            "value": "ქარხნული GRC მოდულები"
+          }
+        ]
+      },
+      "p-saburtalo-exchange": {
+        "summary": "A კლასის საოფისე შენობა დაკეცილი მინის გვირგვინითა და საჯარო არკადით პირველ სართულზე.",
+        "description": "Saburtalo Exchange 1970-იანი წლების დეპოს ადგილას აშენდა და თერთმეტი სართული მოქნილი საოფისე სივრცე შექმნა. წახნაგოვანი მინის გვირგვინი საინჟინრო მოწყობილობებს მალავს და ქალაქის თავზე საღამოს მზეს იჭერს.\n\nქუჩის დონეზე შენობა ქალაქს თავის წილს უბრუნებს: გადახურული არკადა, კაფე და პატარა საჯარო მოედანი ნაკვეთის მთელ სიგრძეზე გადაჭიმულია.",
+        "location": "საბურთალო, თბილისი",
+        "city": "თბილისი",
+        "specs": [
+          {
+            "label": "აშენებული ფართი",
+            "value": "22 400 მ²"
+          },
+          {
+            "label": "სართულიანობა",
+            "value": "11 + 2 სარდაფი"
+          },
+          {
+            "label": "სართულის ფართი",
+            "value": "1 850 მ², სვეტების გარეშე"
+          },
+          {
+            "label": "კონსტრუქცია",
+            "value": "ფოლადისა და ბეტონის კომპოზიტური"
+          },
+          {
+            "label": "ფასადი",
+            "value": "უნიტიზებული ვიტრაჟული კედელი"
+          }
+        ]
+      },
+      "p-kakheti-villa": {
+        "summary": "დაბალი ქვისა და ბათქაშის ვილა სიღნაღის ვენახების ზემოთ, ქედზე.",
+        "description": "მეღვინე ოჯახისთვის აშენებული ვილა გრძელი აუზიანი ტერასის გარშემოა ორგანიზებული, რომელიც პირდაპირ ხეობისკენაა მიმართული. ადგილობრივი ქვა, კირის ბათქაში და მუხა იმიტომ შეირჩა, რომ კახეთის მზეზე ლამაზად ძველდება.\n\nტერასის ქვეშ მდებარე მარანი ფერდობშია შეჭრილი, რაც მექანიკური გაგრილების გარეშე მუდმივ ტემპერატურას ინარჩუნებს.",
+        "location": "სიღნაღი, კახეთი",
+        "city": "სიღნაღი",
+        "specs": [
+          {
+            "label": "აშენებული ფართი",
+            "value": "980 მ²"
+          },
+          {
+            "label": "სართულიანობა",
+            "value": "2 + მარანი"
+          },
+          {
+            "label": "მასალები",
+            "value": "ადგილობრივი ქვა, კირის ბათქაში, მუხა"
+          },
+          {
+            "label": "აუზი",
+            "value": "28 მ, უსასრულო კიდით"
+          }
+        ]
+      },
+      "p-gudauri-lodge": {
+        "summary": "36-ოთახიანი ხის სასტუმრო, დაპროექტებული თოვლის დატვირთვის, მოკლე ზაფხულისა და შორეული ხედებისთვის.",
+        "description": "მაღალმთიანი სასტუმრო 2 200 მეტრზე, დაგეგმილი მშენებლობის ფანჯრისთვის, რომელიც წელიწადში ძლივს ხუთ თვეს გრძელდება. სასტუმროს ზედა კონსტრუქცია ჯვარედინად წებოვანი ხის (CLT) პანელებისგანაა ბეტონის ცოკოლზე, ამიტომ შენობის უდიდესი ნაწილი ზამთარში ხეობაში შეიძლება დამზადდეს და გზის გახსნისთანავე სწრაფად აიწყოს.\n\nპროექტი ამჟამად დეტალური დაპროექტებისა და ნებართვების ეტაპზეა.",
+        "location": "გუდაური, ყაზბეგი",
+        "city": "გუდაური",
+        "specs": [
+          {
+            "label": "აშენებული ფართი",
+            "value": "5 600 მ²"
+          },
+          {
+            "label": "ოთახები",
+            "value": "36"
+          },
+          {
+            "label": "კონსტრუქცია",
+            "value": "CLT ბეტონის ცოკოლზე"
+          },
+          {
+            "label": "საანგარიშო თოვლის დატვირთვა",
+            "value": "6,0 კნ/მ²"
+          }
+        ]
+      },
+      "p-sololaki-courtyard": {
+        "summary": "1890-იანი წლების ეზოიანი სახლის ფრთხილი რენოვაცია ცხრა ბინად.",
+        "description": "XIX საუკუნის თბილისური ეზოიანი სახლი ხის აივნებით, რომელიც კონსტრუქციული ნგრევისგან ვიხსენით. ყოველი ორიგინალური აივანი აიზომა, დაინომრა და ობიექტის გარეთ აღდგა, ხოლო ახალი, შეუმჩნეველი ფოლადის კარკასი ახლა იმ სართულებს ატარებს, რომლებსაც ძველი აგურის კედლები ვეღარ უძლებდა.\n\nეზო, როგორც ყოველთვის, საერთო რჩება.",
+        "location": "სოლოლაკი, თბილისი",
+        "city": "თბილისი",
+        "specs": [
+          {
+            "label": "აშენებული ფართი",
+            "value": "1 450 მ²"
+          },
+          {
+            "label": "ბინები",
+            "value": "9"
+          },
+          {
+            "label": "შენარჩუნებული ორიგინალური ქსოვილი",
+            "value": "84%"
+          },
+          {
+            "label": "კონსტრუქცია",
+            "value": "ახალი ფოლადის კარკასი ქვის წყობის შიგნით"
+          }
+        ]
+      },
+      "p-dighomi-quarter": {
+        "summary": "ოთხი საშუალო სიმაღლის საოჯახო საცხოვრებელი კორპუსი ავტომობილებისგან თავისუფალი ბაღის გარშემო.",
+        "description": "ახალი საცხოვრებელი კვარტალი 210 ბინით, საბავშვო ბაღითა და პირველი სართულის მაღაზიებით. პარკინგი მიწისქვეშაა გატანილი, რათა კვარტლის ცენტრში ბაღი იყოს სათამაშო სივრცეებით, ხეხილის ბაღით და სირბილის ბილიკით.\n\nპირველი ფაზის კარკასი დასრულებულია; მიმდინარეობს ფასადისა და შიდა სამუშაოები.",
+        "location": "დიდი დიღომი, თბილისი",
+        "city": "თბილისი",
+        "specs": [
+          {
+            "label": "აშენებული ფართი",
+            "value": "26 700 მ²"
+          },
+          {
+            "label": "ბინები",
+            "value": "210"
+          },
+          {
+            "label": "კორპუსები",
+            "value": "4 × 7 სართული"
+          },
+          {
+            "label": "პარკინგი",
+            "value": "მიწისქვეშა, 240 ადგილი"
+          }
+        ]
+      },
+      "p-kutaisi-campus": {
+        "summary": "დაბალსართულიანი კვლევითი ლაბორატორიები და სტუდიები, დაჩრდილული საჯარო ბილიკით დაკავშირებული.",
+        "description": "სამი ერთმანეთთან დაკავშირებული შენობა კვლევითი ჯგუფებისა და სტარტაპებისთვის. დიდმალიანი სართულები ლაბორატორიებს მოქნილს ტოვებს, ხოლო უწყვეტი მზისგან დამცავი ფარდა დასავლეთის მხრიდან მინას ჩრდილავს.\n\nკამპუსი ორ ფაზად შენდება, რათა პირველმა მოიჯარეებმა შესვლა მეორე შენობის დასრულებამდე შეძლონ.",
+        "location": "ქუთაისი, იმერეთი",
+        "city": "ქუთაისი",
+        "specs": [
+          {
+            "label": "აშენებული ფართი",
+            "value": "18 300 მ²"
+          },
+          {
+            "label": "შენობები",
+            "value": "3"
+          },
+          {
+            "label": "მალები",
+            "value": "12 მ, სვეტების გარეშე"
+          },
+          {
+            "label": "კონსტრუქცია",
+            "value": "ასაწყობი რკინაბეტონის კარკასი"
+          }
+        ]
+      },
+      "p-lisi-pavilion": {
+        "summary": "ერთსართულიანი მინის პავილიონი თხელი, თითქოს მოლივლივე სახურავის ქვეშ.",
+        "description": "ერთდონიანი სახლი, გარშემო გასაწევი მინით შემოსაზღვრული და 300 მმ სისქის სახურავის ფილით დაფარული, რომელიც ტერასაზე ოთხი მეტრით არის გადმოწეული. ყველა საინჟინრო ქსელი ერთ ცენტრალურ ბირთვში გადის, ამიტომ ზაფხულში პერიმეტრი სრულად იხსნება.",
+        "location": "ლისის ტბა, თბილისი",
+        "city": "თბილისი",
+        "specs": [
+          {
+            "label": "აშენებული ფართი",
+            "value": "420 მ²"
+          },
+          {
+            "label": "სართულიანობა",
+            "value": "1"
+          },
+          {
+            "label": "სახურავის გადმოშვერა",
+            "value": "4,0 მ"
+          },
+          {
+            "label": "კონსტრუქცია",
+            "value": "წინასწარ დაძაბული სახურავის ფილა"
+          }
+        ]
+      },
+      "p-tskneti-house": {
+        "summary": "დამწვარი ხე და ბეტონი ფიჭვებს შორის, ქალაქის თავზე.",
+        "description": "კომპაქტური სახლი ხუთსულიანი ოჯახისთვის, განთავსებული არსებულ ფიჭვებს შორის, რომელთა შენარჩუნებაც დამკვეთს სურდა. საძირკველი ფესვთა ზონებს შორის განლაგებული მცირე წერტილოვანი ფილებისგან შედგება, ხის მოპირკეთება კი გამძლეობისთვის დამწვარია.",
+        "location": "წყნეთი, თბილისი",
+        "city": "თბილისი",
+        "specs": [
+          {
+            "label": "აშენებული ფართი",
+            "value": "310 მ²"
+          },
+          {
+            "label": "სართულიანობა",
+            "value": "2"
+          },
+          {
+            "label": "მოპირკეთება",
+            "value": "დამწვარი ლარიქსი"
+          },
+          {
+            "label": "საძირკველი",
+            "value": "წერტილოვანი საძირკველი ფესვთა ზონებს შორის"
+          }
+        ]
+      },
+      "p-boulevard-hotel": {
+        "summary": "მოხრილი თოთხმეტსართულიანი სასტუმრო, რომლის აივნები ყურის ხაზს მიჰყვება.",
+        "description": "ყოველი სართულის გეგმა ოდნავ განსხვავებულია, რაც ფასადის რბილ მოხრილობას ქმნის. ინჟინრებთან ერთად მრავალჯერადი ყალიბის სისტემა შევიმუშავეთ, რათა ფილების მოხრილი კიდეები ყოველ სართულზე ინდივიდუალური ყალიბის გარეშე ჩამოგვესხა.",
+        "location": "ძველი ბულვარი, ბათუმი",
+        "city": "ბათუმი",
+        "specs": [
+          {
+            "label": "აშენებული ფართი",
+            "value": "17 900 მ²"
+          },
+          {
+            "label": "სართულიანობა",
+            "value": "14"
+          },
+          {
+            "label": "ოთახები",
+            "value": "188"
+          },
+          {
+            "label": "კონსტრუქცია",
+            "value": "უკოჭო ფილები, რეგულირებადი კიდის ყალიბი"
+          }
+        ]
+      }
+    },
+    "services": {
+      "s-residential": {
+        "title": "კერძო სახლების მშენებლობა",
+        "summary": "კერძო სახლები და ვილები, აშენებული სახელოსნოს სიფრთხილითა და დიდი სამშენებლო მოედნის დისციპლინით.",
+        "description": "ციცაბო ქალაქური ნაკვეთებიდან შორეულ ვენახებამდე ვაშენებთ ერთოჯახიან სახლებს, სადაც სიზუსტეს გადამწყვეტი მნიშვნელობა აქვს. პროექტის ერთი ხელმძღვანელი თქვენთან რჩება მიწის სამუშაოებიდან ჩაბარებამდე.",
+        "features": [
+          "დაპროექტება და მშენებლობა ან მხოლოდ მშენებლობა",
+          "ფიქსირებულფასიანი ხელშეკრულებები",
+          "მოსაპირკეთებელი სამუშაოების დეტალური პაკეტები",
+          "12-თვიანი საგარანტიო მომსახურება"
+        ]
+      },
+      "s-planning": {
+        "title": "არქიტექტურული დაგეგმვა",
+        "summary": "ადრეულ ეტაპზე ჩართულობა მოცულობის, განხორციელებადობისა და ბიუჯეტის საკითხებში, სანამ პროექტი დაფიქსირდება.",
+        "description": "არქიტექტორებს კონცეფციის ეტაპზევე ვუერთდებით, რათა შევამოწმოთ, რა ეღირება შენობა და როგორ აშენდება — ასე დიზაინის ამბიცია სამშენებლო მოედანთან შეხვედრასაც გაუძლებს.",
+        "features": [
+          "განხორციელებადობის შეფასება",
+          "ხარჯთაღრიცხვა",
+          "ნაკვეთისა და ნებართვების კვლევა",
+          "BIM კოორდინაცია"
+        ]
+      },
+      "s-structural": {
+        "title": "კონსტრუქციული პროექტირება",
+        "summary": "საკუთარი ინჟინრები, რომლებიც ჩვენ მიერ აშენებულ ყველა კარკასს აპროექტებენ, ამოწმებენ და ზედამხედველობენ.",
+        "description": "ჩვენი საინჟინრო გუნდი გარე კონსულტანტებთან ერთად მუშაობს, რათა კონსტრუქციები მასალის ხარჯის, სიჩქარისა და სეისმომედეგობის თვალსაზრისით ოპტიმალური იყოს.",
+        "features": [
+          "სეისმური პროექტის ექსპერტიზა",
+          "წინასწარ დაძაბული ფილები",
+          "დროებითი ნაგებობების პროექტირება",
+          "საავტორო და ტექნიკური ზედამხედველობა"
+        ]
+      },
+      "s-renovation": {
+        "title": "რენოვაცია და რეკონსტრუქცია",
+        "summary": "ისტორიული და არსებული შენობები — გამაგრებული, მორგებული და ხელახლა გაცოცხლებული.",
+        "description": "წინადადებამდე ჯერ ვიკვლევთ, ვინარჩუნებთ იმას, რისი გადარჩენაც შეიძლება, და ვამატებთ მხოლოდ საჭიროს — საჭიროების შემთხვევაში მეთოდებს კულტურული მემკვიდრეობის დაცვის ორგანოებთან ვუთანხმებთ.",
+        "features": [
+          "ტექნიკური მდგომარეობის კვლევა",
+          "კონსტრუქციული გაძლიერება",
+          "ისტორიული ნაგებობების აღდგენა",
+          "სამუშაოები დასახლებულ შენობებში"
+        ]
+      },
+      "s-management": {
+        "title": "პროექტის მართვა",
+        "summary": "ვადების, ხარჯებისა და ხარისხის დამოუკიდებელი მართვა მესაკუთრეებისა და ინვესტორებისთვის.",
+        "description": "კლიენტებს, რომლებიც საკუთარ პროექტებს თავად მართავენ, გამოცდილ პროექტის მენეჯერებს ვთავაზობთ, რომლებიც ყოველკვირეულად, პატიოსნად გაწვდიან ინფორმაციას ვადების, ხარჯებისა და რისკების შესახებ.",
+        "features": [
+          "ვადების კონტროლი",
+          "ხარჯების ანგარიშგება",
+          "კონტრაქტორების შერჩევა",
+          "ყოველკვირეული ანგარიშები კლიენტისთვის"
+        ]
+      },
+      "s-apartments": {
+        "title": "მრავალბინიანი სახლების დეველოპმენტი",
+        "summary": "მრავალბინიანი შენობები, ეტაპობრივად აშენებული — გაყიდვებისა და ჩაბარების გათვალისწინებით.",
+        "description": "დეველოპერებთან და მიწის მესაკუთრეებთან ერთად ვმუშაობთ ცხრაბინიანი ჩაშენებული სახლებიდან მთლიან საცხოვრებელ კვარტლებამდე: ვაკოორდინირებთ დაპროექტებას, შესყიდვებსა და სამუშაოთა თანმიმდევრობას, რათა მაცხოვრებლები დროულად შესახლდნენ.",
+        "features": [
+          "მიზანშეწონილობის კვლევა და ფაზირება",
+          "ქარხნული ფასადის სისტემები",
+          "სანიმუშო ბინების მოწყობა",
+          "ხარვეზების მართვა"
+        ]
+      },
+      "s-commercial": {
+        "title": "კომერციული მშენებლობა",
+        "summary": "ოფისები, ლაბორატორიები და სასტუმროები, დაპროექტებული ისე, რომ ათწლეულების განმავლობაში მოქნილი დარჩეს.",
+        "description": "დიდმალიანი კონსტრუქციები, რთული საინჟინრო სისტემები და ლოჯისტიკა მოქმედ ობიექტებზე. კომერციულ შენობებს იმის მიხედვით ვგეგმავთ, თუ როგორ გამოიყენებენ და შეცვლიან მათ მოიჯარეები.",
+        "features": [
+          "შავი კარკასი და მოწყობა",
+          "საინჟინრო სისტემების კოორდინაცია",
+          "ეტაპობრივი შესახლება",
+          "მოიჯარეების ცვლილებების მართვა"
+        ]
+      }
+    },
+    "testimonials": {
+      "t-1": {
+        "quote": "ფერდობს შენობის ნაწილად აღიქვამდნენ. ორი ზამთრის შემდეგ ტერასები ზუსტად ისე გაიზარდა, როგორც ნახაზები გვპირდებოდა.",
+        "author": "ეკა ბერიძე",
+        "role": "დეველოპმენტის დირექტორი"
+      },
+      "t-2": {
+        "quote": "ყველა ამბობდა, რომ ჩვენს ნაკვეთზე კონსოლის გაკეთება შეუძლებელი იყო. MANI DEVELOPMENT-ის ინჟინრებმა ეს საკითხი ხელშეკრულების გაფორმებამდეც კი გადაჭრეს.",
+        "author": "გიორგი და ანა ლომიძეები",
+        "role": "სახლის მეპატრონეები"
+      },
+      "t-3": {
+        "quote": "ყოველკვირეული ანგარიშები, რომლებიც გვიყვებოდა, რა ხდებოდა სინამდვილეში — ცუდი ამბების ჩათვლით. სწორედ ამ გულწრფელობის გამო დავიქირავეთ ისინი ხელახლა.",
+        "author": "ლევან წერეთელი",
+        "role": "აქტივების მენეჯერი"
+      },
+      "t-4": {
+        "quote": "მათ გადაარჩინეს აივნები, რომელთა დანგრევაც სხვა კონტრაქტორებს სურდათ. ეზო ისევ 1890 წელს გავს, უბრალოდ, ფეხის დადგმისას აღარ ირყევა.",
+        "author": "მარიამ ჯაფარიძე",
+        "role": "ამხანაგობის თავმჯდომარე"
+      },
+      "t-5": {
+        "quote": "მშვიდი, მოწესრიგებული ობიექტები და გუნდი, რომელიც ტელეფონს პასუხობს. ეს იმაზე იშვიათია, ვიდრე უნდა იყოს.",
+        "author": "ნინო კვარაცხელია",
+        "role": "სასტუმროს ოპერატორი"
+      }
+    },
+    "team": {
+      "m-1": {
+        "name": "დავით მჭედლიშვილი",
+        "role": "დამფუძნებელი და მმართველი დირექტორი",
+        "bio": "MANI DEVELOPMENT 2009 წელს, თხუთმეტწლიანი სამშენებლო ინჟინრის გამოცდილების შემდეგ დააარსა. პარასკეობით დღემდე ყველა ობიექტს სტუმრობს."
+      },
+      "m-2": {
+        "name": "თამარ გელაშვილი",
+        "role": "საპროექტო კოორდინაციის ხელმძღვანელი",
+        "bio": "განათლებით არქიტექტორი; ხელმძღვანელობს გუნდს, რომელიც ნახაზებს განხორციელებად სამუშაო პაკეტებად აქცევს."
+      },
+      "m-3": {
+        "name": "ირაკლი აბაშიძე",
+        "role": "მთავარი კონსტრუქტორი",
+        "bio": "სეისმური პროექტირებისა და წინასწარ დაძაბული ბეტონის სპეციალისტი."
+      },
+      "m-4": {
+        "name": "სალომე ნატაძე",
+        "role": "დეველოპმენტის დირექტორი",
+        "bio": "მიწის მესაკუთრეებთან და ინვესტორებთან მუშაობს — მიზანშეწონილობის კვლევიდან გაყიდვების სტრატეგიამდე."
+      },
+      "m-5": {
+        "name": "ნიკოლოზ ჩხეიძე",
+        "role": "მშენებლობის ხელმძღვანელი",
+        "bio": "პასუხს აგებს ვადებზე, უსაფრთხოებასა და ხარისხზე ყველა მოქმედ ობიექტზე."
+      },
+      "m-6": {
+        "name": "ქეთევან დოლიძე",
+        "role": "კომერციული დირექტორი",
+        "bio": "ხარჯთაღრიცხვა, შესყიდვები და კონტრაქტები. მიაჩნია, რომ კარგი ბიუჯეტი დიზაინის ინსტრუმენტია."
+      },
+      "m-7": {
+        "name": "ლიკა სვანიძე",
+        "role": "მდგრადი განვითარების ხელმძღვანელი",
+        "bio": "ენერგეტიკული მოდელირება, მასალების შერჩევა და ჩვენი შენობების გრძელვადიანი ეფექტიანობა."
+      },
+      "m-8": {
+        "name": "სანდრო კიკნაძე",
+        "role": "უფროსი პროექტის მენეჯერი",
+        "bio": "ხელმძღვანელობს ბათუმის პროექტებს; მანამდე შავი ზღვის სანაპიროზე სასტუმროები ააშენა."
+      }
+    }
+  },
+  "samplePage": {
+    "headingEn": "Seventeen years, one way of working",
+    "headingKa": "ჩვიდმეტი წელი, მუშაობის ერთი წესი",
+    "paragraphsEn": [
+      "We began with private houses and grew project by project into apartment buildings, workplaces and our own developments. The team is larger now, but the principle has not changed: engineers beside designers, a single accountable lead on every site, and no detail left to be solved with a hammer."
+    ],
+    "paragraphsKa": [
+      "კერძო სახლებით დავიწყეთ და პროექტ-პროექტ მრავალბინიან და საოფისე შენობებამდე, ასევე საკუთარ დეველოპერულ პროექტებამდე გავიზარდეთ. გუნდი დღეს უფრო დიდია, მაგრამ პრინციპი არ შეცვლილა: ინჟინრები დიზაინერების გვერდით, ყოველ ობიექტზე ერთი პასუხისმგებელი ხელმძღვანელი და არც ერთი დეტალი, რომლის გადაწყვეტაც ჩაქუჩით მოგვიწევს."
+    ],
+    "imageCaptionEn": "Engineer marking up construction drawings",
+    "imageCaptionKa": "ინჟინერი სამშენებლო ნახაზებზე შენიშვნებს აკეთებს",
+    "headingRu": "Семнадцать лет — один подход к работе",
+    "paragraphsRu": [
+      "Мы начинали с частных домов и, проект за проектом, выросли до многоквартирных зданий, офисов и собственных девелоперских проектов. Сегодня команда больше, но принцип остался прежним: инженеры работают рядом с проектировщиками, на каждом объекте есть один ответственный руководитель, и ни одна деталь не остаётся на то, чтобы решать её молотком."
+    ],
+    "imageCaptionRu": "Инженер делает пометки на строительных чертежах"
+  },
+  "slideCta": {
+    "ka": "პროექტები",
+    "en": "Projects",
+    "ru": "Проекты"
+  },
+  "ru": {
+    "projects": {
+      "p-vake-terraces": {
+        "title": "Vake Terraces",
+        "summary": "Сорок две ступенчатые резиденции на озеленённом склоне — у каждой собственная терраса-сад.",
+        "description": "Vake Terraces следует рельефу холма, а не спорит с ним. Шесть ступенчатых уровней резиденций опираются на единый каркас из постнапряжённого бетона, поэтому каждый дом выходит на глубокую озеленённую террасу и никто не заглядывает в гостиную соседа.\n\nКонструкция проектировалась с учётом озеленения: толщина почвенного слоя, полив и дренаж были заложены в расчётную модель ещё до того, как начертили первую стену. В результате через десять лет здание будет выглядеть лучше, чем в день сдачи.",
+        "location": "Ваке, Тбилиси",
+        "city": "Тбилиси",
+        "specs": [
+          {
+            "label": "Общая площадь",
+            "value": "14 800 м²"
+          },
+          {
+            "label": "Этажность",
+            "value": "6 ступенчатых уровней"
+          },
+          {
+            "label": "Резиденции",
+            "value": "42"
+          },
+          {
+            "label": "Конструкция",
+            "value": "Каркас из постнапряжённого бетона"
+          },
+          {
+            "label": "Энергоснабжение",
+            "value": "Геотермальные тепловые насосы"
+          }
+        ]
+      },
+      "p-mtatsminda-house": {
+        "title": "Mtatsminda House",
+        "summary": "Семейный дом с консольным объёмом, чьё ленточное окно обрамляет вид на старый город.",
+        "description": "Частная резиденция на крутом участке у подножия Мтацминды. Верхний этаж выступает консолью на семь метров над садом и опирается на две скрытые стальные передаточные балки, благодаря чему первый этаж почти полностью остеклён.\n\nМы возводили дом в стеснённых условиях, с доступом крана только с одной стороны, и выстроили последовательность монтажа металлоконструкций так, чтобы консоль ни разу не пришлось подпирать со стороны соседнего участка.",
+        "location": "Мтацминда, Тбилиси",
+        "city": "Тбилиси",
+        "specs": [
+          {
+            "label": "Общая площадь",
+            "value": "640 м²"
+          },
+          {
+            "label": "Этажность",
+            "value": "3"
+          },
+          {
+            "label": "Вынос консоли",
+            "value": "7,2 м"
+          },
+          {
+            "label": "Конструкция",
+            "value": "Бетонное ядро, стальные передаточные балки"
+          },
+          {
+            "label": "Остекление",
+            "value": "Тройной стеклопакет, осветлённое стекло"
+          }
+        ]
+      },
+      "p-batumi-shoreline": {
+        "title": "Shoreline Residences",
+        "summary": "Двадцатидвухэтажная башня из поставленных друг на друга белых объёмов с видом на Чёрное море.",
+        "description": "Каждая квартира в Shoreline Residences выражена отдельным белым объёмом, слегка смещённым относительно нижнего, — так со стороны моря образуются глубокие затенённые лоджии.\n\nЯдро башни возводится в скользящей опалубке со скоростью примерно один этаж за восемь дней. Фасадные модули изготавливаются вне площадки и монтируются краном, поэтому приморский бульвар весь летний сезон остаётся свободным от строительных лесов.",
+        "location": "Новый бульвар, Батуми",
+        "city": "Батуми",
+        "specs": [
+          {
+            "label": "Общая площадь",
+            "value": "31 200 м²"
+          },
+          {
+            "label": "Этажность",
+            "value": "22"
+          },
+          {
+            "label": "Резиденции",
+            "value": "164"
+          },
+          {
+            "label": "Конструкция",
+            "value": "Ядро в скользящей опалубке, безбалочные перекрытия"
+          },
+          {
+            "label": "Фасад",
+            "value": "Сборные модули из стеклофибробетона"
+          }
+        ]
+      },
+      "p-saburtalo-exchange": {
+        "title": "Saburtalo Exchange",
+        "summary": "Офисное здание класса А со складчатой стеклянной короной и общественной аркадой на первом этаже.",
+        "description": "Saburtalo Exchange пришёл на смену депо 1970-х годов: здесь одиннадцать этажей гибких офисных пространств. Гранёная стеклянная корона скрывает инженерное оборудование и ловит закатное солнце над городом.\n\nНа уровне улицы здание отдаёт пространство городу: вдоль всего участка тянутся крытая аркада, кафе и небольшая общественная площадь.",
+        "location": "Сабуртало, Тбилиси",
+        "city": "Тбилиси",
+        "specs": [
+          {
+            "label": "Общая площадь",
+            "value": "22 400 м²"
+          },
+          {
+            "label": "Этажность",
+            "value": "11 + 2 подземных"
+          },
+          {
+            "label": "Площадь этажа",
+            "value": "1 850 м² без колонн"
+          },
+          {
+            "label": "Конструкция",
+            "value": "Комбинированный каркас из стали и бетона"
+          },
+          {
+            "label": "Фасад",
+            "value": "Элементный навесной фасад"
+          }
+        ]
+      },
+      "p-kakheti-villa": {
+        "title": "Vineyard Villa",
+        "summary": "Невысокая вилла из камня и штукатурки на гребне холма над виноградниками Сигнахи.",
+        "description": "Вилла построена для семьи виноделов и организована вокруг длинной террасы с бассейном, обращённой прямо в долину. Местный камень, известковая штукатурка и дуб выбраны за то, как благородно они стареют под кахетинским солнцем.\n\nВинный погреб под террасой врезан в склон и сохраняет постоянную температуру без механического охлаждения.",
+        "location": "Сигнахи, Кахетия",
+        "city": "Сигнахи",
+        "specs": [
+          {
+            "label": "Общая площадь",
+            "value": "980 м²"
+          },
+          {
+            "label": "Этажность",
+            "value": "2 + погреб"
+          },
+          {
+            "label": "Материалы",
+            "value": "Местный камень, известковая штукатурка, дуб"
+          },
+          {
+            "label": "Бассейн",
+            "value": "28 м, с переливом инфинити"
+          }
+        ]
+      },
+      "p-gudauri-lodge": {
+        "title": "Gudauri Alpine Lodge",
+        "summary": "Деревянный лодж на 36 номеров, рассчитанный на снеговые нагрузки, короткое лето и дальние виды.",
+        "description": "Альпийский отель на высоте 2 200 метров, спланированный с учётом строительного сезона длиной едва пять месяцев в году. Надземная часть выполнена из перекрёстно-клеёной древесины (CLT) на бетонном цоколе, поэтому большую часть здания можно изготовить в долине зимой и быстро смонтировать, как только откроется дорога.\n\nСейчас проект находится на стадии рабочего проектирования и получения разрешений.",
+        "location": "Гудаури, Казбеги",
+        "city": "Гудаури",
+        "specs": [
+          {
+            "label": "Общая площадь",
+            "value": "5 600 м²"
+          },
+          {
+            "label": "Номера",
+            "value": "36"
+          },
+          {
+            "label": "Конструкция",
+            "value": "CLT-панели на бетонном цоколе"
+          },
+          {
+            "label": "Расчётная снеговая нагрузка",
+            "value": "6,0 кН/м²"
+          }
+        ]
+      },
+      "p-sololaki-courtyard": {
+        "title": "Sololaki Courtyard",
+        "summary": "Бережная реконструкция дворового дома 1890-х годов с созданием девяти квартир.",
+        "description": "Тбилисский дворовый дом XIX века с деревянными балконами, спасённый от разрушения конструкций. Каждый исторический балкон был обследован, пронумерован и отреставрирован вне площадки, а новый незаметный стальной каркас теперь несёт перекрытия, которые старые кирпичные стены уже не выдерживали.\n\nДвор, как и прежде, остаётся общим.",
+        "location": "Сололаки, Тбилиси",
+        "city": "Тбилиси",
+        "specs": [
+          {
+            "label": "Общая площадь",
+            "value": "1 450 м²"
+          },
+          {
+            "label": "Квартиры",
+            "value": "9"
+          },
+          {
+            "label": "Сохранено исторических конструкций",
+            "value": "84%"
+          },
+          {
+            "label": "Конструкция",
+            "value": "Новый стальной каркас внутри кладки"
+          }
+        ]
+      },
+      "p-dighomi-quarter": {
+        "title": "Dighomi Quarter",
+        "summary": "Четыре среднеэтажных дома с семейными квартирами вокруг сада, свободного от автомобилей.",
+        "description": "Новый жилой квартал на 210 квартир с детским садом и магазинами на первых этажах. Парковка убрана под землю, поэтому в центре квартала — сад с игровыми площадками, фруктовыми деревьями и беговой дорожкой.\n\nКаркас первой очереди завершён; ведутся фасадные и отделочные работы.",
+        "location": "Диди Дигоми, Тбилиси",
+        "city": "Тбилиси",
+        "specs": [
+          {
+            "label": "Общая площадь",
+            "value": "26 700 м²"
+          },
+          {
+            "label": "Квартиры",
+            "value": "210"
+          },
+          {
+            "label": "Корпуса",
+            "value": "4 × 7 этажей"
+          },
+          {
+            "label": "Парковка",
+            "value": "Подземная, 240 мест"
+          }
+        ]
+      },
+      "p-kutaisi-campus": {
+        "title": "Kutaisi Innovation Campus",
+        "summary": "Малоэтажные исследовательские лаборатории и студии, связанные тенистой общественной аллеей.",
+        "description": "Три связанных здания для исследовательских групп и стартапов. Большепролётные перекрытия сохраняют гибкость лабораторий, а сплошной солнцезащитный экран (брис-солей) закрывает остекление от западного солнца.\n\nКампус строится в две очереди, чтобы первые арендаторы могли въехать, пока завершается второе здание.",
+        "location": "Кутаиси, Имерети",
+        "city": "Кутаиси",
+        "specs": [
+          {
+            "label": "Общая площадь",
+            "value": "18 300 м²"
+          },
+          {
+            "label": "Здания",
+            "value": "3"
+          },
+          {
+            "label": "Пролёты",
+            "value": "12 м без колонн"
+          },
+          {
+            "label": "Конструкция",
+            "value": "Сборный железобетонный каркас"
+          }
+        ]
+      },
+      "p-lisi-pavilion": {
+        "title": "Lisi Lake Pavilion",
+        "summary": "Одноэтажный стеклянный павильон под тонкой парящей кровлей.",
+        "description": "Одноуровневый дом в оболочке из раздвижного остекления под защитой кровельной плиты толщиной 300 мм, которая выступает над террасой на четыре метра. Все инженерные системы проходят через единое центральное ядро, поэтому летом периметр можно открыть полностью.",
+        "location": "Озеро Лиси, Тбилиси",
+        "city": "Тбилиси",
+        "specs": [
+          {
+            "label": "Общая площадь",
+            "value": "420 м²"
+          },
+          {
+            "label": "Этажность",
+            "value": "1"
+          },
+          {
+            "label": "Вынос кровли",
+            "value": "4,0 м"
+          },
+          {
+            "label": "Конструкция",
+            "value": "Постнапряжённая плита покрытия"
+          }
+        ]
+      },
+      "p-tskneti-house": {
+        "title": "Tskneti Forest House",
+        "summary": "Обожжённое дерево и бетон среди сосен над городом.",
+        "description": "Компактный дом для семьи из пяти человек, построенный между соснами, которые заказчик хотел сохранить. Фундамент состоит из небольших отдельных опор, размещённых между корневыми зонами, а деревянная облицовка обожжена для долговечности.",
+        "location": "Цхнети, Тбилиси",
+        "city": "Тбилиси",
+        "specs": [
+          {
+            "label": "Общая площадь",
+            "value": "310 м²"
+          },
+          {
+            "label": "Этажность",
+            "value": "2"
+          },
+          {
+            "label": "Облицовка",
+            "value": "Обожжённая лиственница"
+          },
+          {
+            "label": "Фундамент",
+            "value": "Столбчатые фундаменты между корневыми зонами"
+          }
+        ]
+      },
+      "p-boulevard-hotel": {
+        "title": "Boulevard Hotel",
+        "summary": "Изогнутый четырнадцатиэтажный отель, балконы которого повторяют линию бухты.",
+        "description": "Каждый этаж в плане немного отличается от соседнего, и так возникает плавный изгиб фасада. Вместе с инженерами мы разработали оборачиваемую опалубочную систему, позволившую бетонировать криволинейные края плит без индивидуальной опалубки на каждом этаже.",
+        "location": "Старый бульвар, Батуми",
+        "city": "Батуми",
+        "specs": [
+          {
+            "label": "Общая площадь",
+            "value": "17 900 м²"
+          },
+          {
+            "label": "Этажность",
+            "value": "14"
+          },
+          {
+            "label": "Номера",
+            "value": "188"
+          },
+          {
+            "label": "Конструкция",
+            "value": "Безбалочные плиты, регулируемая бортовая опалубка"
+          }
+        ]
+      }
+    },
+    "services": {
+      "s-residential": {
+        "title": "Строительство частных домов",
+        "summary": "Частные дома и виллы, построенные с вниманием мастерской и дисциплиной крупной стройки.",
+        "description": "От крутых городских участков до отдалённых виноградников — мы строим индивидуальные дома там, где важна точность. Один руководитель проекта сопровождает вас от земляных работ до сдачи объекта.",
+        "features": [
+          "Проектирование и строительство или только строительство",
+          "Договоры с фиксированной ценой",
+          "Детально проработанные пакеты отделки",
+          "Гарантийное обслуживание 12 месяцев"
+        ]
+      },
+      "s-planning": {
+        "title": "Архитектурное планирование",
+        "summary": "Участие на ранней стадии: объёмы, технологичность и бюджет — до того, как проект утверждён.",
+        "description": "Мы подключаемся к работе архитекторов на стадии концепции, чтобы оценить, сколько будет стоить здание и как его будут строить, — так смелый замысел не теряется при встрече с реальной площадкой.",
+        "features": [
+          "Анализ технологичности строительства",
+          "Планирование затрат",
+          "Изучение участка и разрешительной документации",
+          "BIM-координация"
+        ]
+      },
+      "s-structural": {
+        "title": "Конструкторское проектирование",
+        "summary": "Собственные инженеры, которые моделируют, проверяют и контролируют каждый возводимый нами каркас.",
+        "description": "Наша инженерная команда работает вместе с внешними консультантами, оптимизируя конструкции по расходу материалов, скорости возведения и сейсмостойкости.",
+        "features": [
+          "Экспертиза сейсмического расчёта",
+          "Постнапряжённые плиты перекрытия",
+          "Проектирование временных конструкций",
+          "Технический надзор на площадке"
+        ]
+      },
+      "s-renovation": {
+        "title": "Реконструкция и реставрация",
+        "summary": "Исторические и существующие здания: усиливаем, приспосабливаем и возвращаем к жизни.",
+        "description": "Сначала мы проводим обследование и только потом предлагаем решения: сохраняем всё, что можно спасти, и добавляем лишь необходимое, а там, где это требуется, согласуем методы с органами охраны наследия.",
+        "features": [
+          "Обследование технического состояния",
+          "Усиление конструкций",
+          "Реставрация объектов наследия",
+          "Работы в эксплуатируемых зданиях"
+        ]
+      },
+      "s-management": {
+        "title": "Управление проектами",
+        "summary": "Независимое управление сроками, бюджетом и качеством для собственников и инвесторов.",
+        "description": "Клиентам, которые ведут проекты самостоятельно, мы предоставляем опытных руководителей проектов, которые каждую неделю честно отчитываются о сроках, затратах и рисках.",
+        "features": [
+          "Контроль графика работ",
+          "Отчётность по затратам",
+          "Выбор подрядчиков",
+          "Еженедельные отчёты для заказчика"
+        ]
+      },
+      "s-apartments": {
+        "title": "Строительство многоквартирных домов",
+        "summary": "Многоквартирные здания, которые сдаются поэтапно — с учётом продаж и передачи квартир.",
+        "description": "Мы работаем с девелоперами и владельцами земли над проектами любого масштаба — от точечной застройки на девять квартир до целых жилых кварталов, координируя проектирование, закупки и последовательность работ, чтобы жильцы могли заселиться вовремя.",
+        "features": [
+          "Технико-экономическое обоснование и этапность",
+          "Сборные фасадные системы",
+          "Подготовка демонстрационной квартиры",
+          "Устранение замечаний и дефектов"
+        ]
+      },
+      "s-commercial": {
+        "title": "Коммерческое строительство",
+        "summary": "Офисы, лаборатории и гостиничные здания, которые десятилетиями сохраняют гибкость.",
+        "description": "Большепролётные конструкции, сложные инженерные системы и логистика на действующих объектах. Мы планируем коммерческие здания исходя из того, как арендаторы будут их использовать и менять.",
+        "features": [
+          "Каркас и оболочка, внутренняя отделка",
+          "Координация инженерных систем",
+          "Поэтапный ввод в эксплуатацию",
+          "Управление изменениями по запросам арендаторов"
+        ]
+      }
+    },
+    "team": {
+      "m-1": {
+        "name": "Давид Мчедлишвили",
+        "role": "Основатель и управляющий директор",
+        "bio": "Основал MANI DEVELOPMENT в 2009 году после пятнадцати лет работы инженером на стройплощадке. До сих пор каждую пятницу объезжает все объекты."
+      },
+      "m-2": {
+        "name": "Тамар Гелашвили",
+        "role": "Руководитель отдела координации проектирования",
+        "bio": "Архитектор по образованию; руководит командой, которая превращает чертежи в готовую к строительству документацию."
+      },
+      "m-3": {
+        "name": "Ираклий Абашидзе",
+        "role": "Главный инженер-конструктор",
+        "bio": "Специалист по сейсмостойкому проектированию и постнапряжённому бетону."
+      },
+      "m-4": {
+        "name": "Саломе Натадзе",
+        "role": "Директор по девелопменту",
+        "bio": "Работает с владельцами земли и инвесторами — от технико-экономического обоснования до стратегии продаж."
+      },
+      "m-5": {
+        "name": "Николоз Чхеидзе",
+        "role": "Руководитель строительства",
+        "bio": "Отвечает за график, безопасность и качество на всех действующих объектах."
+      },
+      "m-6": {
+        "name": "Кетеван Долидзе",
+        "role": "Коммерческий директор",
+        "bio": "Планирование затрат, закупки и договоры. Уверена, что хороший бюджет — это инструмент проектирования."
+      },
+      "m-7": {
+        "name": "Лика Сванидзе",
+        "role": "Руководитель направления устойчивого развития",
+        "bio": "Энергетическое моделирование, выбор материалов и долгосрочная эффективность наших зданий."
+      },
+      "m-8": {
+        "name": "Сандро Кикнадзе",
+        "role": "Старший руководитель проектов",
+        "bio": "Ведёт проекты в Батуми; ранее реализовал ряд гостиничных проектов на побережье Чёрного моря."
+      }
+    },
+    "testimonials": {
+      "t-1": {
+        "quote": "Они отнеслись к склону как к части здания. Прошло две зимы — и террасы зазеленели именно так, как было обещано в чертежах.",
+        "author": "Эка Беридзе",
+        "role": "Директор по девелопменту"
+      },
+      "t-2": {
+        "quote": "Все говорили, что консоль на нашем участке сделать невозможно. Инженеры MANI DEVELOPMENT нашли решение ещё до того, как мы подписали договор.",
+        "author": "Гиорги и Ана Ломидзе",
+        "role": "Владельцы дома"
+      },
+      "t-3": {
+        "quote": "Еженедельные отчёты, из которых мы знали, что происходит на самом деле, — включая плохие новости. Именно за эту честность мы снова выбрали их.",
+        "author": "Леван Церетели",
+        "role": "Управляющий активами"
+      },
+      "t-4": {
+        "quote": "Они спасли балконы, которые другие подрядчики хотели снести. Во дворе снова чувствуешь себя как в 1890 году, только теперь ничего не шатается под ногами.",
+        "author": "Мариам Джапаридзе",
+        "role": "Председатель ассоциации жильцов"
+      },
+      "t-5": {
+        "quote": "Спокойные, аккуратные стройплощадки и команда, которая всегда отвечает на звонки. Такое встречается реже, чем должно бы.",
+        "author": "Нино Кварацхелия",
+        "role": "Управляющая отелем"
+      }
+    }
+  }
+}
