@@ -1,8 +1,9 @@
 import { useId, type ComponentProps, type ReactNode } from "react";
+import { ChevronDown } from "lucide-react";
 import { cx } from "@/lib/format";
 
 export const inputClass =
-  "w-full rounded-[3px] border border-line-strong bg-card px-3.5 py-2.5 text-[0.95rem] text-ink placeholder:text-muted/80 transition-[border-color,box-shadow] duration-200 hover:border-ink/40 focus:border-ink focus:outline-none focus:ring-2 focus:ring-accent/25 aria-invalid:border-danger aria-invalid:ring-danger/20 disabled:opacity-60";
+  "w-full rounded-[3px] border border-line-strong bg-card px-3.5 py-2.5 text-[0.95rem] text-ink placeholder:text-muted transition-[border-color,box-shadow] duration-200 hover:border-ink/40 focus:border-ink focus:outline-none focus:ring-2 focus:ring-accent/25 aria-invalid:border-danger aria-invalid:ring-danger/20 disabled:opacity-60";
 
 type FieldProps = {
   label: string;
@@ -22,7 +23,7 @@ export function Field({ label, error, hint, required, className, children }: Fie
       <label htmlFor={id} className="text-[0.82rem] font-medium text-ink-soft">
         {label}
         {required && (
-          <span aria-hidden className="ml-0.5 text-accent">
+          <span aria-hidden className="ml-0.5 text-muted">
             *
           </span>
         )}
@@ -55,16 +56,12 @@ export function Textarea({ className, ...props }: ComponentProps<"textarea">) {
 
 export function Select({ className, children, ...props }: ComponentProps<"select">) {
   return (
-    <select
-      className={cx(
-        inputClass,
-        "h-11 appearance-none bg-[url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236a665f' stroke-width='2'><path d='m6 9 6 6 6-6'/></svg>\")] bg-position-[right_0.9rem_center] bg-no-repeat pr-9",
-        className,
-      )}
-      {...props}
-    >
-      {children}
-    </select>
+    <span className="relative block">
+      <select className={cx(inputClass, "h-11 appearance-none pr-10", className)} {...props}>
+        {children}
+      </select>
+      <ChevronDown aria-hidden className="pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 text-muted" strokeWidth={1.75} />
+    </span>
   );
 }
 

@@ -104,7 +104,7 @@ export const CHROME_STYLE: CssVars = {
   "--card": "#faf8f4",
   "--ink": "#151617",
   "--ink-soft": "#3f4043",
-  "--muted": "#6a665f",
+  "--muted": "#66625b",
   "--line": "rgb(21 22 23 / 0.12)",
   "--line-strong": "rgb(21 22 23 / 0.24)",
   "--accent": "#ad4e28",
@@ -112,7 +112,7 @@ export const CHROME_STYLE: CssVars = {
   "--accent-ink": "#fff8f2",
   "--danger": "#a3372a",
   "--danger-soft": "#f4dcd6",
-  "--warn": "#8f6115",
+  "--warn": "#855a12",
   "--warn-soft": "#f2e6cc",
   "--ok": "#3a6b4b",
 };

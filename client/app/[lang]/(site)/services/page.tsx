@@ -41,7 +41,7 @@ export default async function ServicesPage() {
           <ol className="mt-12 grid gap-px overflow-hidden rounded-[2px] bg-white/10 sm:grid-cols-2 xl:grid-cols-5">
             {steps.map(({ title, body }, i) => (
               <li key={title} className="bg-night p-6 lg:p-7">
-                <p className="t-meta text-accent">0{i + 1}</p>
+                <p className="t-meta text-night-muted">0{i + 1}</p>
                 <h3 className="mt-3 text-[1.05rem] font-semibold">{title}</h3>
                 <p className="mt-2 text-[0.92rem] leading-relaxed text-night-muted">{body}</p>
               </li>

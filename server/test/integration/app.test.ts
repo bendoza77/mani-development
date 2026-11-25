@@ -1,5 +1,7 @@
+import { Writable } from "node:stream";
 import request from "supertest";
 import { afterAll, describe, expect, it } from "vitest";
+import { createLogger } from "../../src/lib/logger.js";
 import { ALLOWED_ORIGIN, buildTestApp } from "../helpers/app.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -14,6 +16,62 @@ describe("GET /api/health/live", () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ status: "ok" });
     expect(res.headers["cache-control"]).toBe("no-store");
+  });
+});
+
+describe("public caching", () => {
+  it("lets shared caches keep public reads for a minute", async () => {
+    const res = await request(app).get("/api/public/settings?locale=ka");
+
+    expect(res.status).toBe(200);
+    expect(res.headers["cache-control"]).toBe("public, max-age=0, s-maxage=60, stale-while-revalidate=300");
+    // CORS headers depend on the Origin, so a shared cache must keep one copy per Origin.
+    expect(res.headers.vary).toMatch(/\bOrigin\b/);
+  });
+
+  it("keeps the reads that must be fresh out of shared caches", async () => {
+    // Admin-built pages show edits at once, and the address lookup decides 404s and redirects.
+    const page = await request(app).get("/api/public/pages/about?locale=ka");
+    const resolve = await request(app).get("/api/public/resolve?path=/no-such-page");
+
+    expect(page.status).toBe(200);
+    expect(page.headers["cache-control"]).toBe("no-store");
+    expect(resolve.status).toBe(200);
+    expect(resolve.headers["cache-control"]).toBe("no-store");
+  });
+
+  it("never caches an error, even on a public route", async () => {
+    const missing = await request(app).get("/api/public/projects/no-such-project");
+    const invalid = await request(app).get("/api/public/settings?locale=fr");
+
+    expect(missing.status).toBe(404);
+    expect(missing.headers["cache-control"]).toBe("no-store");
+    expect(invalid.status).toBe(400);
+    expect(invalid.headers["cache-control"]).toBe("no-store");
+  });
+
+  it("keeps admin and sign-in answers out of every cache", async () => {
+    const res = await request(app).get("/api/auth/session");
+
+    expect(res.status).toBe(401);
+    expect(res.headers["cache-control"]).toBe("no-store");
+  });
+});
+
+describe("request logging", () => {
+  it("logs real requests but not the health probes the host sends every few seconds", async () => {
+    const lines: string[] = [];
+    const logger = createLogger("info", new Writable({ write: (chunk, _enc, done) => (lines.push(String(chunk)), done()) }));
+    const logged = buildTestApp({ logger });
+    try {
+      await request(logged.app).get("/api/health/live");
+      await request(logged.app).get("/api/health/ready");
+      await request(logged.app).get("/api/public/settings?locale=ka");
+      const urls = lines.map((l) => (JSON.parse(l) as { req?: { url?: string } }).req?.url).filter(Boolean);
+      expect(urls).toEqual(["/api/public/settings?locale=ka"]);
+    } finally {
+      await logged.close();
+    }
   });
 });
 

@@ -258,6 +258,8 @@ export type ProjectPatch = { status?: ProjectStatus; progress?: number; featured
 export type ProjectInput = ProjectFields & { coverId: string; galleryIds: string[]; seo?: SeoFields };
 export type AdminProject = ProjectFields & {
   id: string;
+  /** Place in the website's project lists, 0 = first (set from the admin list). */
+  position: number;
   seo?: SeoFields;
   cover: ApiImage;
   gallery: ApiImage[];

@@ -115,8 +115,8 @@ export function SiteHeader({ menus }: { menus?: Menus | null }) {
             <Logo />
           </Link>
 
-          {/* The full menu needs xl. Georgian menu labels run long, so in Georgian the full menu waits for 2xl; below that the menu button covers it. */}
-          <nav aria-label={t("a11y.primaryNav")} className="hidden xl:block xl:max-2xl:[:lang(ka)_&]:hidden">
+          {/* The full menu needs xl, in every language; below that the menu button covers it. */}
+          <nav aria-label={t("a11y.primaryNav")} className="hidden xl:block">
             <ul className="flex items-center gap-1">
               {header.map((item) => (
                 <li key={item.href}>
@@ -135,7 +135,7 @@ export function SiteHeader({ menus }: { menus?: Menus | null }) {
           </nav>
 
           <div className="flex items-center gap-2">
-            <LanguageSwitcher className="max-xl:hidden max-2xl:[:lang(ka)_&]:hidden" />
+            <LanguageSwitcher className="max-xl:hidden" />
             {/* Icon-only below xl (44px tap target on phones); the full number shows on wide screens.
                 Under 360px the brand name needs the room, and the number stays in the menu. */}
             {tel && (
@@ -161,7 +161,7 @@ export function SiteHeader({ menus }: { menus?: Menus | null }) {
             </ButtonLink>
             <button
               type="button"
-              className="-mr-2 grid size-11 place-items-center rounded-[3px] xl:hidden xl:max-2xl:[:lang(ka)_&]:grid"
+              className="-mr-2 grid size-11 place-items-center rounded-[3px] xl:hidden"
               aria-label={t("a11y.openMenu")}
               aria-haspopup="dialog"
               aria-expanded={menuOpen}

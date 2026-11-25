@@ -30,7 +30,7 @@ export function Logo({ className, compact = false }: { className?: string; compa
           {name}
         </span>
         {!compact && tagline && (
-          <span className="mt-1 whitespace-nowrap font-mono text-[0.58rem] uppercase tracking-[0.18em] opacity-60 max-sm:hidden">{tagline}</span>
+          <span className="mt-1.5 whitespace-nowrap text-[0.72rem] opacity-75 max-sm:hidden">{tagline}</span>
         )}
       </span>
     </span>

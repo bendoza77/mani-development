@@ -65,6 +65,33 @@ describe("admin projects", () => {
     expect(photo.status).toBe(422);
   });
 
+  it("reorders projects and lists them in that order, putting a new project last", async () => {
+    const ids: Record<string, string> = {};
+    for (const slug of ["a", "b", "c"]) ids[slug] = (await send("post", "/api/admin/projects", projectInput(coverId, { slug }))).body.id;
+
+    const res = await send("put", "/api/admin/projects/order", { ids: [ids.c, ids.a, ids.b] });
+    await send("post", "/api/admin/projects", projectInput(coverId, { slug: "d" }));
+
+    const slugs = (body: { items: { slug: string }[] }) => body.items.map((p) => p.slug);
+    expect(res.status).toBe(200);
+    expect(slugs(res.body)).toEqual(["c", "a", "b"]);
+    expect(slugs((await request(app).get("/api/admin/projects").set("Cookie", cookie)).body)).toEqual(["c", "a", "b", "d"]);
+    expect(slugs((await request(app).get("/api/public/projects?locale=ka")).body)).toEqual(["c", "a", "b", "d"]);
+  });
+
+  it("refuses an order that misses or repeats a project", async () => {
+    const a = (await send("post", "/api/admin/projects", projectInput(coverId, { slug: "a" }))).body.id;
+    const b = (await send("post", "/api/admin/projects", projectInput(coverId, { slug: "b" }))).body.id;
+
+    const missing = await send("put", "/api/admin/projects/order", { ids: [a] });
+    const repeated = await send("put", "/api/admin/projects/order", { ids: [a, a] });
+
+    expect(missing.status).toBe(400);
+    expect(repeated.status).toBe(400);
+    const list = await request(app).get("/api/admin/projects").set("Cookie", cookie);
+    expect(list.body.items.map((p: { id: string }) => p.id)).toEqual([a, b]);
+  });
+
   it("deletes a project", async () => {
     const created = await send("post", "/api/admin/projects", projectInput(coverId));
 
@@ -92,5 +119,20 @@ describe("public projects", () => {
     expect(detail.body).toMatchObject({ description: "აღწერა", specs: [{ label: "Area", value: "240 მ²" }] });
     expect(en.body.items[0]).not.toHaveProperty("isPublished");
     expect(draft.status).toBe(404);
+  });
+
+  it("lists cards with the cover only, while the detail keeps the gallery and specs", async () => {
+    const galleryId = (await uploadImage(app, cookie)).id;
+    await send("post", "/api/admin/projects", projectInput(coverId, { galleryIds: [galleryId] }));
+
+    const list = await request(app).get("/api/public/projects?locale=ka");
+    const detail = await request(app).get("/api/public/projects/vake-house?locale=ka");
+
+    expect(Object.keys(list.body.items[0]).sort()).toEqual(
+      ["category", "city", "completionDate", "cover", "estimatedCompletion", "featured", "id", "location", "progress", "slug", "startDate", "status", "summary", "title", "updatedAt"],
+    );
+    expect(list.body.items[0].cover).toMatchObject({ id: coverId });
+    expect(detail.body.gallery.map((g: { id: string }) => g.id)).toEqual([galleryId]);
+    expect(detail.body.specs).toHaveLength(1);
   });
 });

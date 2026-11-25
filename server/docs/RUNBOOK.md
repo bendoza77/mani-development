@@ -82,6 +82,7 @@ Tick each with evidence (a screenshot or the command output).
 - [ ] `curl -I https://www.manidevelopment.ge` → `200`, **no** `X-Robots-Tag: noindex`
 - [ ] Sign in to `/admin` in Safari, Chrome and Firefox
 - [ ] Upload a photo, use it in a project, publish, see it on the public site in both languages
+- [ ] Flexible variants work: `curl -I https://imagedelivery.net/<account hash>/<image id>/w=640,q=80` → `200` (the site asks for sized copies; without this every uploaded photo falls back to its full-size original)
 - [ ] Rename a published project's address → the old address answers `308` to the new one
 - [ ] An unknown address answers `404`
 - [ ] Send the contact form → the inquiry appears in the admin inbox **and** the email arrives at `info@`

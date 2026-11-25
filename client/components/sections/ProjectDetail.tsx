@@ -108,7 +108,8 @@ export function ProjectDetail({ project: p, related }: { project: Project; relat
                     className={cx(
                       "grid size-7 shrink-0 place-items-center rounded-full border text-[0.7rem]",
                       st === "done" && "border-ink bg-ink text-paper",
-                      st === "active" && "border-accent text-accent",
+                      // The darker clay keeps the small number at 4.5:1 on the stage band.
+                      st === "active" && "border-accent text-accent-hover",
                       st === "upcoming" && "border-line-strong text-muted",
                     )}
                   >

@@ -30,15 +30,14 @@
   },
   "footer": {
     "ctaEyebrow": "Start a project",
-    "ctaTitle": "A plot, a sketch or just a question? <em>Let’s talk.</em>",
+    "ctaTitle": "A house, a building or just a question? <em>Let’s talk.</em>",
     "ctaBody": "We usually reply within two working days. First conversations and site visits are free.",
     "ctaButton": "Send us a message",
     "orCall": "Or call",
     "contact": "Contact",
     "explore": "Explore",
     "follow": "Follow",
-    "copyright": "© 2026 {{company}}.",
-    "admin": "Admin demo"
+    "copyright": "© 2026 {{company}}."
   },
   "category": {
     "residential": "Private houses",

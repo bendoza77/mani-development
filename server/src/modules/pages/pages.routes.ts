@@ -207,12 +207,15 @@ export function publicPageRoutes({ config, prisma }: { config: Config; prisma: P
 
   router.get("/:slug", async (req, res) => {
     const { locale } = parse(localeQuery, req.query);
-    const page = await prisma.page.findFirst({
-      where: { slug: String(req.params.slug), isPublished: true },
-      include: withBlocks,
-    });
+    // Both reads at once: the settings row (SEO fallbacks) doesn't depend on the page.
+    const [page, settings] = await Promise.all([
+      prisma.page.findFirst({
+        where: { slug: String(req.params.slug), isPublished: true },
+        include: withBlocks,
+      }),
+      prisma.siteSettings.findUniqueOrThrow({ where: { id: 1 }, include: { defaultOgImage: true } }),
+    ]);
     if (!page) throw notFound();
-    const settings = await prisma.siteSettings.findUniqueOrThrow({ where: { id: 1 }, include: { defaultOgImage: true } });
     const title = pick(page.titleKa, page.titleEn, page.titleRu, locale);
     const intro = pick(page.introKa, page.introEn, page.introRu, locale);
     res.json({

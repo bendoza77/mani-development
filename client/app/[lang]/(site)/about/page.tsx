@@ -66,7 +66,7 @@ export default async function AboutPage() {
           <ol className="grid gap-px overflow-hidden rounded-[2px] bg-white/10 sm:grid-cols-2 lg:col-span-7">
             {t("mission.values", { returnObjects: true }).map((v) => (
               <li key={v.title} className="bg-night p-7">
-                <h3 className="text-[1.1rem] font-semibold">{v.title}</h3>
+                <h3 className="text-[1.1rem] font-semibold text-balance">{v.title}</h3>
                 <p className="mt-2 text-[0.95rem] leading-relaxed text-night-muted">{v.body}</p>
               </li>
             ))}
@@ -82,7 +82,7 @@ export default async function AboutPage() {
               <dd className="mt-3 font-display text-[clamp(2.6rem,1.8rem+3vw,4.5rem)] leading-none tabular-nums tracking-[-0.04em]">
                 {s.value}
               </dd>
-              <dd className="mt-2 text-[0.85rem] text-muted">{s.note}</dd>
+              <dd className="mt-2 text-[0.85rem] text-pretty text-muted">{s.note}</dd>
             </div>
           ))}
         </dl>
@@ -111,7 +111,7 @@ export default async function AboutPage() {
           <ol className="relative mt-14 border-l border-line-strong lg:mt-16 xl:grid xl:grid-cols-7 xl:border-t xl:border-l-0">
             {t("milestones.items", { returnObjects: true }).map(({ year, title, body }) => (
               <li key={year} className="relative pb-10 pl-7 xl:pt-8 xl:pr-5 xl:pb-0 xl:pl-0">
-                <span aria-hidden className="absolute top-1.5 -left-[5px] size-[9px] rotate-45 bg-accent xl:-top-[5px] xl:left-0" />
+                <span aria-hidden className="absolute top-1.5 -left-[5px] size-[9px] rotate-45 bg-ink xl:-top-[5px] xl:left-0" />
                 <p className="font-display text-3xl tabular-nums">{year}</p>
                 <h3 className="mt-3 text-[0.98rem] font-semibold">{title}</h3>
                 <p className="mt-1.5 text-[0.88rem] leading-relaxed text-ink-soft">{body}</p>

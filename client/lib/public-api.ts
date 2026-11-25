@@ -6,6 +6,7 @@
 // /api/revalidate handler can refresh it on demand. Nothing here throws: when the API can't be
 // reached the site renders with empty lists and default settings instead of failing.
 import { cacheLife, cacheTag } from "next/cache";
+import { cache } from "react";
 import type { ProjectCard, ProjectDetail, PublicPage } from "./api";
 import {
   EMPTY_SETTINGS,
@@ -127,8 +128,13 @@ export async function getProject(slug: string, locale: Locale): Promise<ProjectW
 
 export type PageWithSeo = PublicPage & { seo?: PublicSeo };
 
-/** Uncached page read: custom pages render on each request so admin edits show at once. */
-export async function fetchPage(slug: string, locale: Locale): Promise<PageWithSeo | null | undefined> {
+/**
+ * Uncached page read: custom pages render on each request so admin edits show at once.
+ * `cache` shares one read between generateMetadata and the page in the same request (Next.js's own
+ * fetch memoization doesn't apply: each call passes a new timeout signal). Measured: two API reads
+ * per page view before, one after.
+ */
+export const fetchPage = cache(async function fetchPage(slug: string, locale: Locale): Promise<PageWithSeo | null | undefined> {
   if (!SLUG_RE.test(slug)) return null;
   try {
     const res = await fetch(`${API_BASE}/api/public/pages/${slug}?locale=${locale}`, {
@@ -141,7 +147,7 @@ export async function fetchPage(slug: string, locale: Locale): Promise<PageWithS
   } catch {
     return undefined;
   }
-}
+});
 
 /** Search fields of a page record (the fixed pages have one too: home, services, projects…). */
 export async function getPageSeo(slug: string, locale: Locale): Promise<PublicSeo | null> {
