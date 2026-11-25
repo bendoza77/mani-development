@@ -47,7 +47,7 @@ export async function ServicesList() {
                 <ul className="mt-5 grid gap-x-6 border-t border-line xl:grid-cols-2">
                   {s.features.map((f) => (
                     <li key={f} className="flex items-center gap-3 border-b border-line py-2.5 text-[0.9rem]">
-                      <span aria-hidden className="size-1.5 shrink-0 rotate-45 bg-accent" />
+                      <span aria-hidden className="size-1.5 shrink-0 rotate-45 bg-muted" />
                       {f}
                     </li>
                   ))}

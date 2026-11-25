@@ -30,6 +30,10 @@ export function Slider({ slides, priority = false }: { slides: PublicSlide[]; pr
   const [focused, setFocused] = useState(false);
   const reduced = useReducedMotion();
   const count = slides.length;
+  // Slides shown so far. A slide's photo loads once it or the slide before it has been shown, so the
+  // next one is ready to slide in and the rest wait (browsers fetch every "lazy" slide in the row).
+  const [seen, setSeen] = useState<ReadonlySet<number>>(() => new Set([0]));
+  if (!seen.has(index)) setSeen(new Set(seen).add(index));
 
   const go = useCallback(
     (next: number) => {
@@ -112,13 +116,17 @@ export function Slider({ slides, priority = false }: { slides: PublicSlide[]; pr
               aria-label={t("slider.position", { n: i + 1, total: count })}
               inert={i !== index}
             >
-              <Img
-                src={s.image.src}
-                alt={s.image.alt}
-                sizes="(min-width: 1440px) 1360px, 100vw"
-                preload={priority && i === 0}
-                quality={80}
-              />
+              {seen.has(i) || seen.has(i - 1) ? (
+                <Img
+                  src={s.image.src}
+                  alt={s.image.alt}
+                  sizes="(min-width: 1440px) 1360px, 100vw"
+                  preload={priority && i === 0}
+                  quality={80}
+                />
+              ) : (
+                <div aria-hidden className="absolute inset-0 bg-paper-2" />
+              )}
               <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
               {/* A second, sideways scrim behind the caption so it stays legible over bright, busy photos. */}
               <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/10 to-transparent max-sm:hidden" />

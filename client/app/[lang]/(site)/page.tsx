@@ -30,6 +30,9 @@ export default async function HomePage() {
     getReviews(),
     getSettings(locale),
   ]);
+  // Written out here, on the server: some browsers have no Georgian month names, and would print a
+  // different text than the server. Fixed time zone so every visitor sees the same month.
+  const reviewDate = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric", timeZone: "Asia/Tbilisi" });
   return (
     <>
       <JsonLd data={[websiteJsonLd(settings, locale), contractorJsonLd(settings, locale)]} />
@@ -40,7 +43,7 @@ export default async function HomePage() {
       <FeaturedProjects />
       <AboutSection />
       <Testimonials items={testimonials} />
-      <Reviews items={reviews} />
+      <Reviews items={reviews.map((r) => ({ ...r, dateText: reviewDate.format(new Date(r.createdAt)) }))} />
     </>
   );
 }

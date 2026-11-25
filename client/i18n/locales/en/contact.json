@@ -1,8 +1,8 @@
 {
   "page": {
     "eyebrow": "Contact",
-    "title": "Tell us about <em>your site</em>",
-    "lead": "A plot, a sketch, a set of drawings or just a question. We read every message and usually reply within two working days.",
+    "title": "Tell us what <em>you’re planning</em>",
+    "lead": "A house on your own plot, an apartment in one of our buildings, a building for your business, or just a question. We read every message and usually reply within two working days.",
     "detailsLabel": "Contact information",
     "formTitle": "Send us a message"
   },
@@ -20,16 +20,24 @@
     "viewOnMap": "View on Google Maps"
   },
   "actions": {
-    "whatsappMessage": "Hello {{company}}, I would like to ask about building a house."
+    "whatsappMessage": "Hello {{company}}, I have a question about a project."
   },
   "form": {
     "name": "Full name",
     "email": "Email",
     "phone": "Phone",
-    "subject": "Subject",
+    "subject": "What are you planning?",
+    "subjectChoose": "Choose one",
+    "topics": {
+      "house": "Building a private house",
+      "apartment": "Buying an apartment",
+      "business": "A commercial building",
+      "renovation": "A renovation",
+      "other": "Something else"
+    },
     "message": "Message",
     "optional": "Optional",
-    "messagePlaceholder": "Where is the site, what are you planning, and when would you like to start?",
+    "messagePlaceholder": "Where is it, what do you have in mind, and when would you like to start?",
     "note": "We use your details only to answer your message. We usually reply within two working days.",
     "submit": "Send message",
     "sending": "Sending…",
@@ -44,7 +52,7 @@
     "name": "Please enter your name.",
     "email": "Enter a valid email address, like name@example.com.",
     "phone": "Use digits, spaces and + ( ) - only, at least 7 digits.",
-    "subject": "Add a short subject.",
+    "subject": "Choose what you’re planning.",
     "message": "Tell us a little more (at least 20 characters, {{length}} so far)."
   },
   "toast": {
@@ -55,7 +63,7 @@
   },
   "success": {
     "title": "Thank you, {{name}}.",
-    "body": "Your message about <strong>{{subject}}</strong> has been recorded.",
+    "body": "Your message on “<strong>{{subject}}</strong>” has been recorded.",
     "note": "We’ll reply to the email address you gave us. If it’s urgent, please call us.",
     "again": "Send another message"
   },

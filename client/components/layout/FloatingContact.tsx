@@ -1,8 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { MessengerIcon, WhatsAppIcon } from "@/components/brand/ChannelIcons";
 import { ContactLink } from "@/components/contact/ContactLink";
+import { splitLocale } from "@/i18n/config";
 import { useTranslation } from "@/i18n/client";
 import { cx } from "@/lib/format";
 import { contactHref } from "@/lib/public-types";
@@ -13,12 +15,14 @@ const circle =
 
 /**
  * WhatsApp and Messenger buttons fixed to the bottom-right corner of every public page. Each one
- * appears only when its number or username is filled in under Admin → Settings.
+ * appears only when its number or username is filled in under Admin → Settings. The Contact page
+ * lists the same channels in its own content, so the buttons stay off it rather than cover its map.
  */
 export function FloatingContact() {
   const { t } = useTranslation("common");
   const { t: tc } = useTranslation("contact");
   const settings = useSiteSettings();
+  const onContactPage = splitLocale(usePathname()).path === "/contact";
   const whatsapp = contactHref("whatsapp", settings);
 
   const channels = [
@@ -41,6 +45,7 @@ export function FloatingContact() {
     },
   ];
 
+  if (onContactPage) return null;
   if (!channels.some((c) => c.href) && process.env.NODE_ENV !== "development") return null;
 
   return (

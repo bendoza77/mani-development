@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition, type ReactNode } from "react";
 import { Pencil } from "lucide-react";
+import { hasAdminHint, setAdminHint } from "@/lib/admin-hint";
 import { API_URL } from "@/lib/api";
 import { CHROME_STYLE } from "@/lib/style";
 
@@ -29,11 +30,14 @@ export function EditablePage({ pageId, children }: { pageId: string; children: R
   const [, startTransition] = useTransition();
 
   useEffect(() => {
+    // Only browsers where an admin has signed in ask (lib/admin-hint.ts); visitors send nothing.
+    if (!hasAdminHint()) return;
     const ctrl = new AbortController();
-    // Browser only, with the session cookie. Visitors get a 401 and nothing changes.
+    // Browser only, with the session cookie. An ended session answers 401 and clears the hint.
     fetch(`${API_URL}/api/auth/session`, { credentials: "include", signal: ctrl.signal }).then(
       (res) => {
         if (res.ok) setIsAdmin(true);
+        else if (res.status === 401) setAdminHint(false);
       },
       () => {},
     );

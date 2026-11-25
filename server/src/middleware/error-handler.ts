@@ -40,6 +40,8 @@ export function errorHandler(logger: Logger) {
 
     const requestId = String(req.id);
     const appError = toAppError(error);
+    // Public routes allow shared caching of their answers; an error must never be kept.
+    res.set("Cache-Control", "no-store");
 
     if (!appError) {
       (req.log ?? logger).error({ err: error }, "unhandled error");

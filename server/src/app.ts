@@ -62,6 +62,24 @@ const noStore = (_req: Request, res: Response, next: NextFunction) => {
 };
 
 /**
+ * Public reads may be kept by a shared cache for a minute and served stale for five while it
+ * refreshes: the website's own data cache already treats a minute as fresh. Errors replace this
+ * with no-store (middleware/error-handler.ts), so a 404 or a failed validation is never cached.
+ * Two reads stay out of shared caches because their callers need the current answer: admin-built
+ * pages (edits show at once) and the address lookup (it decides 404s and redirects).
+ * CORS headers are only sent to allowed origins, so every answer varies by Origin.
+ */
+const PUBLIC_CACHE = "public, max-age=0, s-maxage=60, stale-while-revalidate=300";
+const ALWAYS_FRESH = ["/pages/", "/resolve"];
+const publicCache = (req: Request, res: Response, next: NextFunction) => {
+  if (req.method === "GET" || req.method === "HEAD") {
+    res.vary("Origin");
+    res.set("Cache-Control", ALWAYS_FRESH.some((prefix) => req.path.startsWith(prefix)) ? "no-store" : PUBLIC_CACHE);
+  }
+  next();
+};
+
+/**
  * Builds the Express app without starting a server, so tests can use it directly.
  * Pipeline: docs/BACKEND_MASTER_PLAN.md §3.2.
  */
@@ -116,6 +134,7 @@ export function createApp({ config, logger, db, mailer, clock = systemClock, lim
     );
   }
 
+  app.use("/api/public", publicCache);
   app.use("/api/public/projects", publicProjectRoutes({ config, prisma }));
   app.use("/api/public/pages", publicPageRoutes({ config, prisma }));
   app.use("/api/public/navigation", publicNavigationRoutes({ prisma }));

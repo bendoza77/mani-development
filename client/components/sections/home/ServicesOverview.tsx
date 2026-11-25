@@ -1,4 +1,3 @@
-import { ArrowRight } from "lucide-react";
 import { Img } from "@/components/ui/Img";
 import { TextLink } from "@/components/ui/Button";
 import { IMAGES } from "@/data/images";
@@ -36,16 +35,10 @@ export async function ServicesOverview() {
                 <Link
                   // Anchors are the service's slug, the same in every language (see ServicesList).
                   href={`/services#${s.slug}`}
-                  className="group grid grid-cols-[1fr_auto] gap-x-6 py-6 sm:py-7"
+                  className="group block py-6 sm:py-7"
                 >
-                  <span>
-                    <span className="t-h3 block transition-colors group-hover:text-accent">{s.title}</span>
-                    <span className="mt-2 block max-w-lg text-[0.95rem] leading-relaxed text-ink-soft">{s.summary}</span>
-                  </span>
-                  <ArrowRight
-                    aria-hidden
-                    className="mt-2 size-5 text-muted transition-[color,transform] duration-300 group-hover:translate-x-1 group-hover:text-accent"
-                  />
+                  <span className="t-h3 block transition-colors group-hover:text-accent">{s.title}</span>
+                  <span className="mt-2 block max-w-lg text-[0.95rem] leading-relaxed text-ink-soft">{s.summary}</span>
                 </Link>
               </li>
             ))}

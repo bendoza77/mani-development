@@ -14,17 +14,21 @@ import { getSettings } from "@/lib/public-api";
 import { SITE_NOINDEX, SITE_URL } from "@/lib/seo/metadata";
 import "../globals.css";
 
+// Upright only: a preloaded italic file (about 147 KB) downloaded on every visit, and nothing on the
+// site sets Newsreader in italics except an italic word inside an admin-written quote, which the
+// browser now slants itself. Russian quotes keep real italics from Source Serif 4 below.
 const newsreader = Newsreader({
   variable: "--font-newsreader",
   subsets: ["latin"],
-  style: ["normal", "italic"],
   axes: ["opsz"],
   display: "swap",
 });
 
 // Geist covers Cyrillic itself, so Russian body text needs no companion face.
 const geist = Geist({ variable: "--font-geist", subsets: ["latin", "cyrillic"], display: "swap" });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin", "cyrillic"], display: "swap" });
+// Only the language switcher uses the mono face, so it isn't preloaded: the browser fetches just the
+// part it draws, after the fonts the page's text needs.
+const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin", "cyrillic"], display: "swap", preload: false });
 
 // Georgian companions for the Latin faces. They only cover the Georgian block (unicode-range), so
 // the browser downloads them only when Georgian text is on the page. No metric fallback face is

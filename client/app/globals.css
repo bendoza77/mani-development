@@ -11,7 +11,7 @@
   --card: #faf8f4;
   --ink: #151617;
   --ink-soft: #3f4043;
-  --muted: #6a665f;
+  --muted: #66625b; /* ≥4.5:1 on paper-2 as well as paper and card */
   --line: rgb(21 22 23 / 0.12);
   --line-strong: rgb(21 22 23 / 0.24);
   --accent: #ad4e28;
@@ -24,7 +24,7 @@
   --night-muted: #9d988f;
   --ok: #3a6b4b;
   --ok-soft: #dfe9df;
-  --warn: #8f6115;
+  --warn: #855a12; /* ≥4.5:1 on warn-soft (status badges) */
   --warn-soft: #f2e6cc;
   --danger: #a3372a;
   --danger-soft: #f4dcd6;
@@ -341,6 +341,17 @@ p {
 .rise-in {
   animation: rise-in 1s var(--ease-arch) both;
   animation-delay: var(--d, 0ms);
+}
+
+/* Reviews row: the bar under the cards fills while the row waits for its next move. The duration
+   comes from the component, so it matches the timer. */
+@keyframes review-progress {
+  from {
+    transform: scaleX(0);
+  }
+}
+.review-progress {
+  animation: review-progress linear both;
 }
 
 /* Native <dialog> modal transitions (with @starting-style for entry). */

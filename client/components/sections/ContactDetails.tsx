@@ -22,7 +22,7 @@ export async function ContactDetails() {
     <ul className="divide-y divide-line border-y border-line">
       {shown.map((r) => (
         <li key={r.label} className="flex items-start gap-4 py-4">
-          <r.icon aria-hidden strokeWidth={1.5} className="mt-0.5 size-5 shrink-0 text-accent" />
+          <r.icon aria-hidden strokeWidth={1.5} className="mt-0.5 size-5 shrink-0 text-muted" />
           <div className="min-w-0">
             <p className="t-meta text-muted">{r.label}</p>
             {r.maps && r.href && r.channel ? (
