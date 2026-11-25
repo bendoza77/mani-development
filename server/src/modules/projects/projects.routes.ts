@@ -100,6 +100,10 @@ const withMedia = {
 
 type ProjectRow = Prisma.ProjectGetPayload<{ include: typeof withMedia }>;
 
+/** Cards show only the cover: loading the gallery and specs for every project made the list grow with them. */
+const cardInclude = { cover: true } satisfies Prisma.ProjectInclude;
+type CardRow = Prisma.ProjectGetPayload<{ include: typeof cardInclude }>;
+
 function toAdminProject(p: ProjectRow, config: Config) {
   return {
     id: p.id,
@@ -126,6 +130,7 @@ function toAdminProject(p: ProjectRow, config: Config) {
     estimatedCompletion: fromDate(p.estimatedCompletion),
     completionDate: p.completionDate ? fromDate(p.completionDate) : null,
     featured: p.featured,
+    position: p.position,
     architect: p.architect,
     cover: toImage(p.cover, config),
     gallery: p.gallery.map((g) => toImage(g.media, config)),
@@ -139,7 +144,7 @@ function toAdminProject(p: ProjectRow, config: Config) {
   };
 }
 
-function toCard(p: ProjectRow, config: Config, locale: Locale) {
+function toCard(p: CardRow, config: Config, locale: Locale) {
   return {
     id: p.id,
     slug: p.slug,
@@ -231,11 +236,35 @@ const projectPatch = z
   .refine((body) => Object.keys(body).length > 0, { message: "empty_update" });
 const idParam = z.uuid();
 
+/** The whole list of project ids, in the order the website shows them. */
+const orderInput = z
+  .strictObject({ ids: z.array(z.uuid()).max(1000) })
+  .refine((body) => new Set(body.ids).size === body.ids.length, { path: ["ids"], message: "duplicate" });
+
+/** Lists follow the admin's order; ties (never set) fall back to newest edit first. */
+const listOrder = [{ position: "asc" }, { updatedAt: "desc" }] satisfies Prisma.ProjectOrderByWithRelationInput[];
+
 export function adminProjectRoutes({ config, prisma }: { config: Config; prisma: PrismaClient }) {
   const router = Router();
 
   router.get("/", async (_req, res) => {
-    const projects = await prisma.project.findMany({ include: withMedia, orderBy: { updatedAt: "desc" } });
+    const projects = await prisma.project.findMany({ include: withMedia, orderBy: listOrder });
+    res.json({ items: projects.map((p) => toAdminProject(p, config)) });
+  });
+
+  router.put("/order", async (req, res) => {
+    const { ids } = parse(orderInput, req.body);
+    const existing = await prisma.project.findMany({ select: { id: true } });
+    const wanted = new Set(ids);
+    // A partial list would leave two projects on the same place; usually it means another tab changed the list.
+    if (existing.length !== ids.length || existing.some((p) => !wanted.has(p.id))) {
+      throw new AppError(400, "VALIDATION_ERROR", "The order must list every project exactly once.", {
+        fieldErrors: { ids: [{ code: "mismatch" }] },
+      });
+    }
+    await prisma.$transaction(ids.map((id, position) => prisma.project.update({ where: { id }, data: { position } })));
+    await recordActivity(prisma, { kind: "project", message: "Project order changed", actorId: req.session!.user.id });
+    const projects = await prisma.project.findMany({ include: withMedia, orderBy: listOrder });
     res.json({ items: projects.map((p) => toAdminProject(p, config)) });
   });
 
@@ -249,8 +278,15 @@ export function adminProjectRoutes({ config, prisma }: { config: Config; prisma:
     const input = parse(projectInput, req.body);
     await assertReadyImages(prisma, imagesOf(input));
     try {
+      // A new project goes to the end of the list.
+      const last = await prisma.project.aggregate({ _max: { position: true } });
       const project = await prisma.project.create({
-        data: { ...columns(input), publishedAt: input.isPublished ? new Date() : null, ...children(input) },
+        data: {
+          ...columns(input),
+          position: (last._max.position ?? -1) + 1,
+          publishedAt: input.isPublished ? new Date() : null,
+          ...children(input),
+        },
         include: withMedia,
       });
       await recordActivity(prisma, { kind: "project", message: `Project created: ${project.titleKa}`, actorId: req.session!.user.id });
@@ -338,8 +374,8 @@ export function publicProjectRoutes({ config, prisma }: { config: Config; prisma
     const { locale } = parse(localeQuery, req.query);
     const projects = await prisma.project.findMany({
       where: { isPublished: true },
-      include: withMedia,
-      orderBy: [{ featured: "desc" }, { updatedAt: "desc" }],
+      include: cardInclude,
+      orderBy: listOrder,
     });
     res.json({ items: projects.map((p) => toCard(p, config, locale)) });
   });

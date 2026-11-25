@@ -189,6 +189,8 @@ model Project {
   estimatedCompletion DateTime        @map("estimated_completion") @db.Date
   completionDate      DateTime?       @map("completion_date") @db.Date
   featured            Boolean         @default(false)
+  /// The admin's chosen place in project lists (0 = first).
+  position            Int             @default(0)
   architect           String          @default("") @db.VarChar(120)
   coverId             String          @map("cover_id") @db.Uuid
   isPublished         Boolean         @default(false) @map("is_published")
@@ -218,6 +220,7 @@ model Project {
   @@index([coverId])
   @@index([ogImageId])
   @@index([isPublished, updatedAt(sort: Desc)])
+  @@index([position])
   @@map("projects")
 }
 

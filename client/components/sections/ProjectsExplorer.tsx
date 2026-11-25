@@ -4,23 +4,21 @@ import { useEffect, useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
 import { ProjectCard } from "@/components/sections/ProjectCard";
 import { Button } from "@/components/ui/Button";
-import { useLocale, useTranslation } from "@/i18n/client";
+import { useTranslation } from "@/i18n/client";
 import { usePublicProjects } from "@/lib/public-projects";
-import { CATEGORY_LABEL, STATUS_LABEL, cx } from "@/lib/format";
-import type { Project, ProjectCategory, ProjectStatus } from "@/lib/types";
+import { CATEGORY_LABEL, cx } from "@/lib/format";
+import type { Project, ProjectCategory } from "@/lib/types";
 
-type Sort = "houses" | "recent" | "az";
-type Filters = { category: ProjectCategory | "all"; status: ProjectStatus | "all"; q: string; sort: Sort };
-const DEFAULTS: Filters = { category: "all", status: "all", q: "", sort: "houses" };
-const SORTS = new Set<Sort>(["houses", "recent", "az"]);
+type Filters = { category: ProjectCategory | "all"; q: string };
+const DEFAULTS: Filters = { category: "all", q: "" };
+const CATEGORIES = new Set<string>(["all", ...Object.keys(CATEGORY_LABEL)]);
 const KEY = "lintel:project-filters";
 
 /** `initialProjects` is the list the server rendered with (app/[lang]/(site)/projects/page.tsx). */
 export function ProjectsExplorer({ initialProjects }: { initialProjects?: Project[] }) {
   const { t } = useTranslation("projects");
   const { t: tc } = useTranslation("common");
-  const locale = useLocale();
-  // Published projects from the API, already in the visitor's language (so search and A–Z work on visible text).
+  // Published projects from the API, already in the visitor's language (so search works on visible text).
   const { projects: loaded, error: loadError } = usePublicProjects(initialProjects);
   const projects = useMemo(() => loaded ?? [], [loaded]);
   const [f, setF] = useState<Filters>(DEFAULTS);
@@ -30,8 +28,13 @@ export function ProjectsExplorer({ initialProjects }: { initialProjects?: Projec
   useEffect(() => {
     try {
       const saved = JSON.parse(sessionStorage.getItem(KEY) ?? "null");
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- restore session filters after hydration
-      if (saved && typeof saved === "object") setF({ ...DEFAULTS, ...saved, sort: SORTS.has(saved.sort) ? saved.sort : DEFAULTS.sort });
+      // Read only the filters the bar still shows, so an old saved status or sort can't hide projects.
+      if (saved && typeof saved === "object")
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- restore session filters after hydration
+        setF({
+          category: CATEGORIES.has(saved.category) ? saved.category : DEFAULTS.category,
+          q: typeof saved.q === "string" ? saved.q : DEFAULTS.q,
+        });
     } catch {
       /* ignore malformed */
     }
@@ -54,29 +57,27 @@ export function ProjectsExplorer({ initialProjects }: { initialProjects?: Projec
 
   const results = useMemo(() => {
     const q = f.q.trim().toLowerCase();
-    const list = projects.filter(
+    // The API already returns projects in the order chosen in the admin.
+    return projects.filter(
       (p) =>
         (f.category === "all" || p.category === f.category) &&
-        (f.status === "all" || p.status === f.status) &&
         (!q || `${p.title} ${p.location} ${p.summary}`.toLowerCase().includes(q)),
     );
-    const byDate = (a: Project, b: Project) =>
-      (b.completionDate ?? b.estimatedCompletion).localeCompare(a.completionDate ?? a.estimatedCompletion);
-    if (f.sort === "az") return [...list].sort((a, b) => a.title.localeCompare(b.title, locale));
-    if (f.sort === "recent") return [...list].sort(byDate);
-    // Default: the company's core work (private houses) first, each group newest first.
-    const house = (p: Project) => (p.category === "residential" ? 0 : 1);
-    return [...list].sort((a, b) => house(a) - house(b) || byDate(a, b));
-  }, [projects, f, locale]);
+  }, [projects, f]);
 
-  const dirty = f.category !== "all" || f.status !== "all" || f.q !== "";
+  const dirty = f.category !== "all" || f.q !== "";
   const categories: (ProjectCategory | "all")[] = ["all", ...(Object.keys(CATEGORY_LABEL) as ProjectCategory[])];
 
   return (
     <section className="pb-[clamp(4.5rem,10vw,8rem)]" aria-label={t("explorer.label")}>
       <div className="z-20 border-y border-line bg-paper lg:sticky-under-header">
-        <div className="shell flex flex-col gap-3 py-3 xl:flex-row xl:items-center xl:justify-between">
-          <div className="no-scrollbar -mx-(--gutter) flex gap-1 overflow-x-auto px-(--gutter) xl:mx-0 xl:px-0" role="group" aria-label={t("explorer.filterByCategory")}>
+        <div className="shell flex flex-col gap-3 py-3 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
+          {/* Phones: one row that scrolls, faded at the edge so the hidden chips are hinted. Wider: chips wrap, none hidden. */}
+          <div
+            className="no-scrollbar -mx-(--gutter) flex gap-1 overflow-x-auto px-(--gutter) max-sm:mask-[linear-gradient(to_right,black_calc(100%-3rem),transparent)] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0"
+            role="group"
+            aria-label={t("explorer.filterByCategory")}
+          >
             {categories.map((c) => (
               <button
                 key={c}
@@ -93,48 +94,17 @@ export function ProjectsExplorer({ initialProjects }: { initialProjects?: Projec
               </button>
             ))}
           </div>
-          <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
-            <label className="relative col-span-2 sm:w-64">
-              <span className="sr-only">{t("explorer.search")}</span>
-              <Search aria-hidden className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted" />
-              <input
-                type="search"
-                value={f.q}
-                onChange={(e) => setF((x) => ({ ...x, q: e.target.value }))}
-                placeholder={t("explorer.searchPlaceholder")}
-                className="h-10 w-full rounded-full border border-line-strong bg-card pr-4 pl-9 text-[0.88rem] placeholder:text-muted focus:border-ink focus:outline-none"
-              />
-            </label>
-            <label className="sr-only" htmlFor="status-filter">
-              {t("explorer.status")}
-            </label>
-            <select
-              id="status-filter"
-              value={f.status}
-              onChange={(e) => setF((x) => ({ ...x, status: e.target.value as Filters["status"] }))}
-              className="h-10 rounded-full border border-line-strong bg-card px-4 text-[0.88rem] focus:border-ink focus:outline-none"
-            >
-              <option value="all">{t("explorer.anyStatus")}</option>
-              {(Object.keys(STATUS_LABEL) as ProjectStatus[]).map((s) => (
-                <option key={s} value={s}>
-                  {tc(`status.${s}`)}
-                </option>
-              ))}
-            </select>
-            <label className="sr-only" htmlFor="sort-filter">
-              {t("explorer.sort")}
-            </label>
-            <select
-              id="sort-filter"
-              value={f.sort}
-              onChange={(e) => setF((x) => ({ ...x, sort: e.target.value as Filters["sort"] }))}
-              className="h-10 rounded-full border border-line-strong bg-card px-4 text-[0.88rem] focus:border-ink focus:outline-none"
-            >
-              <option value="houses">{t("explorer.sortHouses")}</option>
-              <option value="recent">{t("explorer.sortRecent")}</option>
-              <option value="az">{t("explorer.sortAz")}</option>
-            </select>
-          </div>
+          <label className="relative block shrink-0 sm:w-72">
+            <span className="sr-only">{t("explorer.search")}</span>
+            <Search aria-hidden className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted" />
+            <input
+              type="search"
+              value={f.q}
+              onChange={(e) => setF((x) => ({ ...x, q: e.target.value }))}
+              placeholder={t("explorer.searchPlaceholder")}
+              className="h-10 w-full rounded-full border border-line-strong bg-card pr-4 pl-9 text-[0.88rem] placeholder:text-muted focus:border-ink focus:outline-none"
+            />
+          </label>
         </div>
       </div>
 

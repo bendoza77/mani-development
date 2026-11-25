@@ -1,7 +1,7 @@
 {
   "page": {
     "eyebrow": "Projects",
-    "title": "Private houses, <em>and the rest of our work</em>",
+    "title": "Houses, apartments <em>and offices</em>",
     "lead": "Family houses and villas, alongside the apartment buildings, workplaces and renovations we also build. Completed, on site, and in design."
   },
   "summary": {
@@ -15,16 +15,10 @@
     "all": "All",
     "search": "Search projects",
     "searchPlaceholder": "Search name or place",
-    "status": "Status",
-    "anyStatus": "Any status",
-    "sort": "Sort",
-    "sortHouses": "Private houses first",
-    "sortRecent": "Newest first",
-    "sortAz": "A–Z",
     "showing": "Showing {{shown}} of {{total}}",
     "clear": "Clear filters",
     "emptyTitle": "No projects match those filters.",
-    "emptyBody": "Try a different category or status, or clear your search.",
+    "emptyBody": "Try a different category, or clear your search.",
     "reset": "Reset filters",
     "none": "No projects have been published yet. Please check back soon."
   },
@@ -74,7 +68,7 @@
     "missing": {
       "eyebrow": "404: project not found",
       "title": "This project isn’t in our portfolio.",
-      "body": "It may have been renamed or removed in the admin demo.",
+      "body": "It may have been renamed or removed.",
       "cta": "Browse all projects"
     }
   },
@@ -84,6 +78,8 @@
     "dialog": "{{title}} gallery",
     "close": "Close gallery",
     "previous": "Previous image",
-    "next": "Next image"
+    "next": "Next image",
+    "show": "Show image {{n}} of {{total}}",
+    "slider": "{{title}} photos"
   }
 }
