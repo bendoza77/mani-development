@@ -14,7 +14,7 @@ import { useApiData } from "@/hooks/useApiData";
 import { api, errorMessage, type AdminProject, type ProjectCategory, type ProjectPatch, type ProjectStatus } from "@/lib/api";
 import { CATEGORY_LABEL, STATUS_LABEL, cx, formatDate } from "@/lib/format";
 
-type SortKey = "title" | "status" | "progress" | "updatedAt";
+type SortKey = "position" | "title" | "status" | "progress" | "updatedAt";
 const STATUSES = Object.keys(STATUS_LABEL) as ProjectStatus[];
 
 export function ProjectsAdmin() {
@@ -28,7 +28,7 @@ export function ProjectsAdmin() {
   const status: ProjectStatus | "all" = statusParam && STATUSES.includes(statusParam) ? statusParam : "all";
   const [q, setQ] = useState("");
   const [category, setCategory] = useState<ProjectCategory | "all">("all");
-  const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: "updatedAt", dir: "desc" });
+  const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: "position", dir: "asc" });
   const [toDelete, setToDelete] = useState<AdminProject | null>(null);
 
   const setStatus = (s: ProjectStatus | "all") => router.replace(s === "all" ? "/admin/projects" : `/admin/projects?status=${s}`, { scroll: false });
@@ -46,13 +46,15 @@ export function ProjectsAdmin() {
     const order = { planning: 0, "in-progress": 1, "on-hold": 2, completed: 3 };
     const cmp = (a: AdminProject, b: AdminProject) => {
       switch (sort.key) {
+        case "position":
+          return a.position - b.position;
         case "title":
           return a.titleKa.localeCompare(b.titleKa);
         case "status":
           return order[a.status] - order[b.status];
         case "progress":
           return a.progress - b.progress;
-        default:
+        case "updatedAt":
           return a.updatedAt.localeCompare(b.updatedAt);
       }
     };
@@ -60,6 +62,30 @@ export function ProjectsAdmin() {
   }, [list, q, status, category, sort]);
 
   const toggleSort = (key: SortKey) => setSort((s) => ({ key, dir: s.key === key && s.dir === "desc" ? "asc" : "desc" }));
+  // Place numbers only make sense on the whole list in website order.
+  const orderMode = status === "all" && category === "all" && !q.trim() && sort.key === "position" && sort.dir === "asc";
+  const showOrder = () => {
+    setQ("");
+    setCategory("all");
+    setStatus("all");
+    setSort({ key: "position", dir: "asc" });
+  };
+
+  /** Moves a project to a 0-based place and saves the whole order. */
+  async function move(p: AdminProject, to: number) {
+    const ids = [...list].sort((a, b) => a.position - b.position).map((x) => x.id).filter((id) => id !== p.id);
+    ids.splice(to, 0, p.id);
+    const place = new Map(ids.map((id, i) => [id, i]));
+    setProjects((items) => items.map((x) => ({ ...x, position: place.get(x.id) ?? x.position })));
+    try {
+      const res = await api<{ items: AdminProject[] }>("/api/admin/projects/order", { method: "PUT", body: { ids } });
+      setProjects(() => res.items);
+      toast({ tone: "success", title: `Moved to place ${to + 1}`, body: p.titleKa });
+    } catch (error) {
+      toast({ tone: "error", title: "Could not save the order", body: errorMessage(error, p.titleKa) });
+      reload();
+    }
+  }
 
   async function save(p: AdminProject, patch: ProjectPatch, success: string) {
     try {
@@ -180,11 +206,20 @@ export function ProjectsAdmin() {
           />
         ) : (
           <>
+            {!orderMode && (
+              <p className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-line px-4 py-2.5 text-[0.82rem] text-muted">
+                The website shows projects in the order of the # column. To change it, clear the filters and sort by #.
+                <button type="button" onClick={showOrder} className="font-medium text-ink underline underline-offset-2 hover:text-accent">
+                  Show order
+                </button>
+              </p>
+            )}
             <div className="hidden overflow-x-auto md:block">
               <table className={tableClass}>
                 <caption className="sr-only">Projects, sortable by column</caption>
                 <thead className={theadClass}>
                   <tr>
+                    <SortHeader label="#" active={sort.key === "position"} dir={sort.dir} onClick={() => toggleSort("position")} className="w-20" />
                     <SortHeader label="Project" active={sort.key === "title"} dir={sort.dir} onClick={() => toggleSort("title")} />
                     <th scope="col" className="px-4 py-3 text-left font-medium max-xl:hidden">Category</th>
                     <SortHeader label="Status" active={sort.key === "status"} dir={sort.dir} onClick={() => toggleSort("status")} />
@@ -198,6 +233,9 @@ export function ProjectsAdmin() {
                 <tbody>
                   {rows.map((p) => (
                     <tr key={p.id} className={rowClass}>
+                      <td className="px-4 py-3">
+                        <PlaceCell project={p} total={list.length} editable={orderMode} onMove={move} />
+                      </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <div className="relative size-11 shrink-0 overflow-hidden rounded-[3px]">
@@ -239,6 +277,9 @@ export function ProjectsAdmin() {
               {rows.map((p) => (
                 <li key={p.id} className="p-4">
                   <div className="flex gap-3">
+                    <div className="pt-1">
+                      <PlaceCell project={p} total={list.length} editable={orderMode} onMove={move} />
+                    </div>
                     <div className="relative size-16 shrink-0 overflow-hidden rounded-[3px]">
                       <Img src={p.cover.src} alt="" sizes="64px" />
                     </div>
@@ -279,6 +320,45 @@ export function ProjectsAdmin() {
         }}
       />
     </>
+  );
+}
+
+/** The project's place (1-based). Type a number and press Enter, or leave the box, to move it there. */
+function PlaceCell({ project: p, total, editable, onMove }: { project: AdminProject; total: number; editable: boolean; onMove: (p: AdminProject, to: number) => void }) {
+  const place = p.position + 1;
+  if (!editable) return <span className="tabular-nums text-muted">{place}</span>;
+  const commit = (input: HTMLInputElement) => {
+    const n = Number.parseInt(input.value, 10);
+    if (!Number.isFinite(n)) {
+      input.value = String(place);
+      return;
+    }
+    const to = Math.min(Math.max(n, 1), total);
+    input.value = String(to);
+    if (to !== place) onMove(p, to - 1);
+  };
+  return (
+    <input
+      // A new key resets the box when the saved place changes.
+      key={place}
+      type="number"
+      inputMode="numeric"
+      min={1}
+      max={total}
+      defaultValue={place}
+      aria-label={`Place of ${p.titleKa} (1 to ${total})`}
+      title="Type a place and press Enter"
+      onFocus={(e) => e.currentTarget.select()}
+      onBlur={(e) => commit(e.currentTarget)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") e.currentTarget.blur();
+        if (e.key === "Escape") {
+          e.currentTarget.value = String(place);
+          e.currentTarget.blur();
+        }
+      }}
+      className="h-8 w-14 rounded-[3px] border border-line-strong bg-card px-2 text-center text-[0.85rem] tabular-nums [appearance:textfield] focus:border-ink focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+    />
   );
 }
 

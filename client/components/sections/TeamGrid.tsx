@@ -20,7 +20,7 @@ export async function TeamGrid() {
             />
           </div>
           <h3 className="mt-4 text-[1rem] font-semibold">{m.name}</h3>
-          <p className="t-meta mt-1 text-accent">{m.role}</p>
+          <p className="t-meta mt-1 text-muted">{m.role}</p>
           <p className="mt-2 text-[0.9rem] leading-relaxed text-ink-soft">{m.bio}</p>
         </Reveal>
       ))}

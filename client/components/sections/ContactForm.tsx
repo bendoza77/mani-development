@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { CircleCheck, TriangleAlert } from "lucide-react";
 import { Trans } from "react-i18next";
 import { Button } from "@/components/ui/Button";
-import { Field, Input, Textarea } from "@/components/ui/Field";
+import { Field, Input, Select, Textarea } from "@/components/ui/Field";
 import { useToast } from "@/components/ui/Toast";
 import { TURNSTILE_SCRIPT_SRC, useTurnstile } from "@/hooks/useTurnstile";
 import { useLocale, useTranslation } from "@/i18n/client";
@@ -18,6 +18,10 @@ type Key = keyof Values;
 type Errors = Partial<Record<Key, true>>;
 const EMPTY: Values = { name: "", email: "", phone: "", subject: "", message: "" };
 const KEYS: Key[] = ["name", "email", "phone", "subject", "message"];
+/** What the visitor is planning. The chosen label is sent as the inquiry subject, so the admin inbox shows it as is. */
+const TOPICS = ["house", "apartment", "business", "renovation", "other"] as const;
+/** "project" is the extra choice offered when the visitor arrives from a project page. */
+type Topic = (typeof TOPICS)[number] | "project";
 
 export function validateContact(v: Values): Errors {
   const e: Errors = {};
@@ -42,6 +46,9 @@ export function ContactForm() {
   const [serverErrors, setServerErrors] = useState<Errors>({});
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | Failure>("idle");
   const [website, setWebsite] = useState(""); // honeypot: people never see or fill it
+  const [topic, setTopic] = useState<Topic | "">("");
+  /** Subject prefilled by a project page link, offered as the first choice. */
+  const [projectSubject, setProjectSubject] = useState("");
   const form = useRef<HTMLFormElement>(null);
 
   const { enabled: turnstileOn, token, widgetRef, reset: resetTurnstile, onScriptLoad } = useTurnstile(locale);
@@ -49,29 +56,44 @@ export function ContactForm() {
   // Prefill the subject when arriving from a project page (?subject=...).
   useEffect(() => {
     const subject = new URLSearchParams(window.location.search).get("subject");
+    if (!subject) return;
+    const text = subject.slice(0, 120);
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time read of browser-only state after hydration
-    if (subject) setValues((v) => ({ ...v, subject: subject.slice(0, 120) }));
+    setProjectSubject(text);
+    setTopic("project");
+    setValues((v) => ({ ...v, subject: text }));
   }, []);
 
   const errors = { ...validateContact(values), ...serverErrors };
   const show = (k: Key) => ((touched[k] || serverErrors[k]) && errors[k] ? t(`validation.${k}`, { length: values.message.trim().length }) : undefined);
+  const update = (k: Key, value: string) => {
+    setValues((v) => ({ ...v, [k]: value }));
+    if (serverErrors[k]) {
+      setServerErrors((prev) => {
+        const next = { ...prev };
+        delete next[k];
+        return next;
+      });
+    }
+  };
   const bind = (k: Key) => ({
     name: k,
     value: values[k],
-    onChange: (e: { target: { value: string } }) => {
-      setValues((v) => ({ ...v, [k]: e.target.value }));
-      if (serverErrors[k]) {
-        setServerErrors((prev) => {
-          const next = { ...prev };
-          delete next[k];
-          return next;
-        });
-      }
-    },
+    onChange: (e: { target: { value: string } }) => update(k, e.target.value),
     onBlur: () => setTouched((x) => ({ ...x, [k]: true })),
   });
+  const chooseTopic = (next: Topic) => {
+    setTopic(next);
+    update("subject", next === "project" ? projectSubject : t(`form.topics.${next}`));
+  };
 
-  const focusField = (k: Key) => form.current?.querySelector<HTMLElement>(`[name="${k}"]`)?.focus();
+  /** Brings the whole field (label included) into view below the fixed header, then focuses it. */
+  const focusField = (k: Key) => {
+    const control = form.current?.querySelector<HTMLElement>(`[name="${k}"]`);
+    if (!control) return;
+    (control.closest("div") ?? control).scrollIntoView({ block: "nearest" });
+    control.focus({ preventScroll: true });
+  };
 
   function fail(kind: Failure) {
     setStatus(kind);
@@ -147,6 +169,7 @@ export function ContactForm() {
           className="mt-8"
           onClick={() => {
             setValues(EMPTY);
+            setTopic("");
             setTouched({});
             setServerErrors({});
             setStatus("idle");
@@ -180,7 +203,31 @@ export function ContactForm() {
         {(a) => <Input {...a} {...bind("phone")} type="tel" autoComplete="tel" inputMode="tel" disabled={sending} maxLength={40} />}
       </Field>
       <Field label={t("form.subject")} required error={show("subject")}>
-        {(a) => <Input {...a} {...bind("subject")} disabled={sending} maxLength={120} />}
+        {(a) => (
+          <Select
+            {...a}
+            name="subject"
+            value={topic}
+            onChange={(e) => chooseTopic(e.target.value as Topic)}
+            onBlur={() => setTouched((x) => ({ ...x, subject: true }))}
+            disabled={sending}
+            className={topic ? undefined : "text-muted"}
+          >
+            <option value="" disabled>
+              {t("form.subjectChoose")}
+            </option>
+            {projectSubject && (
+              <option value="project" className="text-ink">
+                {projectSubject}
+              </option>
+            )}
+            {TOPICS.map((k) => (
+              <option key={k} value={k} className="text-ink">
+                {t(`form.topics.${k}`)}
+              </option>
+            ))}
+          </Select>
+        )}
       </Field>
       <Field label={t("form.message")} required error={show("message")} className="sm:col-span-2">
         {(a) => <Textarea {...a} {...bind("message")} rows={6} disabled={sending} maxLength={5000} placeholder={t("form.messagePlaceholder")} />}

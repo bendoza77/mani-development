@@ -3,6 +3,7 @@
 // The admin session lives on the API server (an HttpOnly cookie the browser sends along).
 // This module asks the server who is signed in and shares the answer with every component.
 import { useEffect, useSyncExternalStore } from "react";
+import { setAdminHint } from "@/lib/admin-hint";
 import { api, UNAUTHENTICATED_EVENT, type SessionUser } from "@/lib/api";
 
 /** `undefined` while unknown (server render / first check pending), `null` when signed out. */
@@ -14,6 +15,8 @@ const listeners = new Set<() => void>();
 
 function set(next: SessionState) {
   state = next;
+  // Tells public pages (EditablePage) whether to check for a session at all.
+  if (next !== undefined) setAdminHint(next !== null);
   listeners.forEach((l) => l());
 }
 

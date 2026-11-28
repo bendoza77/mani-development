@@ -70,6 +70,7 @@ export function HouseViewer({ className }: { className?: string }) {
   const [near, setNear] = useState(false);
   const [onScreen, setOnScreen] = useState(false);
   const [docVisible, setDocVisible] = useState(true);
+  const [pageIdle, setPageIdle] = useState(false);
   const [attempt, setAttempt] = useState(0);
   // React only hears about whole-stage changes; per-frame progress goes straight to the DOM.
   const [stage, setStage] = useState(1);
@@ -110,17 +111,34 @@ export function HouseViewer({ className }: { className?: string }) {
     [],
   );
 
+  // The viewer opens the homepage, so "near" is true at once. three.js (about 266 KB compressed)
+  // therefore waits until the page has loaded and the browser is idle, leaving the network and the
+  // main thread to the text, fonts and first images; the drawing shows meanwhile.
+  useEffect(() => {
+    let cancel = () => {};
+    const start = () => {
+      if (typeof window.requestIdleCallback === "function") {
+        const id = window.requestIdleCallback(() => setPageIdle(true), { timeout: 2000 });
+        cancel = () => window.cancelIdleCallback(id);
+      } else {
+        const id = window.setTimeout(() => setPageIdle(true), 200);
+        cancel = () => window.clearTimeout(id);
+      }
+    };
+    if (document.readyState === "complete") start();
+    else window.addEventListener("load", start, { once: true });
+    return () => {
+      window.removeEventListener("load", start);
+      cancel();
+    };
+  }, []);
+
   // Decide once the viewer is near: unsupported devices keep the drawing and never download three.js.
   useEffect(() => {
-    if (!near || status !== "idle") return;
-    // The first time the scene loads, start from the empty plot (or the finished house for reduced motion).
-    if (!started.current) {
-      started.current = true;
-      Object.assign(build.current, { p: reducedMotion ? STAGE_COUNT : 0, playing: !reducedMotion, target: null });
-    }
+    if (!near || !pageIdle || status !== "idle") return;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time capability check after the viewer nears the viewport
     setStatus(supportsWebGL() ? "loading" : "unsupported");
-  }, [near, status, reducedMotion]);
+  }, [near, pageIdle, status]);
 
   // Turning reduced motion on mid-build finishes the house at once.
   useEffect(() => {
