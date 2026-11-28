@@ -1,10 +1,13 @@
 {
   "stages": [
     {
+      "short": "Site preparation"
+    },
+    {
       "short": "Foundation"
     },
     {
-      "short": "Frame"
+      "short": "Structure"
     },
     {
       "short": "Walls"
@@ -13,10 +16,13 @@
       "short": "Roof"
     },
     {
+      "short": "Windows & doors"
+    },
+    {
       "short": "Facade"
     },
     {
-      "short": "Completed"
+      "short": "Landscaping"
     }
   ],
   "ui": {
@@ -25,9 +31,17 @@
     "unsupported": "3D isn’t available in this browser, so a drawing of the house is shown.",
     "error": "The 3D model couldn’t be displayed, so a drawing is shown.",
     "retry": "Try again",
-    "dragHint": "Drag to rotate",
+    "dragHint": "Drag to rotate · Ctrl + scroll to zoom · double-click to reset",
+    "touchHint": "Swipe to turn · two fingers to turn or zoom",
     "drawingLabel": "Axonometric drawing of the completed conceptual house: a two-storey gabled home with a timber-clad single-storey wing, terrace and pool",
     "replay": "Build again",
-    "modelLabel": "3D model of a private house being built stage by stage, from the foundation to the finished home"
+    "modelLabel": "3D model of a private house being built stage by stage, from the foundation to the finished home",
+    "play": "Play construction",
+    "pause": "Pause construction",
+    "restart": "Restart construction",
+    "resetView": "Reset view",
+    "progress": "Construction progress",
+    "stageValue": "Stage {{n}} of {{total}}: {{name}}",
+    "completed": "Completed"
   }
 }
