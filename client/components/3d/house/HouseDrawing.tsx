@@ -59,7 +59,7 @@ const TINT: Partial<Record<Part["mat"], Shape2D["tint"]>> = {
 const SHAPES: Shape2D[] = PARTS.filter((p) => p.sketch && p.out === undefined).map((p): Shape2D => {
   const depth = dot([p.x, p.y, p.z], toward);
   const tint = TINT[p.mat] ?? "plain";
-  if (p.shape === "ico") {
+  if (p.shape === "leaf") {
     const c = [p.x, p.y, p.z];
     return { depth, kind: "circle", d: "", cx: r2(dot(c, right)), cy: r2(-dot(c, up)), r: r2(p.w / 2), tint };
   }
