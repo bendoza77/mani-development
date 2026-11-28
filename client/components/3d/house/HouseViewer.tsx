@@ -136,9 +136,14 @@ export function HouseViewer({ className }: { className?: string }) {
   // Decide once the viewer is near: unsupported devices keep the drawing and never download three.js.
   useEffect(() => {
     if (!near || !pageIdle || status !== "idle") return;
+    // Start the automatic build once per visit; a remount (route shown again) resumes where it was.
+    if (!started.current) {
+      started.current = true;
+      Object.assign(build.current, { p: reducedMotion ? STAGE_COUNT : 0, playing: !reducedMotion, target: null });
+    }
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time capability check after the viewer nears the viewport
     setStatus(supportsWebGL() ? "loading" : "unsupported");
-  }, [near, pageIdle, status]);
+  }, [near, pageIdle, status, reducedMotion]);
 
   // Turning reduced motion on mid-build finishes the house at once.
   useEffect(() => {
